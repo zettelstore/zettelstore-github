@@ -66,11 +66,3 @@ type AdaptCiteOption struct {
 
 // Name returns the visible name of this option.
 func (al *AdaptCiteOption) Name() string { return "AdaptCiteOption" }
-
-// AdaptFootnoteOption specifies a footnote adapter.
-type AdaptFootnoteOption struct {
-	Adapter func(*ast.FootnoteNode) (fn *ast.FootnoteNode, url string)
-}
-
-// Name returns the visible name of this option.
-func (al *AdaptFootnoteOption) Name() string { return "AdaptFootnoteOption" }

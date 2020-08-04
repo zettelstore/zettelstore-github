@@ -528,12 +528,16 @@ a:not([class]) {
 .zs-broken {
   text-decoration: line-through;
 }
-img {
-  max-width: 100%;
-}
 .zs-text-icon {
   height:1rem;
   vertical-align:text-bottom;
+}
+img {
+  max-width: 100%;
+}
+.zs-endnotes {
+padding-top: 1rem;
+border-top: 1px solid;
 }
 code,pre,kbd {
   font-family: monospace;

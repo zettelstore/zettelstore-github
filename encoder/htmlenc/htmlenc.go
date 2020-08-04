@@ -37,14 +37,15 @@ func init() {
 }
 
 type htmlEncoder struct {
-	lang          string // default language
-	xhtml         bool   // use XHTML syntax instead of HTML syntax
-	material      string // Symbol after link to (external) material.
-	newWindow     bool   // open link in new window
-	adaptLink     func(*ast.LinkNode) *ast.LinkNode
-	adaptImage    func(*ast.ImageNode) *ast.ImageNode
-	adaptCite     func(*ast.CiteNode) (cn *ast.CiteNode, url string)
-	adaptFootnote func(*ast.FootnoteNode) (fn *ast.FootnoteNode, url string)
+	lang       string // default language
+	xhtml      bool   // use XHTML syntax instead of HTML syntax
+	material   string // Symbol after link to (external) material.
+	newWindow  bool   // open link in new window
+	adaptLink  func(*ast.LinkNode) *ast.LinkNode
+	adaptImage func(*ast.ImageNode) *ast.ImageNode
+	adaptCite  func(*ast.CiteNode) (cn *ast.CiteNode, url string)
+
+	footnotes []*ast.FootnoteNode
 }
 
 func createEncoder() encoder.Encoder {
@@ -73,8 +74,6 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 		he.adaptImage = opt.Adapter
 	case *encoder.AdaptCiteOption:
 		he.adaptCite = opt.Adapter
-	case *encoder.AdaptFootnoteOption:
-		he.adaptFootnote = opt.Adapter
 	default:
 		fmt.Println("HESO", option, option.Name())
 	}
@@ -86,12 +85,11 @@ func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 	if !he.xhtml {
 		v.b.WriteString("<!DOCTYPE html>\n")
 	}
-	v.b.WriteString("<html lang=\"")
-	v.b.WriteString(he.lang)
-	v.b.WriteString("\">\n<head>\n<meta charset=\"utf-8\">\n")
+	v.b.WriteString("<html lang=\"", he.lang, "\">\n<head>\n<meta charset=\"utf-8\">\n")
 	v.acceptMeta(zettel.Meta, zettel.Title)
 	v.b.WriteString("\n</head>\n<body>\n")
 	v.acceptBlockSlice(zettel.Ast)
+	v.writeEndnotes()
 	v.b.WriteString("</body>\n</html>")
 	length, err := v.b.Flush()
 	return length, err
@@ -109,6 +107,7 @@ func (he *htmlEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.Inlin
 func (he *htmlEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	v := newVisitor(he, w)
 	v.acceptBlockSlice(bs)
+	v.writeEndnotes()
 	length, err := v.b.Flush()
 	return length, err
 }
@@ -138,9 +137,7 @@ func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
 	textEnc := encoder.Create("text")
 	var sb strings.Builder
 	textEnc.WriteInlines(&sb, title)
-	v.b.WriteString("<title>")
-	v.b.WriteString(sb.String())
-	v.b.WriteString("</title>")
+	v.b.WriteString("<title>", sb.String(), "</title>")
 
 	for i, pair := range meta.Pairs() {
 		if i == 0 { // "title" is number 0...
@@ -555,26 +552,10 @@ func (v *visitor) VisitCite(cn *ast.CiteNode) {
 
 // VisitFootnote write HTML code for a footnote.
 func (v *visitor) VisitFootnote(fn *ast.FootnoteNode) {
-	var url string
-	if adapt := v.enc.adaptFootnote; adapt != nil {
-		fn, url = adapt(fn)
-	}
-	if fn != nil {
-		if url == "" {
-			// TODO: merge Attrs with class=footnote
-			v.b.WriteString("<span class=\"footnote\">")
-			v.acceptInlineSlice(fn.Inlines)
-			v.b.WriteString("</span>")
-		} else {
-			v.b.WriteString("<a href=\"")
-			v.b.WriteString(url)
-			v.b.WriteByte('"')
-			v.visitAttributes(fn.Attrs)
-			v.b.WriteByte('>')
-			v.acceptInlineSlice(fn.Inlines)
-			v.b.WriteString("</a>")
-		}
-	}
+	v.enc.footnotes = append(v.enc.footnotes, fn)
+	n := fmt.Sprintf("%d", len(v.enc.footnotes))
+	v.b.WriteString("<sup id=\"fnref:", n, "\"><a href=\"#fn:", n, "\" class=\"zs-footnote-ref\" role=\"doc-noteref\">", n, "</a></sup>")
+	// TODO: what to do with Attrs?
 }
 
 // VisitMark writes HTML code to mark a position.
@@ -721,6 +702,19 @@ func (v *visitor) acceptItemSlice(ins ast.ItemSlice) {
 func (v *visitor) acceptInlineSlice(ins ast.InlineSlice) {
 	for _, in := range ins {
 		in.Accept(v)
+	}
+}
+
+func (v *visitor) writeEndnotes() {
+	if len(v.enc.footnotes) > 0 {
+		v.b.WriteString("<ol class=\"zs-endnotes\">\n")
+		for i, fn := range v.enc.footnotes {
+			n := fmt.Sprintf("%d", i+1)
+			v.b.WriteString("<li id=\"fn:", n, "\" role=\"doc-endnote\">")
+			v.acceptInlineSlice(fn.Inlines)
+			v.b.WriteString(" <a href=\"#fnref:", n, "\" class=\"zs-footnote-backref\" role=\"doc-backlink\">&#x21a9;&#xfe0e;</a></li>\n")
+		}
+		v.b.WriteString("</ol>\n")
 	}
 }
 
