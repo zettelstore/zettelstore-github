@@ -122,8 +122,7 @@ func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
 			}
 			v.writeNewLine()
 			v.b.WriteByte('[')
-			v.b.WriteString(p.Key)
-			v.b.WriteString(" \"")
+			v.b.WriteString(p.Key, " \"")
 			v.writeEscaped(p.Value)
 			v.b.WriteString("\"]")
 			first = false
@@ -135,18 +134,13 @@ func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
 
 func (v *visitor) writeMetaString(meta *domain.Meta, key string, native string) {
 	if val, ok := meta.Get(key); ok && len(val) > 0 {
-		v.b.WriteString("\n[")
-		v.b.WriteString(native)
-		v.b.WriteString(" \"")
-		v.b.WriteString(val)
-		v.b.WriteString("\"]")
+		v.b.WriteString("\n[", native, " \"", val, "\"]")
 	}
 }
 
 func (v *visitor) writeMetaList(meta *domain.Meta, key string, native string) {
 	if vals, ok := meta.GetList(key); ok && len(vals) > 0 {
-		v.b.WriteString("\n[")
-		v.b.WriteString(native)
+		v.b.WriteString("\n[", native)
 		for _, val := range vals {
 			v.b.WriteByte(' ')
 			v.b.WriteString(val)
@@ -221,8 +215,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 
 // VisitHeading writes the native code for a heading.
 func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
-	v.b.WriteString("[Heading ")
-	v.b.WriteString(strconv.Itoa(hn.Level))
+	v.b.WriteString("[Heading ", strconv.Itoa(hn.Level))
 	v.visitAttributes(hn.Attrs)
 	v.b.WriteByte(' ')
 	v.acceptInlineSlice(hn.Inlines)
@@ -335,8 +328,7 @@ var alignString = map[ast.Alignment]string{
 }
 
 func (v *visitor) writeCell(cell *ast.TableCell) {
-	v.b.WriteString("[Cell")
-	v.b.WriteString(alignString[cell.Align])
+	v.b.WriteString("[Cell", alignString[cell.Align])
 	if len(cell.Inlines) > 0 {
 		v.b.WriteByte(' ')
 		v.acceptInlineSlice(cell.Inlines)
@@ -423,9 +415,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 	v.b.WriteString("Image")
 	v.visitAttributes(in.Attrs)
 	if in.Ref == nil {
-		v.b.WriteString(" {\"")
-		v.b.WriteString(in.Syntax)
-		v.b.WriteString("\" \"")
+		v.b.WriteString(" {\"", in.Syntax, "\" \"")
 		switch in.Syntax {
 		case "svg":
 			v.writeEscaped(string(in.Blob))
@@ -435,8 +425,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 		}
 		v.b.WriteString("\"}")
 	} else {
-		v.b.WriteString(" \"")
-		v.b.WriteString(in.Ref.String())
+		v.b.WriteString(" \"", in.Ref.String())
 		v.b.WriteByte('"')
 	}
 	if len(in.Inlines) > 0 {

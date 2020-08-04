@@ -208,8 +208,7 @@ func (v *visitor) VisitTable(tn *ast.TableNode) {
 	}
 	for _, row := range tn.Rows {
 		for _, cell := range row {
-			v.b.WriteString("|")
-			v.b.WriteString(alignCode[cell.Align])
+			v.b.WriteString("|", alignCode[cell.Align])
 			v.acceptInlineSlice(cell.Inlines)
 		}
 		v.b.WriteByte('\n')
@@ -219,11 +218,7 @@ func (v *visitor) VisitTable(tn *ast.TableNode) {
 
 // VisitBLOB writes the binary object as a value.
 func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
-	v.b.WriteString("%% Unable to display BLOB with title '")
-	v.b.WriteString(bn.Title)
-	v.b.WriteString("' and syntax '")
-	v.b.WriteString(bn.Syntax)
-	v.b.WriteString("'\n")
+	v.b.WriteString("%% Unable to display BLOB with title '", bn.Title, "' and syntax '", bn.Syntax, "'\n")
 }
 
 var escapeSeqs = map[string]bool{
@@ -301,8 +296,7 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	v.b.WriteString("[[")
 	v.acceptInlineSlice(ln.Inlines)
 	v.b.WriteByte('|')
-	v.b.WriteString(ln.Ref.String())
-	v.b.WriteString("]]")
+	v.b.WriteString(ln.Ref.String(), "]]")
 }
 
 // VisitImage writes HTML code for images.
@@ -313,15 +307,13 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 			v.acceptInlineSlice(in.Inlines)
 			v.b.WriteByte('|')
 		}
-		v.b.WriteString(in.Ref.String())
-		v.b.WriteString("}}")
+		v.b.WriteString(in.Ref.String(), "}}")
 	}
 }
 
 // VisitCite writes code for citations.
 func (v *visitor) VisitCite(cn *ast.CiteNode) {
-	v.b.WriteString("[@")
-	v.b.WriteString(cn.Key)
+	v.b.WriteString("[@", cn.Key)
 	if len(cn.Inlines) > 0 {
 		v.b.WriteString(", ")
 		v.acceptInlineSlice(cn.Inlines)
@@ -341,8 +333,7 @@ func (v *visitor) VisitFootnote(fn *ast.FootnoteNode) {
 // VisitMark writes HTML code to mark a position.
 func (v *visitor) VisitMark(mn *ast.MarkNode) {
 	if len(mn.Text) > 0 {
-		v.b.WriteString("{!")
-		v.b.WriteString(mn.Text)
+		v.b.WriteString("{!", mn.Text)
 		v.b.WriteByte('}')
 	} else {
 		v.b.WriteString("{!}")
@@ -404,8 +395,7 @@ func (v *visitor) VisitLiteral(ln *ast.LiteralNode) {
 	case ast.LiteralOutput:
 		v.writeLiteral('=', ln.Attrs, ln.Text)
 	case ast.LiteralComment:
-		v.b.WriteString("%% ")
-		v.b.WriteString(ln.Text)
+		v.b.WriteString("%% ", ln.Text)
 	case ast.LiteralHTML:
 		v.b.WriteString("``")
 		v.writeEscaped(ln.Text, '`')
@@ -457,8 +447,7 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 		}
 		v.b.WriteString(k)
 		if vl := a.Attrs[k]; len(vl) > 0 {
-			v.b.WriteString("=\"")
-			v.b.WriteString(vl)
+			v.b.WriteString("=\"", vl)
 			v.b.WriteByte('"')
 		}
 	}

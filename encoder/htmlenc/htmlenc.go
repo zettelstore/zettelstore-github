@@ -143,9 +143,7 @@ func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
 		if i == 0 { // "title" is number 0...
 			continue
 		}
-		v.b.WriteString("\n<meta name=\"zettel-")
-		v.b.WriteString(pair.Key)
-		v.b.WriteString("\" content=\"")
+		v.b.WriteString("\n<meta name=\"zettel-", pair.Key, "\" content=\"")
 		v.writeEscaped(pair.Value)
 		v.b.WriteString("\">")
 	}
@@ -232,14 +230,11 @@ func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
 	if lvl > 6 {
 		lvl = 6 // HTML has H1..H6
 	}
-	v.b.WriteString("<h")
-	v.b.WriteString(strconv.Itoa(lvl))
+	v.b.WriteString("<h", strconv.Itoa(lvl))
 	v.visitAttributes(hn.Attrs)
 	v.b.WriteString(">")
 	v.acceptInlineSlice(hn.Inlines)
-	v.b.WriteString("</h")
-	v.b.WriteString(strconv.Itoa(lvl))
-	v.b.WriteString(">\n")
+	v.b.WriteString("</h", strconv.Itoa(lvl), ">\n")
 }
 
 // VisitHRule writes HTML code for a horizontal rule: <hr>.
@@ -395,17 +390,13 @@ func (v *visitor) writeRow(row ast.TableRow, cellStart, cellEnd string) {
 func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
 	switch bn.Syntax {
 	case "gif", "jpeg", "png":
-		v.b.WriteString("<img src=\"data:image/")
-		v.b.WriteString(bn.Syntax)
-		v.b.WriteString(";base64,")
+		v.b.WriteString("<img src=\"data:image/", bn.Syntax, ";base64,")
 		v.b.WriteBase64(bn.Blob)
 		v.b.WriteString("\" title=\"")
 		v.writeEscaped(bn.Title)
 		v.b.WriteString("\">\n")
 	default:
-		v.b.WriteString("<p class=\"error\">Unable to display BLOB with syntax '")
-		v.b.WriteString(bn.Syntax)
-		v.b.WriteString("'.</p>\n")
+		v.b.WriteString("<p class=\"error\">Unable to display BLOB with syntax '", bn.Syntax, "'.</p>\n")
 	}
 }
 
@@ -505,8 +496,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 			v.b.WriteString("svg+xml;utf8,")
 			v.writeEscaped(string(in.Blob))
 		default:
-			v.b.WriteString(in.Syntax)
-			v.b.WriteString(";base64,")
+			v.b.WriteString(in.Syntax, ";base64,")
 			v.b.WriteBase64(in.Blob)
 		}
 	} else {
@@ -535,13 +525,11 @@ func (v *visitor) VisitCite(cn *ast.CiteNode) {
 			v.b.WriteString(cn.Key)
 			// TODO: Attrs
 		} else {
-			v.b.WriteString("<a href=\"")
-			v.b.WriteString(url)
+			v.b.WriteString("<a href=\"", url)
 			v.b.WriteByte('"')
 			v.visitAttributes(cn.Attrs)
 			v.b.WriteByte('>')
-			v.b.WriteString(cn.Key)
-			v.b.WriteString("</a>")
+			v.b.WriteString(cn.Key, "</a>")
 		}
 		if len(cn.Inlines) > 0 {
 			v.b.WriteString(", ")
@@ -561,9 +549,7 @@ func (v *visitor) VisitFootnote(fn *ast.FootnoteNode) {
 // VisitMark writes HTML code to mark a position.
 func (v *visitor) VisitMark(mn *ast.MarkNode) {
 	if len(mn.Text) > 0 {
-		v.b.WriteString("<a id=\"")
-		v.b.WriteString(mn.Text)
-		v.b.WriteString("\"></a>")
+		v.b.WriteString("<a id=\"", mn.Text, "\"></a>")
 	}
 }
 
@@ -774,8 +760,7 @@ func (v *visitor) writeEscaped(s string) {
 		default:
 			continue
 		}
-		v.b.WriteString(s[last:i])
-		v.b.WriteString(html)
+		v.b.WriteString(s[last:i], html)
 		last = i + 1
 	}
 	v.b.WriteString(s[last:])

@@ -585,8 +585,7 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 }
 
 func (v *visitor) writeNodeStart(t string) {
-	v.b.WriteString("{\"t\":\"")
-	v.b.WriteString(t)
+	v.b.WriteString("{\"t\":\"", t)
 	v.b.WriteByte('"')
 }
 
