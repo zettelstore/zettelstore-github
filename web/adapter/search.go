@@ -73,7 +73,7 @@ func MakeSearchHandler(te *TemplateEngine, p *parser.Parser, search usecase.Sear
 				}
 			}
 		}
-		if len(filter.Expr) == 0 {
+		if filter == nil || len(filter.Expr) == 0 {
 			http.Redirect(w, r, urlFor('h', ""), http.StatusFound)
 			return
 		}
