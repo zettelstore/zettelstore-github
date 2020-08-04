@@ -1,0 +1,3 @@
+[Title Text "A",Space,Quote [Text "Title"],Space,Text "with",Space,Italic [Text "Markup"],Text ",",Space,Code ("zmk",[]) "Zettelmarkup"[
+[Syntax "zmk"]
+[Role "zettel"]

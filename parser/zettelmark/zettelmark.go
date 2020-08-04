@@ -1,0 +1,256 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2020 Detlef Stern
+//
+// This file is part of zettelstore.
+//
+// Zettelstore is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Affero General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option)
+// any later version.
+//
+// Zettelstore is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License
+// for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
+//-----------------------------------------------------------------------------
+
+// Package zettelmark provides a parser for zettelmarkup.
+package zettelmark
+
+import (
+	"unicode"
+
+	"zettelstore.de/z/ast"
+	"zettelstore.de/z/domain"
+	"zettelstore.de/z/input"
+	"zettelstore.de/z/parser"
+)
+
+func init() {
+	parser.Register(&parser.Info{
+		Name:         "zmk",
+		AltNames:     nil,
+		ParseBlocks:  parseBlocks,
+		ParseInlines: parseInlines,
+	})
+}
+
+func parseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+	parser := &zmkP{inp: inp}
+	bs := parser.parseBlockSlice()
+	return postProcessBlocks(bs)
+}
+
+func parseInlines(inp *input.Input, syntax string) ast.InlineSlice {
+	parser := &zmkP{inp: inp}
+	is := parser.parseInlineSlice()
+	return postProcessInlines(is)
+}
+
+type zmkP struct {
+	inp          *input.Input        // Input stream
+	lists        []*ast.ListNode     // Stack of lists
+	table        *ast.TableNode      // Current table
+	defl         *ast.DefinitionNode // Current definition list
+	nestingLevel int                 // Count nesting of block and inline elements
+}
+
+const maxNestingLevel = 50
+
+// clearStacked removes all multi-line nodes from parser.
+func (cp *zmkP) clearStacked() {
+	cp.lists = nil
+	cp.table = nil
+	cp.defl = nil
+}
+
+func (cp *zmkP) parseNormalAttribute(attrs map[string]string, sameLine bool) bool {
+	inp := cp.inp
+	posK := inp.Pos
+	for isNameRune(inp.Ch) {
+		inp.Next()
+	}
+	if posK == inp.Pos {
+		return false
+	}
+	key := string(inp.Src[posK:inp.Pos])
+	if inp.Ch != '=' {
+		attrs[key] = ""
+		return true
+	}
+	if sameLine {
+		switch inp.Ch {
+		case input.EOS, '\n', '\r':
+			return false
+		}
+	}
+	return cp.parseAttributeValue(key, attrs, sameLine)
+}
+
+func (cp *zmkP) parseAttributeValue(key string, attrs map[string]string, sameLine bool) bool {
+	inp := cp.inp
+	inp.Next()
+	if inp.Ch == '"' {
+		inp.Next()
+		var val string
+		for {
+			switch inp.Ch {
+			case input.EOS:
+				return false
+			case '"':
+				updateAttrs(attrs, key, val)
+				inp.Next()
+				return true
+			case '\n', '\r':
+				if sameLine {
+					return false
+				}
+				inp.EatEOL()
+				val += " "
+			case '\\':
+				inp.Next()
+				switch inp.Ch {
+				case input.EOS, '\n', '\r':
+					return false
+				}
+				fallthrough
+			default:
+				val += string(inp.Ch)
+				inp.Next()
+			}
+		}
+	}
+	posV := inp.Pos
+	for {
+		switch inp.Ch {
+		case input.EOS:
+			return false
+		case '\n', '\r':
+			if sameLine {
+				return false
+			}
+			fallthrough
+		case ' ', '}':
+			updateAttrs(attrs, key, inp.Src[posV:inp.Pos])
+			return true
+		}
+		inp.Next()
+	}
+}
+
+func updateAttrs(attrs map[string]string, key string, val string) {
+	if prevVal := attrs[key]; len(prevVal) > 0 {
+		attrs[key] = prevVal + " " + val
+	} else {
+		attrs[key] = val
+	}
+}
+
+// parseAttributes reads optional attributes.
+// If sameLine is True, it is called from block nodes. In this case, a single
+// name is allowed. It will parse as {name}. Attributes are not allowed to be
+// continued on next line.
+// If sameLine is False, it is called from inline nodes. In this case, the next
+// rune must be '{'. A continuation on next lines is allowed.
+func (cp *zmkP) parseAttributes(sameLine bool) *ast.Attributes {
+	inp := cp.inp
+	if sameLine {
+		pos := inp.Pos
+		for isNameRune(inp.Ch) {
+			inp.Next()
+		}
+		if pos < inp.Pos {
+			return &ast.Attributes{Attrs: map[string]string{"": inp.Src[pos:inp.Pos]}}
+		}
+
+		// No immediate name: skip spaces
+		cp.skipSpace(!sameLine)
+	}
+
+	pos := inp.Pos
+	attrs, success := cp.doParseAttributes(sameLine)
+	if sameLine || success {
+		return attrs
+	}
+	inp.SetPos(pos)
+	return nil
+}
+
+func (cp *zmkP) doParseAttributes(sameLine bool) (res *ast.Attributes, success bool) {
+	inp := cp.inp
+	if inp.Ch != '{' {
+		return nil, false
+	}
+	inp.Next()
+	attrs := map[string]string{}
+loop:
+	for {
+		cp.skipSpace(!sameLine)
+		switch inp.Ch {
+		case input.EOS:
+			return nil, false
+		case '}':
+			break loop
+		case '.':
+			inp.Next()
+			posC := inp.Pos
+			for isNameRune(inp.Ch) {
+				inp.Next()
+			}
+			if posC == inp.Pos {
+				return nil, false
+			}
+			updateAttrs(attrs, "class", inp.Src[posC:inp.Pos])
+		case '=':
+			delete(attrs, "")
+			if !cp.parseAttributeValue("", attrs, sameLine) {
+				return nil, false
+			}
+		default:
+			if !cp.parseNormalAttribute(attrs, sameLine) {
+				return nil, false
+			}
+		}
+		switch inp.Ch {
+		case '}':
+			break loop
+		case '\n', '\r':
+			if sameLine {
+				return nil, false
+			}
+			fallthrough
+		case ' ':
+			cp.skipSpace(!sameLine)
+		default:
+			return nil, false
+		}
+	}
+	inp.Next()
+	return &ast.Attributes{Attrs: attrs}, true
+}
+
+func (cp *zmkP) skipSpace(eolIsSpace bool) {
+	inp := cp.inp
+	if eolIsSpace {
+		for {
+			switch inp.Ch {
+			case ' ':
+				inp.Next()
+			case '\n', '\r':
+				inp.EatEOL()
+			default:
+				return
+			}
+		}
+	}
+	for inp.Ch == ' ' {
+		inp.Next()
+	}
+}
+
+func isNameRune(ch rune) bool {
+	return unicode.IsLetter(ch) || unicode.IsDigit(ch) || ch == '-' || ch == '_'
+}
