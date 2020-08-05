@@ -36,7 +36,6 @@ import (
 	"zettelstore.de/z/store/filestore"
 	"zettelstore.de/z/store/gostore"
 	"zettelstore.de/z/usecase"
-	"zettelstore.de/z/version"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/router"
 )
@@ -89,7 +88,7 @@ func setupRouting(s store.Store) *router.Router {
 }
 
 func main() {
-	version.Setup(releaseVersion, buildVersion)
+	config.SetupVersion(releaseVersion, buildVersion)
 
 	var port uint64
 	var dir string
@@ -110,11 +109,11 @@ func main() {
 	if err = cs.Start(context.Background()); err != nil {
 		log.Fatalf("Unable to start zettel store: %v", err)
 	}
-	config.Setup(cs)
+	config.SetupConfiguration(cs)
 
 	router := setupRouting(cs)
 
-	v := version.Get()
+	v := config.Config.GetVersion()
 	log.Printf("Release %v, Build %v", v.Release, v.Build)
 	log.Printf("Listening on port %v", port)
 	log.Printf("Zettel location %q", cs.Location())

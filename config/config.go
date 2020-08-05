@@ -26,8 +26,36 @@ import (
 	"zettelstore.de/z/store/stock"
 )
 
-// Setup enables the configuration package.
-func Setup(store store.Store) {
+// Version describes all elements of a software version.
+type Version struct {
+	Release string // Official software release version
+	Build   string // Internal representation of build process
+	// More to come
+}
+
+var v Version
+
+// SetupVersion initializes the version data.
+func SetupVersion(release string, build string) {
+	if len(release) > 0 {
+		v.Release = release
+	} else {
+		v.Release = "unknown"
+	}
+	if len(build) > 0 {
+		v.Build = build
+	} else {
+		v.Build = "unknown"
+	}
+}
+
+// GetVersion returns the current software version data.
+func (c Type) GetVersion() Version {
+	return v
+}
+
+// SetupConfiguration enables the configuration data.
+func SetupConfiguration(store store.Store) {
 	if configStock != nil {
 		panic("configStock already set")
 	}
