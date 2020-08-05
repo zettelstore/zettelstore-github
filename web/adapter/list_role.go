@@ -56,8 +56,8 @@ func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.Han
 			Title string
 			Roles []string
 		}{
-			Lang:  config.GetDefaultLang(),
-			Title: config.GetSiteName(),
+			Lang:  config.Config.GetDefaultLang(),
+			Title: config.Config.GetSiteName(),
 			Roles: roleList,
 		})
 	}

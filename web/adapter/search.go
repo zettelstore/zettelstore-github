@@ -94,7 +94,7 @@ func MakeSearchHandler(te *TemplateEngine, p *parser.Parser, search usecase.Sear
 			}
 		}
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.GetDefaultLang()}
+		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()}
 		metas := make([]metaInfo, 0, len(metaList))
 		for _, meta := range metaList {
 			title, _ := meta.Get(domain.MetaKeyTitle)
@@ -113,7 +113,7 @@ func MakeSearchHandler(te *TemplateEngine, p *parser.Parser, search usecase.Sear
 			Key   byte
 		}{
 			Lang:  langOption.Value,
-			Title: config.GetSiteName(),
+			Title: config.Config.GetSiteName(),
 			Metas: metas,
 			Key:   'h',
 		})

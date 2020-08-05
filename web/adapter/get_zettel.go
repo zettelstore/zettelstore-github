@@ -59,7 +59,7 @@ func MakeGetZettelHandler(
 		format := getFormat(r, "html")
 		w.Header().Set("Content-Type", formatContentType(format))
 		err = writeZettel(w, z, format,
-			&encoder.StringOption{Key: "lang", Value: config.GetDefaultLang()},
+			&encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
 			&encoder.AdaptImageOption{Adapter: makeImageAdapter(key)},
 		)

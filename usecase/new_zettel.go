@@ -51,15 +51,15 @@ func (uc NewZettel) Run(ctx context.Context, zettel domain.Zettel) error {
 	}
 
 	if title, ok := meta.Get(domain.MetaKeyTitle); !ok || title == "" {
-		meta.Set(domain.MetaKeyTitle, config.GetDefaultTitle())
+		meta.Set(domain.MetaKeyTitle, config.Config.GetDefaultTitle())
 	}
 	if role, ok := meta.Get(domain.MetaKeyRole); !ok || role == "" {
-		meta.Set(domain.MetaKeyRole, config.GetDefaultRole())
+		meta.Set(domain.MetaKeyRole, config.Config.GetDefaultRole())
 	}
 	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-		meta.Set(domain.MetaKeySyntax, config.GetDefaultSyntax())
+		meta.Set(domain.MetaKeySyntax, config.Config.GetDefaultSyntax())
 	}
-	meta.YamlSep = config.GetYAMLHeader()
+	meta.YamlSep = config.Config.GetYAMLHeader()
 
 	return uc.store.SetZettel(ctx, zettel)
 }

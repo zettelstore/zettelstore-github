@@ -53,7 +53,7 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 			return
 		}
 
-		lang := zettel.Meta.GetDefault("lang", config.GetDefaultLang())
+		lang := zettel.Meta.GetDefault("lang", config.Config.GetDefaultLang())
 		te.renderTemplate(ctx, w, domain.FormTemplateID, formZettelData{
 			Meta:    zettel.Meta,
 			Lang:    lang,

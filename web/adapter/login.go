@@ -44,7 +44,7 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 		}
 
 		te.renderTemplate(r.Context(), w, domain.LoginTemplateID, loginData{
-			Lang:  config.GetDefaultLang(),
+			Lang:  config.Config.GetDefaultLang(),
 			Title: "Login",
 		})
 	}

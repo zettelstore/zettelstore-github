@@ -58,7 +58,7 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 			return
 		}
 
-		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.GetDefaultLang())
+		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.Config.GetDefaultLang())
 		te.renderTemplate(ctx, w, domain.DeleteTemplateID, deleteZettelData{
 			Meta:  zettel.Meta,
 			Title: "Delete Zettel " + string(zettel.Meta.ID),

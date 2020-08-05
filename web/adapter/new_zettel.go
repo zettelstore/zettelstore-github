@@ -57,12 +57,12 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 			meta.YamlSep = oldZettel.Meta.YamlSep
 			zettel = &domain.Zettel{Meta: meta, Content: oldZettel.Content}
 		} else {
-			meta.Set(domain.MetaKeyRole, config.GetDefaultRole())
-			meta.Set(domain.MetaKeySyntax, config.GetDefaultSyntax())
+			meta.Set(domain.MetaKeyRole, config.Config.GetDefaultRole())
+			meta.Set(domain.MetaKeySyntax, config.Config.GetDefaultSyntax())
 			zettel = &domain.Zettel{Meta: meta}
 		}
 
-		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.GetDefaultLang())
+		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.Config.GetDefaultLang())
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
 			Meta:    zettel.Meta,
 			Lang:    lang,

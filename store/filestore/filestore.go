@@ -301,7 +301,7 @@ func calcSpecExt(meta *domain.Meta) (directory.MetaSpec, string) {
 	case "meta", "zmk":
 		return directory.MetaSpecHeader, "zettel"
 	}
-	for _, s := range config.GetZettelFileSyntax() {
+	for _, s := range config.Config.GetZettelFileSyntax() {
 		if s == syntax {
 			return directory.MetaSpecHeader, "zettel"
 		}
@@ -381,10 +381,10 @@ func (fs *fileStore) Reload(ctx context.Context) error {
 
 func (fs *fileStore) cleanupMeta(ctx context.Context, meta *domain.Meta) {
 	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-		meta.Set(domain.MetaKeySyntax, config.GetDefaultSyntax())
+		meta.Set(domain.MetaKeySyntax, config.Config.GetDefaultSyntax())
 	}
 	if role, ok := meta.Get(domain.MetaKeyRole); !ok || role == "" {
-		meta.Set(domain.MetaKeyRole, config.GetDefaultRole())
+		meta.Set(domain.MetaKeyRole, config.Config.GetDefaultRole())
 	}
 }
 
