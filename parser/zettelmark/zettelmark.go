@@ -221,9 +221,8 @@ loop:
 			if sameLine {
 				return nil, false
 			}
-			fallthrough
-		case ' ':
-			cp.skipSpace(!sameLine)
+		case ' ', ',':
+			inp.Next()
 		default:
 			return nil, false
 		}
