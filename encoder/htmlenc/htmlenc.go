@@ -694,7 +694,10 @@ func (v *visitor) acceptInlineSlice(ins ast.InlineSlice) {
 func (v *visitor) writeEndnotes() {
 	if len(v.enc.footnotes) > 0 {
 		v.b.WriteString("<ol class=\"zs-endnotes\">\n")
-		for i, fn := range v.enc.footnotes {
+		for i := 0; i < len(v.enc.footnotes); i++ {
+			// Do not use a range loop above, because a footnote may contain
+			// a footnote. Therefore v.enc.footnote may grow during the loop.
+			fn := v.enc.footnotes[i]
 			n := fmt.Sprintf("%d", i+1)
 			v.b.WriteString("<li id=\"fn:", n, "\" role=\"doc-endnote\">")
 			v.acceptInlineSlice(fn.Inlines)
