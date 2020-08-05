@@ -39,10 +39,11 @@ func Setup(store store.Store) {
 
 var configStock stock.Stock
 
-// Config is the global configuration object.
-var Config configType
+// Type is the type for the config variable.
+type Type struct{}
 
-type configType struct{}
+// Config is the global configuration object.
+var Config Type
 
 // getConfigurationMeta returns the meta data of the configuration zettel.
 func getConfigurationMeta() *domain.Meta {
@@ -53,7 +54,7 @@ func getConfigurationMeta() *domain.Meta {
 }
 
 // GetDefaultTitle returns the current value of the "default-title" key.
-func (c configType) GetDefaultTitle() string {
+func (c Type) GetDefaultTitle() string {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetDefault(domain.MetaKeyDefaultTitle, domain.MetaValueTitle)
 	}
@@ -61,7 +62,7 @@ func (c configType) GetDefaultTitle() string {
 }
 
 // GetDefaultSyntax returns the current value of the "default-syntax" key.
-func (c configType) GetDefaultSyntax() string {
+func (c Type) GetDefaultSyntax() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
 			return config.GetDefault(domain.MetaKeyDefaultSyntax, domain.MetaValueSyntax)
@@ -71,7 +72,7 @@ func (c configType) GetDefaultSyntax() string {
 }
 
 // GetDefaultRole returns the current value of the "default-role" key.
-func (c configType) GetDefaultRole() string {
+func (c Type) GetDefaultRole() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
 			return config.GetDefault(domain.MetaKeyDefaultRole, domain.MetaValueRole)
@@ -81,7 +82,7 @@ func (c configType) GetDefaultRole() string {
 }
 
 // GetDefaultLang returns the current value of the "default-lang" key.
-func (c configType) GetDefaultLang() string {
+func (c Type) GetDefaultLang() string {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetDefault(domain.MetaKeyDefaultLang, domain.MetaValueLang)
 	}
@@ -91,7 +92,7 @@ func (c configType) GetDefaultLang() string {
 var defIconMaterial = "<img class=\"zs-text-icon\" src=\"/c/" + string(domain.MaterialIconID) + "\">"
 
 // GetIconMaterial returns the current value of the "icon-material" key.
-func (c configType) GetIconMaterial() string {
+func (c Type) GetIconMaterial() string {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetDefault(domain.MetaKeyIconMaterial, defIconMaterial)
 	}
@@ -99,7 +100,7 @@ func (c configType) GetIconMaterial() string {
 }
 
 // GetSiteName returns the current value of the "site-name" key.
-func (c configType) GetSiteName() string {
+func (c Type) GetSiteName() string {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetDefault(domain.MetaKeySiteName, domain.MetaValueSiteName)
 	}
@@ -107,7 +108,7 @@ func (c configType) GetSiteName() string {
 }
 
 // GetYAMLHeader returns the current value of the "yaml-header" key.
-func (c configType) GetYAMLHeader() bool {
+func (c Type) GetYAMLHeader() bool {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetBool(domain.MetaKeyYAMLHeader)
 	}
@@ -115,7 +116,7 @@ func (c configType) GetYAMLHeader() bool {
 }
 
 // GetZettelFileSyntax returns the current value of the "zettel-file-syntax" key.
-func (c configType) GetZettelFileSyntax() []string {
+func (c Type) GetZettelFileSyntax() []string {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetListOrNil(domain.MetaKeyZettelFileSyntax)
 	}

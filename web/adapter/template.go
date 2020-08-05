@@ -31,6 +31,7 @@ import (
 	"strings"
 	"sync"
 
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 )
@@ -156,9 +157,19 @@ func writeLink(b *strings.Builder, key, value string) {
 	b.WriteString("</a>")
 }
 
+func configObj() config.Type {
+	return config.Config
+}
+
+func htmlify(s string) template.HTML {
+	return template.HTML(s)
+}
+
 var funcMap = template.FuncMap{
 	"url":           urlFor,
 	"htmlMetaValue": htmlMetaValue,
+	"config":        configObj,
+	"HTML":          htmlify,
 }
 
 func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.ZettelID) (*template.Template, error) {

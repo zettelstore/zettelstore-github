@@ -149,7 +149,7 @@ var goData = goStore{
 {{- if .}}:{{range .}} <a href="{{url $.Key ""}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
 {{- end}}
 &#183; <a href="{{url 'n' .Meta.ID}}">Clone</a>
-{{with .Meta.GetDefault "url" ""}}{{if .}}<br>URL: <a href="{{.}}">{{.}}</a>{{end}}{{end}}
+{{with .Meta.GetDefault "url" ""}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}
 </div>
 </header>
 {{- .Content -}}
@@ -196,7 +196,7 @@ var goData = goStore{
 {{if .ExtLinks}}
 <h3>External</h3>
 <ul>
-{{range .ExtLinks}}<li><a href="{{.}}">{{.}}</a></li>{{end}}
+{{range .ExtLinks}}<li><a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}</li>{{end}}
 </ul>
 {{end}}
 {{end}}
