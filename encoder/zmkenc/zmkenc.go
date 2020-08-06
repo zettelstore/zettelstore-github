@@ -128,7 +128,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 
 // VisitHeading writes the HTML code for a heading.
 func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
-	for i := 0; i < hn.Level; i++ {
+	for i := 0; i <= hn.Level; i++ {
 		v.b.WriteByte('=')
 	}
 	v.b.WriteByte(' ')

@@ -258,11 +258,11 @@ func (cp *zmkP) parseRegion() (rn *ast.RegionNode, success bool) {
 func (cp *zmkP) parseHeading() (hn *ast.HeadingNode, success bool) {
 	inp := cp.inp
 	lvl := cp.countDelim(inp.Ch)
-	if lvl < 2 {
+	if lvl < 3 {
 		return nil, false
 	}
-	if lvl > 6 {
-		lvl = 6
+	if lvl > 7 {
+		lvl = 7
 	}
 	if inp.Ch != ' ' {
 		return nil, false
@@ -271,7 +271,7 @@ func (cp *zmkP) parseHeading() (hn *ast.HeadingNode, success bool) {
 	for inp.Ch == ' ' {
 		inp.Next()
 	}
-	hn = &ast.HeadingNode{Level: lvl}
+	hn = &ast.HeadingNode{Level: lvl - 1}
 	for {
 		switch inp.Ch {
 		case input.EOS, '\n', '\r':
