@@ -47,6 +47,26 @@ func NewInput(src string) *Input {
 // EOS = End of source
 const EOS = rune(-1)
 
+var replacementMap [256]rune
+
+func init() {
+	for i := range replacementMap {
+		replacementMap[i] = rune(i)
+	}
+	replacementMap[0] = unicode.ReplacementChar
+	for i := 1; i < 10; i++ {
+		replacementMap[i] = ' '
+	}
+	replacementMap[11] = ' '
+	replacementMap[12] = ' '
+	for i := 14; i < 32; i++ {
+		replacementMap[i] = ' '
+	}
+	for i := 127; i < 160; i++ {
+		replacementMap[i] = ' '
+	}
+}
+
 // Next reads the next rune into inp.Ch.
 func (inp *Input) Next() {
 	if inp.readPos < len(inp.Src) {
@@ -56,8 +76,8 @@ func (inp *Input) Next() {
 			r, w = utf8.DecodeRuneInString(inp.Src[inp.readPos:])
 		}
 		inp.readPos += w
-		if r == '\t' {
-			inp.Ch = ' '
+		if r < 256 {
+			inp.Ch = replacementMap[r]
 		} else {
 			inp.Ch = r
 		}
