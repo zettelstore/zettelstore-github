@@ -235,15 +235,15 @@ func TestTag(t *testing.T) {
 
 func TestMark(t *testing.T) {
 	checkTcs(t, TestCases{
-		{"{!", "(PARA {!)"},
-		{"{!\n", "(PARA {!)"},
-		{"{!}", "(PARA (MARK))"},
-		{"{! }", "(PARA {! SP })"},
-		{"{!a}", "(PARA (MARK a))"},
-		{"{!a }", "(PARA {!a SP })"},
-		{"{!a_}", "(PARA (MARK a_))"},
-		{"{!a-b}", "(PARA (MARK a-b))"},
-		{"{!a}{!a}", "(PARA (MARK a) (MARK))"},
+		{"[!", "(PARA [!)"},
+		{"[!\n", "(PARA [!)"},
+		{"[!]", "(PARA (MARK))"},
+		{"[! ]", "(PARA [! SP ])"},
+		{"[!a]", "(PARA (MARK a))"},
+		{"[!a ]", "(PARA [!a SP ])"},
+		{"[!a_]", "(PARA (MARK a_))"},
+		{"[!a-b]", "(PARA (MARK a-b))"},
+		{"[!a][!a]", "(PARA (MARK a) (MARK))"},
 	})
 }
 

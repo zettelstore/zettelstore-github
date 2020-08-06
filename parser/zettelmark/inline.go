@@ -73,14 +73,14 @@ func (cp *zmkP) parseInline() ast.InlineNode {
 				in, success = cp.parseCite()
 			case '^':
 				in, success = cp.parseFootnote()
+			case '!':
+				in, success = cp.parseMark()
 			}
 		case '{':
 			inp.Next()
 			switch inp.Ch {
 			case '{':
 				in, success = cp.parseImage()
-			case '!':
-				in, success = cp.parseMark()
 			}
 		case '#':
 			return cp.parseTag()
@@ -331,7 +331,7 @@ func (cp *zmkP) parseMark() (*ast.MarkNode, bool) {
 	inp := cp.inp
 	inp.Next()
 	pos := inp.Pos
-	for inp.Ch != '}' {
+	for inp.Ch != ']' {
 		if !isNameRune(inp.Ch) {
 			return nil, false
 		}
