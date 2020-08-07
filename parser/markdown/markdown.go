@@ -170,9 +170,9 @@ func (p *mdP) acceptRawText(node gmAst.Node) []string {
 	return result
 }
 
-func (p *mdP) acceptBlockquote(node *gmAst.Blockquote) *ast.ListNode {
-	return &ast.ListNode{
-		Code: ast.ListQuote,
+func (p *mdP) acceptBlockquote(node *gmAst.Blockquote) *ast.NestedListNode {
+	return &ast.NestedListNode{
+		Code: ast.NestedListQuote,
 		Items: []ast.ItemSlice{
 			p.acceptItemSlice(node),
 		},
@@ -180,10 +180,10 @@ func (p *mdP) acceptBlockquote(node *gmAst.Blockquote) *ast.ListNode {
 }
 
 func (p *mdP) acceptList(node *gmAst.List) ast.ItemNode {
-	code := ast.ListUnordered
+	code := ast.NestedListUnordered
 	var attrs *ast.Attributes
 	if node.IsOrdered() {
-		code = ast.ListOrdered
+		code = ast.NestedListOrdered
 		if node.Start != 1 {
 			attrs = attrs.Set("start", fmt.Sprintf("%d", node.Start))
 		}
@@ -196,7 +196,7 @@ func (p *mdP) acceptList(node *gmAst.List) ast.ItemNode {
 		}
 		items = append(items, p.acceptItemSlice(item))
 	}
-	return &ast.ListNode{
+	return &ast.NestedListNode{
 		Code:  code,
 		Items: items,
 		Attrs: attrs,

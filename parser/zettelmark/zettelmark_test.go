@@ -688,14 +688,14 @@ func (tv *TestVisitor) VisitHRule(hn *ast.HRuleNode) {
 	tv.visitAttributes(hn.Attrs)
 }
 
-var mapListCode = map[ast.ListCode]string{
-	ast.ListOrdered:   "(OL",
-	ast.ListUnordered: "(UL",
-	ast.ListQuote:     "(QL",
+var mapNestedListCode = map[ast.NestedListCode]string{
+	ast.NestedListOrdered:   "(OL",
+	ast.NestedListUnordered: "(UL",
+	ast.NestedListQuote:     "(QL",
 }
 
-func (tv *TestVisitor) VisitList(ln *ast.ListNode) {
-	tv.b.WriteString(mapListCode[ln.Code])
+func (tv *TestVisitor) VisitNestedList(ln *ast.NestedListNode) {
+	tv.b.WriteString(mapNestedListCode[ln.Code])
 	for _, item := range ln.Items {
 		tv.b.WriteString(" {")
 		tv.visitItemSlice(item)
@@ -703,9 +703,9 @@ func (tv *TestVisitor) VisitList(ln *ast.ListNode) {
 	}
 	tv.b.WriteByte(')')
 }
-func (tv *TestVisitor) VisitDefinition(dn *ast.DefinitionNode) {
+func (tv *TestVisitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
 	tv.b.WriteString("(DL")
-	for _, def := range dn.Definitions {
+	for _, def := range dn.Descriptions {
 		tv.b.WriteString(" (DT")
 		tv.visitInlineSlice(def.Term)
 		tv.b.WriteByte(')')

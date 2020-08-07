@@ -72,18 +72,18 @@ func (pp *postProcessor) VisitHeading(hn *ast.HeadingNode) {
 func (pp *postProcessor) VisitHRule(hn *ast.HRuleNode) {}
 
 // VisitList post-processes a list.
-func (pp *postProcessor) VisitList(ln *ast.ListNode) {
+func (pp *postProcessor) VisitNestedList(ln *ast.NestedListNode) {
 	for i, item := range ln.Items {
 		ln.Items[i] = pp.processItemSlice(item)
 	}
 }
 
-// VisitDefinition post-processes a definition list.
-func (pp *postProcessor) VisitDefinition(dn *ast.DefinitionNode) {
-	for i, def := range dn.Definitions {
-		dn.Definitions[i].Term = pp.processInlineSlice(def.Term)
+// VisitDescriptionList post-processes a description list.
+func (pp *postProcessor) VisitDescriptionList(dn *ast.DescriptionListNode) {
+	for i, def := range dn.Descriptions {
+		dn.Descriptions[i].Term = pp.processInlineSlice(def.Term)
 		for j, b := range def.Descriptions {
-			dn.Definitions[i].Descriptions[j] = pp.processDescriptionSlice(b)
+			dn.Descriptions[i].Descriptions[j] = pp.processDescriptionSlice(b)
 		}
 	}
 }

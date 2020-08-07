@@ -39,16 +39,16 @@ func init() {
 }
 
 func parseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
-	deflist := &ast.DefinitionNode{}
+	descrlist := &ast.DescriptionListNode{}
 	for _, p := range meta.Pairs() {
-		deflist.Definitions = append(deflist.Definitions, getDefinition(p.Key, p.Value))
+		descrlist.Descriptions = append(descrlist.Descriptions, getDescription(p.Key, p.Value))
 	}
-	return ast.BlockSlice{deflist}
+	return ast.BlockSlice{descrlist}
 }
 
-func getDefinition(key, value string) ast.Definition {
+func getDescription(key, value string) ast.Description {
 	makeLink := domain.KeyType(key) == domain.MetaTypeID
-	return ast.Definition{
+	return ast.Description{
 		Term: ast.InlineSlice{&ast.TextNode{Text: key}},
 		Descriptions: []ast.DescriptionSlice{
 			ast.DescriptionSlice{

@@ -248,14 +248,14 @@ func (v *visitor) VisitHRule(hn *ast.HRuleNode) {
 	}
 }
 
-var listCode = map[ast.ListCode][]byte{
-	ast.ListOrdered:   []byte("ol"),
-	ast.ListUnordered: []byte("ul"),
+var listCode = map[ast.NestedListCode][]byte{
+	ast.NestedListOrdered:   []byte("ol"),
+	ast.NestedListUnordered: []byte("ul"),
 }
 
-// VisitList writes HTML code for lists and blockquotes.
-func (v *visitor) VisitList(ln *ast.ListNode) {
-	if ln.Code == ast.ListQuote {
+// VisitNestedList writes HTML code for lists and blockquotes.
+func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
+	if ln.Code == ast.NestedListQuote {
 		// ListQuote -> HTML <blockquote> doesn't use <li>...</li>
 		v.b.WriteString("<blockquote>\n")
 		for _, item := range ln.Items {
@@ -297,7 +297,7 @@ func isCompactSlice(ins ast.ItemSlice) bool {
 		switch ins[0].(type) {
 		case *ast.ParaNode, *ast.VerbatimNode, *ast.HRuleNode:
 			return true
-		case *ast.ListNode:
+		case *ast.NestedListNode:
 			return false
 		}
 	}
@@ -329,15 +329,15 @@ func (v *visitor) writeDescriptionsSlice(ds ast.DescriptionSlice) {
 	}
 }
 
-// VisitDefinition emits a HTML definition list.
-func (v *visitor) VisitDefinition(dn *ast.DefinitionNode) {
+// VisitDescriptionList emits a HTML description list.
+func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
 	v.b.WriteString("<dl>\n")
-	for _, def := range dn.Definitions {
+	for _, descr := range dn.Descriptions {
 		v.b.WriteString("<dt>")
-		v.acceptInlineSlice(def.Term)
+		v.acceptInlineSlice(descr.Term)
 		v.b.WriteString("</dt>\n")
 
-		for _, b := range def.Descriptions {
+		for _, b := range descr.Descriptions {
 			v.b.WriteString("<dd>")
 			v.writeDescriptionsSlice(b)
 			v.b.WriteString("</dd>\n")

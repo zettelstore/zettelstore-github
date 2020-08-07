@@ -68,11 +68,11 @@ func (cp *zmkP) parseBlock(lastPara *ast.ParaNode) (res ast.BlockNode, cont bool
 					l.Items[lits-1] = append(l.Items[lits-1], &nullItemNode{})
 				}
 			}
-			if cp.defl != nil {
-				defPos := len(cp.defl.Definitions) - 1
-				if ldds := len(cp.defl.Definitions[defPos].Descriptions); ldds > 0 {
-					cp.defl.Definitions[defPos].Descriptions[ldds-1] = append(
-						cp.defl.Definitions[defPos].Descriptions[ldds-1], &nullDescriptionNode{})
+			if cp.descrl != nil {
+				defPos := len(cp.descrl.Descriptions) - 1
+				if ldds := len(cp.descrl.Descriptions[defPos].Descriptions); ldds > 0 {
+					cp.descrl.Descriptions[defPos].Descriptions[ldds-1] = append(
+						cp.descrl.Descriptions[defPos].Descriptions[ldds-1], &nullDescriptionNode{})
 				}
 			}
 			return nil, false
@@ -92,8 +92,8 @@ func (cp *zmkP) parseBlock(lastPara *ast.ParaNode) (res ast.BlockNode, cont bool
 			bn, success = cp.parseHRule()
 		case '*', '#', '>':
 			cp.table = nil
-			cp.defl = nil
-			bn, success = cp.parseList()
+			cp.descrl = nil
+			bn, success = cp.parseNestedList()
 		case ';':
 			cp.lists = nil
 			cp.table = nil
@@ -103,7 +103,7 @@ func (cp *zmkP) parseBlock(lastPara *ast.ParaNode) (res ast.BlockNode, cont bool
 			bn, success = cp.parseIndent()
 		case '|':
 			cp.lists = nil
-			cp.defl = nil
+			cp.descrl = nil
 			bn, success = cp.parseRow()
 		}
 
@@ -302,19 +302,19 @@ func (cp *zmkP) parseHRule() (hn *ast.HRuleNode, success bool) {
 	return &ast.HRuleNode{Attrs: attrs}, true
 }
 
-var mapRuneList = map[rune]ast.ListCode{
-	'*': ast.ListUnordered,
-	'#': ast.ListOrdered,
-	'>': ast.ListQuote,
+var mapRuneNestedList = map[rune]ast.NestedListCode{
+	'*': ast.NestedListUnordered,
+	'#': ast.NestedListOrdered,
+	'>': ast.NestedListQuote,
 }
 
 // parseList parses a list.
-func (cp *zmkP) parseList() (res ast.BlockNode, success bool) {
+func (cp *zmkP) parseNestedList() (res ast.BlockNode, success bool) {
 	inp := cp.inp
-	codes := []ast.ListCode{}
+	codes := []ast.NestedListCode{}
 loopInit:
 	for {
-		code, ok := mapRuneList[inp.Ch]
+		code, ok := mapRuneNestedList[inp.Ch]
 		if !ok {
 			panic(fmt.Sprintf("%q is not a region char", inp.Ch))
 		}
@@ -339,12 +339,12 @@ loopInit:
 	if len(codes) < len(cp.lists) {
 		cp.lists = cp.lists[:len(codes)]
 	}
-	var ln *ast.ListNode
+	var ln *ast.NestedListNode
 	newLnCount := 0
 	for i, code := range codes {
 		if i < len(cp.lists) {
 			if cp.lists[i].Code != code {
-				ln = &ast.ListNode{Code: code}
+				ln = &ast.NestedListNode{Code: code}
 				newLnCount++
 				cp.lists[i] = ln
 				cp.lists = cp.lists[:i+1]
@@ -352,7 +352,7 @@ loopInit:
 				ln = cp.lists[i]
 			}
 		} else {
-			ln = &ast.ListNode{Code: code}
+			ln = &ast.NestedListNode{Code: code}
 			newLnCount++
 			cp.lists = append(cp.lists, ln)
 		}
@@ -388,25 +388,25 @@ func (cp *zmkP) parseDefTerm() (res ast.BlockNode, success bool) {
 	for inp.Ch == ' ' {
 		inp.Next()
 	}
-	defl := cp.defl
-	if defl == nil {
-		defl = &ast.DefinitionNode{}
-		cp.defl = defl
+	descrl := cp.descrl
+	if descrl == nil {
+		descrl = &ast.DescriptionListNode{}
+		cp.descrl = descrl
 	}
-	defl.Definitions = append(defl.Definitions, ast.Definition{})
-	defPos := len(defl.Definitions) - 1
+	descrl.Descriptions = append(descrl.Descriptions, ast.Description{})
+	defPos := len(descrl.Descriptions) - 1
 	if defPos == 0 {
-		res = defl
+		res = descrl
 	}
 	for {
 		in := cp.parseInline()
 		if in == nil {
-			if defl.Definitions[defPos].Term == nil {
+			if descrl.Descriptions[defPos].Term == nil {
 				return nil, false
 			}
 			return res, true
 		}
-		defl.Definitions[defPos].Term = append(defl.Definitions[defPos].Term, in)
+		descrl.Descriptions[defPos].Term = append(descrl.Descriptions[defPos].Term, in)
 		if _, ok := in.(*ast.BreakNode); ok {
 			return res, true
 		}
@@ -424,12 +424,12 @@ func (cp *zmkP) parseDefDescr() (res ast.BlockNode, success bool) {
 	for inp.Ch == ' ' {
 		inp.Next()
 	}
-	defl := cp.defl
-	if defl == nil || len(defl.Definitions) == 0 {
+	descrl := cp.descrl
+	if descrl == nil || len(descrl.Descriptions) == 0 {
 		return nil, false
 	}
-	defPos := len(defl.Definitions) - 1
-	if defl.Definitions[defPos].Term == nil {
+	defPos := len(descrl.Descriptions) - 1
+	if descrl.Descriptions[defPos].Term == nil {
 		return nil, false
 	}
 	pn := cp.parseLinePara()
@@ -438,7 +438,7 @@ func (cp *zmkP) parseDefDescr() (res ast.BlockNode, success bool) {
 	}
 	cp.lists = nil
 	cp.table = nil
-	defl.Definitions[defPos].Descriptions = append(defl.Definitions[defPos].Descriptions, ast.DescriptionSlice{pn})
+	descrl.Descriptions[defPos].Descriptions = append(descrl.Descriptions[defPos].Descriptions, ast.DescriptionSlice{pn})
 	return nil, true
 }
 
@@ -472,20 +472,20 @@ func (cp *zmkP) parseIndent() (res ast.BlockNode, success bool) {
 		}
 		return nil, true
 	}
-	if cp.defl != nil {
+	if cp.descrl != nil {
 		// Indentation for definition list
-		defPos := len(cp.defl.Definitions) - 1
+		defPos := len(cp.descrl.Descriptions) - 1
 		if cnt < 1 || defPos < 0 {
 			return nil, false
 		}
-		if len(cp.defl.Definitions[defPos].Descriptions) == 0 {
+		if len(cp.descrl.Descriptions[defPos].Descriptions) == 0 {
 			// Continuation of a definition term
 			for {
 				in := cp.parseInline()
 				if in == nil {
 					return nil, true
 				}
-				cp.defl.Definitions[defPos].Term = append(cp.defl.Definitions[defPos].Term, in)
+				cp.descrl.Descriptions[defPos].Term = append(cp.descrl.Descriptions[defPos].Term, in)
 				if _, ok := in.(*ast.BreakNode); ok {
 					return nil, true
 				}
@@ -496,13 +496,13 @@ func (cp *zmkP) parseIndent() (res ast.BlockNode, success bool) {
 			if pn == nil {
 				return nil, false
 			}
-			descrPos := len(cp.defl.Definitions[defPos].Descriptions) - 1
-			lbn := cp.defl.Definitions[defPos].Descriptions[descrPos]
+			descrPos := len(cp.descrl.Descriptions[defPos].Descriptions) - 1
+			lbn := cp.descrl.Descriptions[defPos].Descriptions[descrPos]
 			if lpn, ok := lbn[len(lbn)-1].(*ast.ParaNode); ok {
 				lpn.Inlines = append(lpn.Inlines, pn.Inlines...)
 			} else {
-				descrPos := len(cp.defl.Definitions[defPos].Descriptions) - 1
-				cp.defl.Definitions[defPos].Descriptions[descrPos] = append(cp.defl.Definitions[defPos].Descriptions[descrPos], pn)
+				descrPos := len(cp.descrl.Descriptions[defPos].Descriptions) - 1
+				cp.descrl.Descriptions[defPos].Descriptions[descrPos] = append(cp.descrl.Descriptions[defPos].Descriptions[descrPos], pn)
 			}
 			return nil, true
 		}

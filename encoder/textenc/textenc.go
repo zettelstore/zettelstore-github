@@ -123,8 +123,8 @@ func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
 // VisitHRule writes nothing for a horizontal rule.
 func (v *visitor) VisitHRule(hn *ast.HRuleNode) {}
 
-// VisitList writes text code for lists and blockquotes.
-func (v *visitor) VisitList(ln *ast.ListNode) {
+// VisitNestedList writes text code for lists and blockquotes.
+func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	for i, item := range ln.Items {
 		if i > 0 {
 			v.b.WriteByte('\n')
@@ -133,15 +133,15 @@ func (v *visitor) VisitList(ln *ast.ListNode) {
 	}
 }
 
-// VisitDefinition emits a text for a definition list.
-func (v *visitor) VisitDefinition(dn *ast.DefinitionNode) {
-	for i, def := range dn.Definitions {
+// VisitDescriptionList emits a text for a description list.
+func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
+	for i, descr := range dn.Descriptions {
 		if i > 0 {
 			v.b.WriteByte('\n')
 		}
-		v.acceptInlineSlice(def.Term)
+		v.acceptInlineSlice(descr.Term)
 
-		for _, b := range def.Descriptions {
+		for _, b := range descr.Descriptions {
 			v.b.WriteByte('\n')
 			v.acceptDescriptionSlice(b)
 		}

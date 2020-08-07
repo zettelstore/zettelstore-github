@@ -51,11 +51,11 @@ func parseInlines(inp *input.Input, syntax string) ast.InlineSlice {
 }
 
 type zmkP struct {
-	inp          *input.Input        // Input stream
-	lists        []*ast.ListNode     // Stack of lists
-	table        *ast.TableNode      // Current table
-	defl         *ast.DefinitionNode // Current definition list
-	nestingLevel int                 // Count nesting of block and inline elements
+	inp          *input.Input             // Input stream
+	lists        []*ast.NestedListNode    // Stack of lists
+	table        *ast.TableNode           // Current table
+	descrl       *ast.DescriptionListNode // Current description list
+	nestingLevel int                      // Count nesting of block and inline elements
 }
 
 const maxNestingLevel = 50
@@ -64,7 +64,7 @@ const maxNestingLevel = 50
 func (cp *zmkP) clearStacked() {
 	cp.lists = nil
 	cp.table = nil
-	cp.defl = nil
+	cp.descrl = nil
 }
 
 func (cp *zmkP) parseNormalAttribute(attrs map[string]string, sameLine bool) bool {

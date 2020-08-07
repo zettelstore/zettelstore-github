@@ -118,47 +118,47 @@ func (hn *HRuleNode) Accept(v Visitor) { v.VisitHRule(hn) }
 
 //--------------------------------------------------------------------------
 
-// ListNode specifies a list, either ordered or unordered.
-type ListNode struct {
-	Code  ListCode
+// NestedListNode specifies a nestable list, either ordered or unordered.
+type NestedListNode struct {
+	Code  NestedListCode
 	Items []ItemSlice
 	Attrs *Attributes
 }
 
-// ListCode specifies the actual list type.
-type ListCode int
+// NestedListCode specifies the actual list type.
+type NestedListCode int
 
 // Values for ListCode
 const (
-	_             ListCode = iota
-	ListOrdered            // Ordered list.
-	ListUnordered          // Unordered list.
-	ListQuote              // Quote list.
+	_                   NestedListCode = iota
+	NestedListOrdered                  // Ordered list.
+	NestedListUnordered                // Unordered list.
+	NestedListQuote                    // Quote list.
 )
 
-func (ln *ListNode) blockNode() {}
-func (ln *ListNode) itemNode()  {}
+func (ln *NestedListNode) blockNode() {}
+func (ln *NestedListNode) itemNode()  {}
 
 // Accept a visitor and visit the node.
-func (ln *ListNode) Accept(v Visitor) { v.VisitList(ln) }
+func (ln *NestedListNode) Accept(v Visitor) { v.VisitNestedList(ln) }
 
 //--------------------------------------------------------------------------
 
-// DefinitionNode specifies a definition list.
-type DefinitionNode struct {
-	Definitions []Definition
+// DescriptionListNode specifies a description list.
+type DescriptionListNode struct {
+	Descriptions []Description
 }
 
-// Definition is one element of a definition list.
-type Definition struct {
+// Description is one element of a description list.
+type Description struct {
 	Term         InlineSlice
 	Descriptions []DescriptionSlice
 }
 
-func (dn *DefinitionNode) blockNode() {}
+func (dn *DescriptionListNode) blockNode() {}
 
 // Accept a visitor and visit the node.
-func (dn *DefinitionNode) Accept(v Visitor) { v.VisitDefinition(dn) }
+func (dn *DescriptionListNode) Accept(v Visitor) { v.VisitDescriptionList(dn) }
 
 //--------------------------------------------------------------------------
 

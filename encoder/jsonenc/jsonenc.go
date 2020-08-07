@@ -223,14 +223,14 @@ func (v *visitor) VisitHRule(hn *ast.HRuleNode) {
 	v.b.WriteByte('}')
 }
 
-var listCode = map[ast.ListCode]string{
-	ast.ListOrdered:   "OrderedList",
-	ast.ListUnordered: "BulletList",
-	ast.ListQuote:     "QuoteList",
+var listCode = map[ast.NestedListCode]string{
+	ast.NestedListOrdered:   "OrderedList",
+	ast.NestedListUnordered: "BulletList",
+	ast.NestedListQuote:     "QuoteList",
 }
 
-// VisitList writes JSON code for lists and blockquotes.
-func (v *visitor) VisitList(ln *ast.ListNode) {
+// VisitNestedList writes JSON code for lists and blockquotes.
+func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	v.writeNodeStart(listCode[ln.Code])
 	v.writeContentStart('c')
 	for i, item := range ln.Items {
@@ -242,11 +242,11 @@ func (v *visitor) VisitList(ln *ast.ListNode) {
 	v.b.WriteString("]}")
 }
 
-// VisitDefinition emits a JSON definition list.
-func (v *visitor) VisitDefinition(dn *ast.DefinitionNode) {
-	v.writeNodeStart("DefinitionList")
+// VisitDescriptionList emits a JSON description list.
+func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
+	v.writeNodeStart("DescriptionList")
 	v.writeContentStart('g')
-	for i, def := range dn.Definitions {
+	for i, def := range dn.Descriptions {
 		if i > 0 {
 			v.b.WriteByte(',')
 		}

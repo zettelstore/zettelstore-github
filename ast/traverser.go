@@ -52,19 +52,19 @@ func (t TopDownTraverser) VisitHeading(hn *HeadingNode) {
 // VisitHRule traverses nothing.
 func (t TopDownTraverser) VisitHRule(hn *HRuleNode) { t.v.VisitHRule(hn) }
 
-// VisitList traverses all list elements.
-func (t TopDownTraverser) VisitList(ln *ListNode) {
-	t.v.VisitList(ln)
+// VisitNestedList traverses all nested list elements.
+func (t TopDownTraverser) VisitNestedList(ln *NestedListNode) {
+	t.v.VisitNestedList(ln)
 	for _, item := range ln.Items {
 		t.visitItemSlice(item)
 	}
 }
 
-// VisitDefinition traverses all definition terms and their associated
+// VisitDescriptionList traverses all description terms and their associated
 // descriptions.
-func (t TopDownTraverser) VisitDefinition(dn *DefinitionNode) {
-	t.v.VisitDefinition(dn)
-	for _, defs := range dn.Definitions {
+func (t TopDownTraverser) VisitDescriptionList(dn *DescriptionListNode) {
+	t.v.VisitDescriptionList(dn)
+	for _, defs := range dn.Descriptions {
 		t.visitInlineSlice(defs.Term)
 		for _, descr := range defs.Descriptions {
 			t.visitDescriptionSlice(descr)

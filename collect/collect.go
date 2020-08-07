@@ -52,10 +52,10 @@ func (lv *linkVisitor) VisitHeading(hn *ast.HeadingNode) {}
 func (lv *linkVisitor) VisitHRule(hn *ast.HRuleNode) {}
 
 // VisitList does nothing.
-func (lv *linkVisitor) VisitList(ln *ast.ListNode) {}
+func (lv *linkVisitor) VisitNestedList(ln *ast.NestedListNode) {}
 
-// VisitDefinition does nothing.
-func (lv *linkVisitor) VisitDefinition(dn *ast.DefinitionNode) {}
+// VisitDescriptionList does nothing.
+func (lv *linkVisitor) VisitDescriptionList(dn *ast.DescriptionListNode) {}
 
 // VisitPara does nothing.
 func (lv *linkVisitor) VisitPara(pn *ast.ParaNode) {}

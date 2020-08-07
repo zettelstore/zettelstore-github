@@ -144,14 +144,14 @@ func (v *visitor) VisitHRule(hn *ast.HRuleNode) {
 	v.b.WriteByte('\n')
 }
 
-var listCode = map[ast.ListCode]byte{
-	ast.ListOrdered:   '#',
-	ast.ListUnordered: '*',
-	ast.ListQuote:     '>',
+var listCode = map[ast.NestedListCode]byte{
+	ast.NestedListOrdered:   '#',
+	ast.NestedListUnordered: '*',
+	ast.NestedListQuote:     '>',
 }
 
-// VisitList writes HTML code for lists and blockquotes.
-func (v *visitor) VisitList(ln *ast.ListNode) {
+// VisitNestedList writes HTML code for lists and blockquotes.
+func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	v.prefix = append(v.prefix, listCode[ln.Code])
 	for _, item := range ln.Items {
 		v.b.Write(v.prefix)
@@ -172,14 +172,14 @@ func (v *visitor) VisitList(ln *ast.ListNode) {
 	v.b.WriteByte('\n')
 }
 
-// VisitDefinition emits a HTML definition list.
-func (v *visitor) VisitDefinition(dn *ast.DefinitionNode) {
-	for _, def := range dn.Definitions {
+// VisitDescriptionList emits a HTML description list.
+func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
+	for _, descr := range dn.Descriptions {
 		v.b.WriteString("; ")
-		v.acceptInlineSlice(def.Term)
+		v.acceptInlineSlice(descr.Term)
 		v.b.WriteByte('\n')
 
-		for _, b := range def.Descriptions {
+		for _, b := range descr.Descriptions {
 			v.b.WriteString(": ")
 			for _, dn := range b {
 				dn.Accept(v)

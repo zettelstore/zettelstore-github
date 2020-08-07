@@ -229,14 +229,14 @@ func (v *visitor) VisitHRule(hn *ast.HRuleNode) {
 	v.b.WriteByte(']')
 }
 
-var listCode = map[ast.ListCode][]byte{
-	ast.ListOrdered:   []byte("[OrderedList"),
-	ast.ListUnordered: []byte("[BulletList"),
-	ast.ListQuote:     []byte("[QuoteList"),
+var listCode = map[ast.NestedListCode][]byte{
+	ast.NestedListOrdered:   []byte("[OrderedList"),
+	ast.NestedListUnordered: []byte("[BulletList"),
+	ast.NestedListQuote:     []byte("[QuoteList"),
 }
 
-// VisitList writes native code for lists and blockquotes.
-func (v *visitor) VisitList(ln *ast.ListNode) {
+// VisitNestedList writes native code for lists and blockquotes.
+func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	v.b.Write(listCode[ln.Code])
 	v.level++
 	for i, item := range ln.Items {
@@ -254,22 +254,22 @@ func (v *visitor) VisitList(ln *ast.ListNode) {
 	v.b.WriteByte(']')
 }
 
-// VisitDefinition emits a native definition list.
-func (v *visitor) VisitDefinition(dn *ast.DefinitionNode) {
-	v.b.WriteString("[DefinitionList")
+// VisitDescriptionList emits a native description list.
+func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
+	v.b.WriteString("[DescriptionList")
 	v.level++
-	for i, def := range dn.Definitions {
+	for i, descr := range dn.Descriptions {
 		if i > 0 {
 			v.b.WriteByte(',')
 		}
 		v.writeNewLine()
 		v.b.WriteString("[Term [")
-		v.acceptInlineSlice(def.Term)
+		v.acceptInlineSlice(descr.Term)
 		v.b.WriteByte(']')
 
-		if len(def.Descriptions) > 0 {
+		if len(descr.Descriptions) > 0 {
 			v.level++
-			for _, b := range def.Descriptions {
+			for _, b := range descr.Descriptions {
 				v.b.WriteByte(',')
 				v.writeNewLine()
 				v.b.WriteString("[Description")
