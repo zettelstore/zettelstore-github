@@ -102,8 +102,5 @@ func (lv *linkVisitor) VisitMark(mn *ast.MarkNode) {}
 // VisitFormat does nothing.
 func (lv *linkVisitor) VisitFormat(fn *ast.FormatNode) {}
 
-// VisitEdit does nothing.
-func (lv *linkVisitor) VisitEdit(en *ast.EditNode) {}
-
 // VisitLiteral does nothing.
 func (lv *linkVisitor) VisitLiteral(ln *ast.LiteralNode) {}

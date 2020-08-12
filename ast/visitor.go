@@ -44,6 +44,5 @@ type Visitor interface {
 	VisitFootnote(fn *FootnoteNode)
 	VisitMark(mn *MarkNode)
 	VisitFormat(fn *FormatNode)
-	VisitEdit(en *EditNode)
 	VisitLiteral(ln *LiteralNode)
 }

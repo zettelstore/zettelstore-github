@@ -245,27 +245,22 @@ func (pp *postProcessor) VisitMark(mn *ast.MarkNode) {
 	}
 }
 
+var mapSemantic = map[ast.FormatCode]ast.FormatCode{
+	ast.FormatItalic: ast.FormatEmph,
+	ast.FormatBold:   ast.FormatStrong,
+	ast.FormatUnder:  ast.FormatInsert,
+	ast.FormatStrike: ast.FormatDelete,
+}
+
 // VisitFormat post-processes formatted inline nodes.
 func (pp *postProcessor) VisitFormat(fn *ast.FormatNode) {
-	if fn.Attrs != nil {
-		if fn.Attrs.HasDefault() {
-			switch fn.Code {
-			case ast.FormatItalic:
-				fn.Code = ast.FormatEmph
-				fn.Attrs.RemoveDefault()
-			case ast.FormatBold:
-				fn.Code = ast.FormatStrong
-				fn.Attrs.RemoveDefault()
-			}
+	if fn.Attrs != nil && fn.Attrs.HasDefault() {
+		if newCode, ok := mapSemantic[fn.Code]; ok {
+			fn.Attrs.RemoveDefault()
+			fn.Code = newCode
 		}
 	}
 	fn.Inlines = pp.processInlineSlice(fn.Inlines)
-}
-
-// VisitEdit post-processes an edit inline.
-func (pp *postProcessor) VisitEdit(en *ast.EditNode) {
-	en.Deletes = pp.processInlineSlice(en.Deletes)
-	en.Inserts = pp.processInlineSlice(en.Inserts)
 }
 
 // VisitLiteral post-processes an inline literal.

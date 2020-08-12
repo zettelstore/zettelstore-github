@@ -459,7 +459,9 @@ var formatCode = map[ast.FormatCode]string{
 	ast.FormatStrong:    "Strong",
 	ast.FormatMonospace: "Mono",
 	ast.FormatStrike:    "Strikethrough",
+	ast.FormatDelete:    "Delete",
 	ast.FormatUnder:     "Underline",
+	ast.FormatInsert:    "Insert",
 	ast.FormatSuper:     "Super",
 	ast.FormatSub:       "Sub",
 	ast.FormatQuote:     "Quote",
@@ -475,25 +477,6 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 	v.writeContentStart('i')
 	v.acceptInlineSlice(fn.Inlines)
 	v.b.WriteByte('}')
-}
-
-// VisitEdit write JSON code for edit markup text.
-func (v *visitor) VisitEdit(en *ast.EditNode) {
-	if len(en.Deletes) > 0 {
-		v.writeNodeStart("Delete")
-		v.writeContentStart('i')
-		v.acceptInlineSlice(en.Deletes)
-		v.b.WriteByte('}')
-	}
-	if len(en.Inserts) > 0 {
-		if len(en.Deletes) > 0 {
-			v.b.WriteByte(',')
-		}
-		v.writeNodeStart("Insert")
-		v.writeContentStart('i')
-		v.acceptInlineSlice(en.Inserts)
-		v.b.WriteByte('}')
-	}
 }
 
 var literalCode = map[ast.LiteralCode]string{

@@ -88,8 +88,6 @@ func (cp *zmkP) parseInline() ast.InlineNode {
 			in, success = cp.parseComment()
 		case '/', '*', '_', '~', '\'', '^', ',', '<', '"', ';', ':':
 			in, success = cp.parseFormat()
-		case '(':
-			in, success = cp.parseEdit()
 		case '+', '`', '=', runeModGrave:
 			in, success = cp.parseLiteral()
 		case '\\':
@@ -425,62 +423,6 @@ func (cp *zmkP) parseFormat() (res ast.InlineNode, success bool) {
 				}
 			}
 			fn.Inlines = append(fn.Inlines, in)
-		}
-	}
-}
-
-func (cp *zmkP) parseEdit() (en *ast.EditNode, success bool) {
-	var ok bool
-	inp := cp.inp
-	inp.Next()
-	if inp.Ch != '(' {
-		return nil, false
-	}
-	inp.Next()
-	en = &ast.EditNode{}
-	en.Deletes, ok = cp.parseOneEdit()
-	if !ok {
-		return nil, false
-	}
-
-	if inp.Ch == '|' {
-		inp.Next()
-		en.Inserts, ok = cp.parseOneEdit()
-		if !ok {
-			return nil, false
-		}
-	}
-
-	if inp.Ch == ')' {
-		inp.Next()
-		if inp.Ch == ')' {
-			inp.Next()
-			if len(en.Deletes) > 0 || len(en.Inserts) > 0 {
-				return en, true
-			}
-		}
-	}
-	return nil, false
-}
-
-func (cp *zmkP) parseOneEdit() (ins ast.InlineSlice, success bool) {
-	inp := cp.inp
-	for {
-		switch inp.Ch {
-		case input.EOS:
-			return nil, false
-		case '|', ')':
-			return ins, true
-		}
-		in := cp.parseInline()
-		if _, ok := in.(*ast.BreakNode); ok {
-			switch inp.Ch {
-			case input.EOS, '\n', '\r':
-				return nil, false
-			}
-		}
-		if in != nil {
-			ins = append(ins, in)
 		}
 	}
 }

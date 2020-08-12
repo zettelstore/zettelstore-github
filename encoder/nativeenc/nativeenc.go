@@ -474,8 +474,10 @@ var formatCode = map[ast.FormatCode][]byte{
 	ast.FormatBold:      []byte("Bold"),
 	ast.FormatStrong:    []byte("Strong"),
 	ast.FormatUnder:     []byte("Underline"),
+	ast.FormatInsert:    []byte("Insert"),
 	ast.FormatMonospace: []byte("Mono"),
 	ast.FormatStrike:    []byte("Strikethrough"),
+	ast.FormatDelete:    []byte("Delete"),
 	ast.FormatSuper:     []byte("Super"),
 	ast.FormatSub:       []byte("Sub"),
 	ast.FormatQuote:     []byte("Quote"),
@@ -491,23 +493,6 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 	v.b.WriteString(" [")
 	v.acceptInlineSlice(fn.Inlines)
 	v.b.WriteByte(']')
-}
-
-// VisitEdit write native code for edit markup text.
-func (v *visitor) VisitEdit(en *ast.EditNode) {
-	if len(en.Deletes) > 0 {
-		v.b.WriteString("Delete [")
-		v.acceptInlineSlice(en.Deletes)
-		v.b.WriteByte(']')
-	}
-	if len(en.Inserts) > 0 {
-		if len(en.Deletes) > 0 {
-			v.b.WriteByte(',')
-		}
-		v.b.WriteString("Insert [")
-		v.acceptInlineSlice(en.Inserts)
-		v.b.WriteByte(']')
-	}
 }
 
 var literalCode = map[ast.LiteralCode][]byte{

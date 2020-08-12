@@ -296,23 +296,6 @@ func TestFormat(t *testing.T) {
 	})
 }
 
-func TestEdit(t *testing.T) {
-	checkTcs(t, TestCases{
-		{"(", "(PARA ()"},
-		{"((", "(PARA (()"},
-		{"(()", "(PARA (())"},
-		{"(())", "(PARA (()))"},
-		{"((|))", "(PARA ((|)))"},
-		{"((a", "(PARA ((a)"},
-		{"((a)", "(PARA ((a))"},
-		{"((a))", "(PARA {D a})"},
-		{"((|b", "(PARA ((|b)"},
-		{"((|b)", "(PARA ((|b))"},
-		{"((|b))", "(PARA {I b})"},
-		{"((a|b))", "(PARA {D a}{I b})"},
-	})
-}
-
 func TestLiteral(t *testing.T) {
 	for _, ch := range []string{"`", "+", "="} {
 		checkTcs(t, replace(ch, TestCases{
@@ -837,18 +820,6 @@ func (tv *TestVisitor) VisitFormat(fn *ast.FormatNode) {
 	tv.visitInlineSlice(fn.Inlines)
 	tv.b.WriteByte('}')
 	tv.visitAttributes(fn.Attrs)
-}
-func (tv *TestVisitor) VisitEdit(en *ast.EditNode) {
-	if len(en.Deletes) > 0 {
-		tv.b.WriteString("{D")
-		tv.visitInlineSlice(en.Deletes)
-		tv.b.WriteByte('}')
-	}
-	if len(en.Inserts) > 0 {
-		tv.b.WriteString("{I")
-		tv.visitInlineSlice(en.Inserts)
-		tv.b.WriteByte('}')
-	}
 }
 
 var mapLiteralCode = map[ast.LiteralCode]rune{

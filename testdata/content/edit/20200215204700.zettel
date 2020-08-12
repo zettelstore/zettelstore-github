@@ -1,5 +1,5 @@
 title: Simple Test
 
-((delete))
-((|insert))
-((kill|create))
+~~delete~~{-}
+__insert__{-}
+~~kill~~{-}__create__{-}

@@ -140,13 +140,6 @@ func (t TopDownTraverser) VisitFormat(fn *FormatNode) {
 	t.visitInlineSlice(fn.Inlines)
 }
 
-// VisitEdit traverses the deleted and the inserted text..
-func (t TopDownTraverser) VisitEdit(en *EditNode) {
-	t.v.VisitEdit(en)
-	t.visitInlineSlice(en.Deletes)
-	t.visitInlineSlice(en.Inserts)
-}
-
 // VisitLiteral traverses nothing.
 func (t TopDownTraverser) VisitLiteral(ln *LiteralNode) { t.v.VisitLiteral(ln) }
 

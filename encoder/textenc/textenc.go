@@ -229,19 +229,6 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 	v.acceptInlineSlice(fn.Inlines)
 }
 
-// VisitEdit write text code for edit markup text.
-func (v *visitor) VisitEdit(en *ast.EditNode) {
-	if len(en.Deletes) > 0 {
-		v.acceptInlineSlice(en.Deletes)
-	}
-	if len(en.Inserts) > 0 {
-		if len(en.Deletes) > 0 {
-			v.b.WriteByte(' ')
-		}
-		v.acceptInlineSlice(en.Inserts)
-	}
-}
-
 // VisitLiteral write text code for literal inline text.
 func (v *visitor) VisitLiteral(ln *ast.LiteralNode) {
 	if ln.Code != ast.LiteralComment {

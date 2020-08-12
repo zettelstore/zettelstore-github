@@ -559,7 +559,9 @@ var formatCode = map[ast.FormatCode][]byte{
 	ast.FormatBold:      []byte("b"),
 	ast.FormatStrong:    []byte("strong"),
 	ast.FormatUnder:     []byte("u"), // TODO: ändern in <span class="XXX">
+	ast.FormatInsert:    []byte("ins"),
 	ast.FormatStrike:    []byte("s"),
+	ast.FormatDelete:    []byte("del"),
 	ast.FormatSuper:     []byte("sup"),
 	ast.FormatSub:       []byte("sub"),
 	ast.FormatQuotation: []byte("q"),
@@ -625,20 +627,6 @@ func (v *visitor) visitQuotes(fn *ast.FormatNode) {
 	v.b.WriteString(closingQ)
 	if withSpan {
 		v.b.WriteString("</span>")
-	}
-}
-
-// VisitEdit write HTML code for edit markup text.
-func (v *visitor) VisitEdit(en *ast.EditNode) {
-	if len(en.Deletes) > 0 {
-		v.b.WriteString("<del>")
-		v.acceptInlineSlice(en.Deletes)
-		v.b.WriteString("</del>")
-	}
-	if len(en.Inserts) > 0 {
-		v.b.WriteString("<ins>")
-		v.acceptInlineSlice(en.Inserts)
-		v.b.WriteString("</ins>")
 	}
 }
 

@@ -158,8 +158,10 @@ const (
 	FormatEmph                 // Semantically emphasized text.
 	FormatBold                 // Bold text.
 	FormatStrong               // Semantically strongly emphasized text.
-	FormatUnder                // Underlined emphasized text.
+	FormatUnder                // Underlined text.
+	FormatInsert               // Inserted text.
 	FormatStrike               // Text that is no longer relevant or no longer accurate.
+	FormatDelete               // Deleted text.
 	FormatSuper                // Superscripted text.
 	FormatSub                  // SubscriptedText.
 	FormatQuote                // Quoted text.
@@ -173,19 +175,6 @@ func (fn *FormatNode) inlineNode() {}
 
 // Accept a visitor and visit the node.
 func (fn *FormatNode) Accept(v Visitor) { v.VisitFormat(fn) }
-
-// --------------------------------------------------------------------------
-
-// EditNode specifies a deletion and/or an insertion
-type EditNode struct {
-	Deletes InlineSlice
-	Inserts InlineSlice
-}
-
-func (en *EditNode) inlineNode() {}
-
-// Accept a visitor and visit the node.
-func (en *EditNode) Accept(v Visitor) { v.VisitEdit(en) }
 
 // --------------------------------------------------------------------------
 

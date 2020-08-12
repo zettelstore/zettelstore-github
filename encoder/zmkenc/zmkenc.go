@@ -346,7 +346,9 @@ var formatCode = map[ast.FormatCode][]byte{
 	ast.FormatBold:      []byte("**"),
 	ast.FormatStrong:    []byte("**"),
 	ast.FormatUnder:     []byte("__"),
+	ast.FormatInsert:    []byte("__"),
 	ast.FormatStrike:    []byte("~~"),
+	ast.FormatDelete:    []byte("~~"),
 	ast.FormatSuper:     []byte("^^"),
 	ast.FormatSub:       []byte(",,"),
 	ast.FormatQuotation: []byte("<<"),
@@ -361,7 +363,7 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 	code := formatCode[fn.Code]
 	attrs := fn.Attrs
 	switch fn.Code {
-	case ast.FormatEmph, ast.FormatStrong:
+	case ast.FormatEmph, ast.FormatStrong, ast.FormatInsert, ast.FormatDelete:
 		attrs = attrs.Clone()
 		attrs.Set("-", "")
 	}
@@ -370,19 +372,6 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 	v.acceptInlineSlice(fn.Inlines)
 	v.b.Write(code)
 	v.visitAttributes(attrs)
-}
-
-// VisitEdit write HTML code for edit markup text.
-func (v *visitor) VisitEdit(en *ast.EditNode) {
-	v.b.WriteString("((")
-	if len(en.Deletes) > 0 {
-		v.acceptInlineSlice(en.Deletes)
-	}
-	if len(en.Inserts) > 0 {
-		v.b.WriteByte('|')
-		v.acceptInlineSlice(en.Inserts)
-	}
-	v.b.WriteString("))")
 }
 
 // VisitLiteral write Zettelmarkup for inline literal text.
