@@ -78,7 +78,7 @@ func MakeGetHTMLZettelHandler(
 			&encoder.StringOption{Key: "material", Value: config.Config.GetIconMaterial()},
 			&encoder.BoolOption{Key: "newwindow", Value: true},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
-			&encoder.AdaptImageOption{Adapter: makeImageAdapter(key)},
+			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 		)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)

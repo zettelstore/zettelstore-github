@@ -61,7 +61,7 @@ func MakeGetZettelHandler(
 		err = writeZettel(w, z, format,
 			&encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
-			&encoder.AdaptImageOption{Adapter: makeImageAdapter(key)},
+			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 		)
 		if err != nil {
 			if err == errNoSuchFormat {

@@ -65,7 +65,7 @@ func MakeGetBodyHandler(
 			langOption,
 			&encoder.StringOption{Key: "material", Value: config.Config.GetIconMaterial()},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
-			&encoder.AdaptImageOption{Adapter: makeImageAdapter(key)},
+			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 		)
 		if err != nil {
 			if err == errNoSuchFormat {

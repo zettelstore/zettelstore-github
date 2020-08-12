@@ -113,14 +113,14 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta) fun
 	}
 }
 
-func makeImageAdapter(key byte) func(*ast.ImageNode) *ast.ImageNode {
+func makeImageAdapter() func(*ast.ImageNode) *ast.ImageNode {
 	return func(origImage *ast.ImageNode) *ast.ImageNode {
 		if origImage.Ref == nil {
 			return origImage
 		}
 		newImage := *origImage
 		if newImage.Ref.IsZettel() {
-			newImage.Ref = ast.ParseReference(urlFor(key, domain.ZettelID(newImage.Ref.URL.Path)))
+			newImage.Ref = ast.ParseReference(urlFor('c', domain.ZettelID(newImage.Ref.Value)))
 		}
 		return &newImage
 	}
