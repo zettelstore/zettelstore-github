@@ -258,8 +258,20 @@ func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	if ln.Code == ast.NestedListQuote {
 		// ListQuote -> HTML <blockquote> doesn't use <li>...</li>
 		v.b.WriteString("<blockquote>\n")
-		for _, item := range ln.Items {
-			v.acceptItemSlice(item)
+		if isParaList(ln.Items) {
+			v.b.WriteString("<p>")
+			for i, item := range ln.Items {
+				if i > 0 {
+					v.b.WriteByte('\n')
+				}
+				pn := item[0].(*ast.ParaNode)
+				v.acceptInlineSlice(pn.Inlines)
+			}
+			v.b.WriteString("</p>\n")
+		} else {
+			for _, item := range ln.Items {
+				v.acceptItemSlice(item)
+			}
 		}
 		v.b.WriteString("</blockquote>\n")
 		return
@@ -278,6 +290,19 @@ func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	v.b.WriteString("</")
 	v.b.Write(listCode[ln.Code])
 	v.b.WriteString(">\n")
+}
+
+// isParaList returns true if list just contains ParaNode.
+func isParaList(insl []ast.ItemSlice) bool {
+	for _, ins := range insl {
+		if len(ins) != 1 {
+			return false
+		}
+		if _, ok := ins[0].(*ast.ParaNode); !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func isCompactList(insl []ast.ItemSlice) bool {
