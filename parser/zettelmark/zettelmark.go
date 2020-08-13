@@ -58,6 +58,12 @@ type zmkP struct {
 	nestingLevel int                      // Count nesting of block and inline elements
 }
 
+// runeModGrave is Unicode code point U+02CB (715) called "MODIFIER LETTER
+// GRAVE ACCENT". On the iPad it is much more easier to type in this code point
+// than U+0060 (96) "Grave accent" (aka backtick). Therefore, U+02CB will be
+// considered equivalent to U+0060.
+const runeModGrave = 'ˋ' // This is NOT '`'!
+
 const maxNestingLevel = 50
 
 // clearStacked removes all multi-line nodes from parser.

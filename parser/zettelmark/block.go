@@ -78,7 +78,7 @@ func (cp *zmkP) parseBlock(lastPara *ast.ParaNode) (res ast.BlockNode, cont bool
 			return nil, false
 		case ':':
 			bn, success = cp.parseColon()
-		case '`':
+		case '`', runeModGrave:
 			cp.clearStacked()
 			bn, success = cp.parseVerbatim()
 		case '"', '<':
@@ -144,7 +144,7 @@ func (cp *zmkP) parsePara() *ast.ParaNode {
 			ch := cp.inp.Ch
 			switch ch {
 			// Must contain all cases from above switch in parseBlock.
-			case input.EOS, '\n', '\r', '`', '"', '<', '=', '-', '*', '#', '>', ';', ':', ' ', '|':
+			case input.EOS, '\n', '\r', '`', runeModGrave, '"', '<', '=', '-', '*', '#', '>', ';', ':', ' ', '|':
 				return pn
 			}
 		}

@@ -28,12 +28,6 @@ import (
 	"zettelstore.de/z/input"
 )
 
-// runeModGrave is unicode codepoint U+02CB (715) called "MODIFIER LETTER GRAVE
-// ACCENT". On the iPad it is much more easier to type in this codepoint than
-// U+0060 (96) "Grave accent" (aka backtick). Therefore, U+02CB will be
-// considered equivalent to U+0060.
-const runeModGrave = 'ˋ' // This is NOT '`'!
-
 // parseInlineSlice parses a sequence of Inlines until EOS.
 func (cp *zmkP) parseInlineSlice() ast.InlineSlice {
 	inp := cp.inp
