@@ -559,14 +559,20 @@ pre code {
   font-size: 95%;
   position: relative;
 }
-.zs-indication {
+div.zs-indication {
   padding: .5rem .7rem;
   max-width: 100%;
   border-radius: 4px;
   border: 1px solid black;
 }
-.zs-indication p:first-child {
+div.zs-indication p:first-child {
   margin-top: 0;
+}
+span.zs-indication {
+  border: 1px solid black;
+  border-radius: 2px;
+  padding: 2px 4px;
+  font-size: 95%;
 }
 .zs-example { border-style: dotted }
 kbd {

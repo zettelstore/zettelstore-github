@@ -200,6 +200,18 @@ var specialSpanAttr = map[string]bool{
 	"warning":   true,
 }
 
+func processSpanAttributes(attrs *ast.Attributes) *ast.Attributes {
+	if attrVal, ok := attrs.Get(""); ok {
+		attrVal = strings.ToLower(attrVal)
+		if specialSpanAttr[attrVal] {
+			attrs = attrs.Clone()
+			attrs.Remove("")
+			attrs = attrs.AddClass("zs-indication").AddClass("zs-" + attrVal)
+		}
+	}
+	return attrs
+}
+
 // VisitRegion writes HTML code for block regions.
 func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 	var code string
@@ -208,15 +220,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 	switch rn.Code {
 	case ast.RegionSpan:
 		code = "div"
-		if attrVal, ok := attrs.Get(""); ok {
-			attrVal = strings.ToLower(attrVal)
-			if specialSpanAttr[attrVal] {
-				attrs = attrs.Clone()
-				attrs.Remove("")
-				attrs = attrs.AddClass("zs-indication")
-				attrs = attrs.AddClass("zs-" + attrVal)
-			}
-		}
+		attrs = processSpanAttributes(attrs)
 	case ast.RegionVerse:
 		v.inVerse = true
 		code = "div"
@@ -628,12 +632,15 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 	if !ok {
 		panic(fmt.Sprintf("Unknown format code %v", fn.Code))
 	}
+	attrs := fn.Attrs
 	v.b.WriteStrings("<", code)
 	switch fn.Code {
 	case ast.FormatMonospace:
 		v.b.WriteString(" style=\"font-family:monospace\"")
+	case ast.FormatSpan:
+		attrs = processSpanAttributes(attrs)
 	}
-	v.visitAttributes(fn.Attrs)
+	v.visitAttributes(attrs)
 	v.b.WriteByte('>')
 	v.acceptInlineSlice(fn.Inlines)
 	v.b.WriteStrings("</", code, ">")
