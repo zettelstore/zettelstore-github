@@ -447,7 +447,8 @@ func TestHRule(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	for _, ch := range []string{"*", "#", ">"} {
+	// No ">" in the following, because quotation lists may have empty items.
+	for _, ch := range []string{"*", "#"} {
 		checkTcs(t, replace(ch, TestCases{
 			{"$", "(PARA $)"},
 			{"$$", "(PARA $$)"},
@@ -485,6 +486,9 @@ func TestList(t *testing.T) {
 
 		// Changing list type adds a new list
 		{"* abc\n# def", "(UL {(PARA abc)})(OL {(PARA def)})"},
+
+		// Quotation lists mayx have empty items
+		{">", "(QL {})"},
 	})
 }
 

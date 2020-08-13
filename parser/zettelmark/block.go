@@ -322,7 +322,7 @@ loopInit:
 		inp.Next()
 		switch inp.Ch {
 		case '*', '#', '>':
-		case ' ':
+		case ' ', input.EOS, '\n', '\r':
 			break loopInit
 		default:
 			return nil, false
@@ -331,9 +331,11 @@ loopInit:
 	for inp.Ch == ' ' {
 		inp.Next()
 	}
-	switch inp.Ch {
-	case input.EOS, '\n', '\r':
-		return nil, false
+	if codes[len(codes)-1] != ast.NestedListQuote {
+		switch inp.Ch {
+		case input.EOS, '\n', '\r':
+			return nil, false
+		}
 	}
 
 	if len(codes) < len(cp.lists) {

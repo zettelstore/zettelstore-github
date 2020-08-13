@@ -256,24 +256,8 @@ var listCode = map[ast.NestedListCode][]byte{
 // VisitNestedList writes HTML code for lists and blockquotes.
 func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	if ln.Code == ast.NestedListQuote {
-		// ListQuote -> HTML <blockquote> doesn't use <li>...</li>
-		v.b.WriteString("<blockquote>\n")
-		if isParaList(ln.Items) {
-			v.b.WriteString("<p>")
-			for i, item := range ln.Items {
-				if i > 0 {
-					v.b.WriteByte('\n')
-				}
-				pn := item[0].(*ast.ParaNode)
-				v.acceptInlineSlice(pn.Inlines)
-			}
-			v.b.WriteString("</p>\n")
-		} else {
-			for _, item := range ln.Items {
-				v.acceptItemSlice(item)
-			}
-		}
-		v.b.WriteString("</blockquote>\n")
+		// NestedListQuote -> HTML <blockquote> doesn't use <li>...</li>
+		v.writeQuotationList(ln)
 		return
 	}
 
@@ -292,17 +276,40 @@ func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 	v.b.WriteString(">\n")
 }
 
-// isParaList returns true if list just contains ParaNode.
-func isParaList(insl []ast.ItemSlice) bool {
-	for _, ins := range insl {
-		if len(ins) != 1 {
-			return false
-		}
-		if _, ok := ins[0].(*ast.ParaNode); !ok {
-			return false
+func (v *visitor) writeQuotationList(ln *ast.NestedListNode) {
+	v.b.WriteString("<blockquote>\n")
+	inPara := false
+	for _, item := range ln.Items {
+		if pn := getParaItem(item); pn != nil {
+			if inPara {
+				v.b.WriteByte('\n')
+			} else {
+				v.b.WriteString("<p>")
+				inPara = true
+			}
+			v.acceptInlineSlice(pn.Inlines)
+		} else {
+			if inPara {
+				v.b.WriteString("</p>\n")
+				inPara = false
+			}
+			v.acceptItemSlice(item)
 		}
 	}
-	return true
+	if inPara {
+		v.b.WriteString("</p>\n")
+	}
+	v.b.WriteString("</blockquote>\n")
+}
+
+func getParaItem(its ast.ItemSlice) *ast.ParaNode {
+	if len(its) != 1 {
+		return nil
+	}
+	if pn, ok := its[0].(*ast.ParaNode); ok {
+		return pn
+	}
+	return nil
 }
 
 func isCompactList(insl []ast.ItemSlice) bool {

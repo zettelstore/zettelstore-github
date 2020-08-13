@@ -46,7 +46,9 @@ type postProcessor struct {
 
 // VisitPara post-processes a paragraph.
 func (pp *postProcessor) VisitPara(pn *ast.ParaNode) {
-	pn.Inlines = pp.processInlineSlice(pn.Inlines)
+	if pn != nil {
+		pn.Inlines = pp.processInlineSlice(pn.Inlines)
+	}
 }
 
 // VisitVerbatim post-processes a verbatim block.
@@ -305,7 +307,7 @@ func (pp *postProcessor) processItemSlice(ins ast.ItemSlice) ast.ItemSlice {
 		fromPos++
 		switch in := ins[toPos].(type) {
 		case *ast.ParaNode:
-			if len(in.Inlines) > 0 {
+			if in != nil && len(in.Inlines) > 0 {
 				toPos++
 			}
 		case *nullItemNode:
