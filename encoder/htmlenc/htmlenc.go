@@ -191,24 +191,43 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 	}
 }
 
-var regionCode = map[ast.RegionCode]string{
-	ast.RegionSpan:  "div",
-	ast.RegionQuote: "blockquote",
-	ast.RegionVerse: "div",
+var specialSpanAttr = map[string]bool{
+	"example":   true,
+	"note":      true,
+	"tip":       true,
+	"important": true,
+	"caution":   true,
+	"warning":   true,
 }
 
 // VisitRegion writes HTML code for block regions.
 func (v *visitor) VisitRegion(rn *ast.RegionNode) {
+	var code string
+	attrs := rn.Attrs
 	oldVerse := v.inVerse
-	if rn.Code == ast.RegionVerse {
+	switch rn.Code {
+	case ast.RegionSpan:
+		code = "div"
+		if attrVal, ok := attrs.Get(""); ok {
+			attrVal = strings.ToLower(attrVal)
+			if specialSpanAttr[attrVal] {
+				attrs = attrs.Clone()
+				attrs.Remove("")
+				attrs = attrs.AddClass("zs-indication")
+				attrs = attrs.AddClass("zs-" + attrVal)
+			}
+		}
+	case ast.RegionVerse:
 		v.inVerse = true
-	}
-	code, ok := regionCode[rn.Code]
-	if !ok {
+		code = "div"
+	case ast.RegionQuote:
+		code = "blockquote"
+	default:
 		panic(fmt.Sprintf("Unknown region code %v", rn.Code))
 	}
+
 	v.b.WriteStrings("<", code)
-	v.visitAttributes(rn.Attrs)
+	v.visitAttributes(attrs)
 	v.b.WriteString(">\n")
 	v.acceptBlockSlice(rn.Blocks)
 	if len(rn.Inlines) > 0 {

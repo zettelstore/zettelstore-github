@@ -559,6 +559,16 @@ pre code {
   font-size: 95%;
   position: relative;
 }
+.zs-indication {
+  padding: .5rem .7rem;
+  max-width: 100%;
+  border-radius: 4px;
+  border: 1px solid black;
+}
+.zs-indication p:first-child {
+  margin-top: 0;
+}
+.zs-example { border-style: dotted }
 kbd {
   background: hsl(210, 5%, 100%);
   border: 1px solid hsl(210, 5%, 70%);

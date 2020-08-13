@@ -40,9 +40,7 @@ func (a *Attributes) HasDefault() bool {
 
 // RemoveDefault removes the default attribute
 func (a *Attributes) RemoveDefault() {
-	if a != nil {
-		delete(a.Attrs, "-")
-	}
+	a.Remove("-")
 }
 
 // Get returns the attribute value of the given key and a succes value.
@@ -78,6 +76,13 @@ func (a *Attributes) Set(key string, value string) *Attributes {
 	return a
 }
 
+// Remove the key from the attributes.
+func (a *Attributes) Remove(key string) {
+	if a != nil {
+		delete(a.Attrs, key)
+	}
+}
+
 // AddClass adds a value to the class attribute.
 func (a *Attributes) AddClass(class string) *Attributes {
 	if a == nil {
@@ -90,7 +95,7 @@ func (a *Attributes) AddClass(class string) *Attributes {
 		}
 	}
 	classes = append(classes, class)
-	a.Attrs["classes"] = strings.Join(classes, " ")
+	a.Attrs["class"] = strings.Join(classes, " ")
 	return a
 }
 
@@ -99,7 +104,7 @@ func (a *Attributes) GetClasses() []string {
 	if a == nil {
 		return nil
 	}
-	classes, ok := a.Attrs["classes"]
+	classes, ok := a.Attrs["class"]
 	if !ok {
 		return nil
 	}
