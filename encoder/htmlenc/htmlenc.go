@@ -605,41 +605,48 @@ func (v *visitor) VisitMark(mn *ast.MarkNode) {
 	}
 }
 
-var formatCode = map[ast.FormatCode]string{
-	ast.FormatItalic:    "i",
-	ast.FormatEmph:      "em",
-	ast.FormatBold:      "b",
-	ast.FormatStrong:    "strong",
-	ast.FormatUnder:     "u", // TODO: ändern in <span class="XXX">
-	ast.FormatInsert:    "ins",
-	ast.FormatStrike:    "s",
-	ast.FormatDelete:    "del",
-	ast.FormatSuper:     "sup",
-	ast.FormatSub:       "sub",
-	ast.FormatQuotation: "q",
-	ast.FormatSmall:     "small",
-	ast.FormatSpan:      "span",
-	ast.FormatMonospace: "span",
-}
-
 // VisitFormat write HTML code for formatting text.
 func (v *visitor) VisitFormat(fn *ast.FormatNode) {
-	if fn.Code == ast.FormatQuote {
+	var code string
+	attrs := fn.Attrs
+	switch fn.Code {
+	case ast.FormatItalic:
+		code = "i"
+	case ast.FormatEmph:
+		code = "em"
+	case ast.FormatBold:
+		code = "b"
+	case ast.FormatStrong:
+		code = "strong"
+	case ast.FormatUnder:
+		code = "u" // TODO: ändern in <span class="XXX">
+	case ast.FormatInsert:
+		code = "ins"
+	case ast.FormatStrike:
+		code = "s"
+	case ast.FormatDelete:
+		code = "del"
+	case ast.FormatSuper:
+		code = "sup"
+	case ast.FormatSub:
+		code = "sub"
+	case ast.FormatQuotation:
+		code = "q"
+	case ast.FormatSmall:
+		code = "small"
+	case ast.FormatSpan:
+		code = "span"
+		attrs = processSpanAttributes(attrs)
+	case ast.FormatMonospace:
+		code = "span"
+		attrs = attrs.Set("style", "font-family:monospace")
+	case ast.FormatQuote:
 		v.visitQuotes(fn)
 		return
-	}
-	code, ok := formatCode[fn.Code]
-	if !ok {
+	default:
 		panic(fmt.Sprintf("Unknown format code %v", fn.Code))
 	}
-	attrs := fn.Attrs
 	v.b.WriteStrings("<", code)
-	switch fn.Code {
-	case ast.FormatMonospace:
-		v.b.WriteString(" style=\"font-family:monospace\"")
-	case ast.FormatSpan:
-		attrs = processSpanAttributes(attrs)
-	}
 	v.visitAttributes(attrs)
 	v.b.WriteByte('>')
 	v.acceptInlineSlice(fn.Inlines)
