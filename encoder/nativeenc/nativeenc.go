@@ -122,7 +122,7 @@ func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
 			}
 			v.writeNewLine()
 			v.b.WriteByte('[')
-			v.b.WriteString(p.Key, " \"")
+			v.b.WriteStrings(p.Key, " \"")
 			v.writeEscaped(p.Value)
 			v.b.WriteString("\"]")
 			first = false
@@ -134,13 +134,13 @@ func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
 
 func (v *visitor) writeMetaString(meta *domain.Meta, key string, native string) {
 	if val, ok := meta.Get(key); ok && len(val) > 0 {
-		v.b.WriteString("\n[", native, " \"", val, "\"]")
+		v.b.WriteStrings("\n[", native, " \"", val, "\"]")
 	}
 }
 
 func (v *visitor) writeMetaList(meta *domain.Meta, key string, native string) {
 	if vals, ok := meta.GetList(key); ok && len(vals) > 0 {
-		v.b.WriteString("\n[", native)
+		v.b.WriteStrings("\n[", native)
 		for _, val := range vals {
 			v.b.WriteByte(' ')
 			v.b.WriteString(val)
@@ -177,8 +177,7 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 		}
 		v.writeEscaped(line)
 	}
-	v.b.WriteByte('"')
-	v.b.WriteByte(']')
+	v.b.WriteString("\"]")
 }
 
 var regionCode = map[ast.RegionCode][]byte{
@@ -215,7 +214,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 
 // VisitHeading writes the native code for a heading.
 func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
-	v.b.WriteString("[Heading ", strconv.Itoa(hn.Level))
+	v.b.WriteStrings("[Heading ", strconv.Itoa(hn.Level))
 	v.visitAttributes(hn.Attrs)
 	v.b.WriteByte(' ')
 	v.acceptInlineSlice(hn.Inlines)
@@ -328,7 +327,7 @@ var alignString = map[ast.Alignment]string{
 }
 
 func (v *visitor) writeCell(cell *ast.TableCell) {
-	v.b.WriteString("[Cell", alignString[cell.Align])
+	v.b.WriteStrings("[Cell", alignString[cell.Align])
 	if len(cell.Inlines) > 0 {
 		v.b.WriteByte(' ')
 		v.acceptInlineSlice(cell.Inlines)
@@ -415,7 +414,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 	v.b.WriteString("Image")
 	v.visitAttributes(in.Attrs)
 	if in.Ref == nil {
-		v.b.WriteString(" {\"", in.Syntax, "\" \"")
+		v.b.WriteStrings(" {\"", in.Syntax, "\" \"")
 		switch in.Syntax {
 		case "svg":
 			v.writeEscaped(string(in.Blob))
@@ -425,8 +424,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 		}
 		v.b.WriteString("\"}")
 	} else {
-		v.b.WriteString(" \"", in.Ref.String())
-		v.b.WriteByte('"')
+		v.b.WriteStrings(" \"", in.Ref.String(), "\"")
 	}
 	if len(in.Inlines) > 0 {
 		v.b.WriteString(" [")

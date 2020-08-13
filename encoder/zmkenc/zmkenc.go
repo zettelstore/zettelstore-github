@@ -99,26 +99,29 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 	v.visitAttributes(vn.Attrs)
 	v.b.WriteByte('\n')
 	for _, line := range vn.Lines {
-		v.b.WriteString(line)
-		v.b.WriteByte('\n')
+		v.b.WriteStrings(line, "\n")
 	}
 	v.b.WriteString("```\n")
 }
 
-var regionCode = map[ast.RegionCode][]byte{
-	ast.RegionSpan:  []byte(":::"),
-	ast.RegionQuote: []byte("<<<"),
-	ast.RegionVerse: []byte("\"\"\""),
+var regionCode = map[ast.RegionCode]string{
+	ast.RegionSpan:  ":::",
+	ast.RegionQuote: "<<<",
+	ast.RegionVerse: "\"\"\"",
 }
 
 // VisitRegion writes HTML code for block regions.
 func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 	// Scan rn.Blocks for embedded regions to adjust length of regionCode
-	v.b.Write(regionCode[rn.Code])
+	code, ok := regionCode[rn.Code]
+	if !ok {
+		panic(fmt.Sprintf("Unknown region code %d", rn.Code))
+	}
+	v.b.WriteString(code)
 	v.visitAttributes(rn.Attrs)
 	v.b.WriteByte('\n')
 	v.acceptBlockSlice(rn.Blocks)
-	v.b.Write(regionCode[rn.Code])
+	v.b.WriteString(code)
 	if len(rn.Inlines) > 0 {
 		v.b.WriteByte(' ')
 		v.acceptInlineSlice(rn.Inlines)
@@ -208,7 +211,7 @@ func (v *visitor) VisitTable(tn *ast.TableNode) {
 	}
 	for _, row := range tn.Rows {
 		for _, cell := range row {
-			v.b.WriteString("|", alignCode[cell.Align])
+			v.b.WriteStrings("|", alignCode[cell.Align])
 			v.acceptInlineSlice(cell.Inlines)
 		}
 		v.b.WriteByte('\n')
@@ -218,7 +221,7 @@ func (v *visitor) VisitTable(tn *ast.TableNode) {
 
 // VisitBLOB writes the binary object as a value.
 func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
-	v.b.WriteString("%% Unable to display BLOB with title '", bn.Title, "' and syntax '", bn.Syntax, "'\n")
+	v.b.WriteStrings("%% Unable to display BLOB with title '", bn.Title, "' and syntax '", bn.Syntax, "'\n")
 }
 
 var escapeSeqs = map[string]bool{
@@ -245,8 +248,7 @@ func (v *visitor) VisitText(tn *ast.TextNode) {
 	for i := 0; i < len(tn.Text); i++ {
 		if b := tn.Text[i]; b == '\\' {
 			v.b.WriteString(tn.Text[last:i])
-			v.b.WriteByte('\\')
-			v.b.WriteByte(b)
+			v.b.WriteBytes('\\', b)
 			last = i + 1
 			continue
 		}
@@ -255,8 +257,7 @@ func (v *visitor) VisitText(tn *ast.TextNode) {
 			if _, ok := escapeSeqs[s]; ok {
 				v.b.WriteString(tn.Text[last:i])
 				for j := 0; j < len(s); j++ {
-					v.b.WriteByte('\\')
-					v.b.WriteByte(s[j])
+					v.b.WriteBytes('\\', s[j])
 				}
 				last = i + 1
 				continue
@@ -268,8 +269,7 @@ func (v *visitor) VisitText(tn *ast.TextNode) {
 
 // VisitTag writes tag content.
 func (v *visitor) VisitTag(tn *ast.TagNode) {
-	v.b.WriteByte('#')
-	v.b.WriteString(tn.Tag)
+	v.b.WriteStrings("#", tn.Tag)
 }
 
 // VisitSpace emits a white space.
@@ -296,7 +296,7 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	v.b.WriteString("[[")
 	v.acceptInlineSlice(ln.Inlines)
 	v.b.WriteByte('|')
-	v.b.WriteString(ln.Ref.String(), "]]")
+	v.b.WriteStrings(ln.Ref.String(), "]]")
 }
 
 // VisitImage writes HTML code for images.
@@ -307,13 +307,13 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 			v.acceptInlineSlice(in.Inlines)
 			v.b.WriteByte('|')
 		}
-		v.b.WriteString(in.Ref.String(), "}}")
+		v.b.WriteStrings(in.Ref.String(), "}}")
 	}
 }
 
 // VisitCite writes code for citations.
 func (v *visitor) VisitCite(cn *ast.CiteNode) {
-	v.b.WriteString("[@", cn.Key)
+	v.b.WriteStrings("[@", cn.Key)
 	if len(cn.Inlines) > 0 {
 		v.b.WriteString(", ")
 		v.acceptInlineSlice(cn.Inlines)
@@ -332,12 +332,7 @@ func (v *visitor) VisitFootnote(fn *ast.FootnoteNode) {
 
 // VisitMark writes HTML code to mark a position.
 func (v *visitor) VisitMark(mn *ast.MarkNode) {
-	if len(mn.Text) > 0 {
-		v.b.WriteString("{!", mn.Text)
-		v.b.WriteByte('}')
-	} else {
-		v.b.WriteString("{!}")
-	}
+	v.b.WriteStrings("[!", mn.Text, "]")
 }
 
 var formatCode = map[ast.FormatCode][]byte{
@@ -360,7 +355,10 @@ var formatCode = map[ast.FormatCode][]byte{
 
 // VisitFormat write HTML code for formatting text.
 func (v *visitor) VisitFormat(fn *ast.FormatNode) {
-	code := formatCode[fn.Code]
+	code, ok := formatCode[fn.Code]
+	if !ok {
+		panic(fmt.Sprintf("Unknown format code %d", fn.Code))
+	}
 	attrs := fn.Attrs
 	switch fn.Code {
 	case ast.FormatEmph, ast.FormatStrong, ast.FormatInsert, ast.FormatDelete:
@@ -384,7 +382,7 @@ func (v *visitor) VisitLiteral(ln *ast.LiteralNode) {
 	case ast.LiteralOutput:
 		v.writeLiteral('=', ln.Attrs, ln.Text)
 	case ast.LiteralComment:
-		v.b.WriteString("%% ", ln.Text)
+		v.b.WriteStrings("%% ", ln.Text)
 	case ast.LiteralHTML:
 		v.b.WriteString("``")
 		v.writeEscaped(ln.Text, '`')
@@ -395,11 +393,9 @@ func (v *visitor) VisitLiteral(ln *ast.LiteralNode) {
 }
 
 func (v *visitor) writeLiteral(code byte, attrs *ast.Attributes, text string) {
-	v.b.WriteByte(code)
-	v.b.WriteByte(code)
+	v.b.WriteBytes(code, code)
 	v.writeEscaped(text, code)
-	v.b.WriteByte(code)
-	v.b.WriteByte(code)
+	v.b.WriteBytes(code, code)
 	v.visitAttributes(attrs)
 }
 
@@ -436,7 +432,7 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 		}
 		v.b.WriteString(k)
 		if vl := a.Attrs[k]; len(vl) > 0 {
-			v.b.WriteString("=\"", vl)
+			v.b.WriteStrings("=\"", vl)
 			v.b.WriteByte('"')
 		}
 	}
@@ -448,8 +444,7 @@ func (v *visitor) writeEscaped(s string, toEscape byte) {
 	for i := 0; i < len(s); i++ {
 		if b := s[i]; b == toEscape || b == '\\' {
 			v.b.WriteString(s[last:i])
-			v.b.WriteByte('\\')
-			v.b.WriteByte(b)
+			v.b.WriteBytes('\\', b)
 			last = i + 1
 		}
 	}

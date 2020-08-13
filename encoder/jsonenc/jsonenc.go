@@ -568,8 +568,7 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 }
 
 func (v *visitor) writeNodeStart(t string) {
-	v.b.WriteString("{\"t\":\"", t)
-	v.b.WriteByte('"')
+	v.b.WriteStrings("{\"t\":\"", t, "\"")
 }
 
 var contentCode = map[rune][]byte{
@@ -593,7 +592,7 @@ func (v *visitor) writeContentStart(code rune) {
 		v.b.Write(b)
 		return
 	}
-	panic("xxx" + strconv.Itoa(int(code)))
+	panic("Unknown content code " + strconv.Itoa(int(code)))
 }
 
 var (

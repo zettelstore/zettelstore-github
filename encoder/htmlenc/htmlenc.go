@@ -85,7 +85,7 @@ func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 	if !he.xhtml {
 		v.b.WriteString("<!DOCTYPE html>\n")
 	}
-	v.b.WriteString("<html lang=\"", he.lang, "\">\n<head>\n<meta charset=\"utf-8\">\n")
+	v.b.WriteStrings("<html lang=\"", he.lang, "\">\n<head>\n<meta charset=\"utf-8\">\n")
 	v.acceptMeta(zettel.Meta, zettel.Title)
 	v.b.WriteString("\n</head>\n<body>\n")
 	v.acceptBlockSlice(zettel.Ast)
@@ -137,13 +137,13 @@ func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
 	textEnc := encoder.Create("text")
 	var sb strings.Builder
 	textEnc.WriteInlines(&sb, title)
-	v.b.WriteString("<title>", sb.String(), "</title>")
+	v.b.WriteStrings("<title>", sb.String(), "</title>")
 
 	for i, pair := range meta.Pairs() {
 		if i == 0 { // "title" is number 0...
 			continue
 		}
-		v.b.WriteString("\n<meta name=\"zettel-", pair.Key, "\" content=\"")
+		v.b.WriteStrings("\n<meta name=\"zettel-", pair.Key, "\" content=\"")
 		v.writeEscaped(pair.Value)
 		v.b.WriteString("\">")
 	}
@@ -166,7 +166,7 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 		}
 		v.b.WriteString("<pre><code")
 		v.visitAttributes(vn.Attrs)
-		v.b.WriteString(">")
+		v.b.WriteByte('>')
 		for _, line := range vn.Lines {
 			v.writeEscaped(line)
 			v.b.WriteByte('\n')
@@ -184,18 +184,17 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 
 	case ast.VerbatimHTML:
 		for _, line := range vn.Lines {
-			v.b.WriteString(line)
-			v.b.WriteByte('\n')
+			v.b.WriteStrings(line, "\n")
 		}
 	default:
 		panic(fmt.Sprintf("Unknown verbatim code %v", vn.Code))
 	}
 }
 
-var regionCode = map[ast.RegionCode][]byte{
-	ast.RegionSpan:  []byte("div"),
-	ast.RegionQuote: []byte("blockquote"),
-	ast.RegionVerse: []byte("div"),
+var regionCode = map[ast.RegionCode]string{
+	ast.RegionSpan:  "div",
+	ast.RegionQuote: "blockquote",
+	ast.RegionVerse: "div",
 }
 
 // VisitRegion writes HTML code for block regions.
@@ -208,8 +207,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 	if !ok {
 		panic(fmt.Sprintf("Unknown region code %v", rn.Code))
 	}
-	v.b.WriteString("<")
-	v.b.Write(code)
+	v.b.WriteStrings("<", code)
 	v.visitAttributes(rn.Attrs)
 	v.b.WriteString(">\n")
 	v.acceptBlockSlice(rn.Blocks)
@@ -218,9 +216,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 		v.acceptInlineSlice(rn.Inlines)
 		v.b.WriteString("</cite>\n")
 	}
-	v.b.WriteString("</")
-	v.b.Write(code)
-	v.b.WriteString(">\n")
+	v.b.WriteStrings("</", code, ">\n")
 	v.inVerse = oldVerse
 }
 
@@ -230,11 +226,12 @@ func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
 	if lvl > 6 {
 		lvl = 6 // HTML has H1..H6
 	}
-	v.b.WriteString("<h", strconv.Itoa(lvl))
+	strLvl := strconv.Itoa(lvl)
+	v.b.WriteStrings("<h", strLvl)
 	v.visitAttributes(hn.Attrs)
-	v.b.WriteString(">")
+	v.b.WriteByte('>')
 	v.acceptInlineSlice(hn.Inlines)
-	v.b.WriteString("</h", strconv.Itoa(lvl), ">\n")
+	v.b.WriteStrings("</h", strLvl, ">\n")
 }
 
 // VisitHRule writes HTML code for a horizontal rule: <hr>.
@@ -248,9 +245,9 @@ func (v *visitor) VisitHRule(hn *ast.HRuleNode) {
 	}
 }
 
-var listCode = map[ast.NestedListCode][]byte{
-	ast.NestedListOrdered:   []byte("ol"),
-	ast.NestedListUnordered: []byte("ul"),
+var listCode = map[ast.NestedListCode]string{
+	ast.NestedListOrdered:   "ol",
+	ast.NestedListUnordered: "ul",
 }
 
 // VisitNestedList writes HTML code for lists and blockquotes.
@@ -261,9 +258,13 @@ func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 		return
 	}
 
+	code, ok := listCode[ln.Code]
+	if !ok {
+		panic(fmt.Sprintf("Invalid list code %v", ln.Code))
+	}
+
 	compact := isCompactList(ln.Items)
-	v.b.WriteString("<")
-	v.b.Write(listCode[ln.Code])
+	v.b.WriteStrings("<", code)
 	v.visitAttributes(ln.Attrs)
 	v.b.WriteString(">\n")
 	for _, item := range ln.Items {
@@ -271,9 +272,7 @@ func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 		v.writeItemSliceOrPara(item, compact)
 		v.b.WriteString("</li>\n")
 	}
-	v.b.WriteString("</")
-	v.b.Write(listCode[ln.Code])
-	v.b.WriteString(">\n")
+	v.b.WriteStrings("</", code, ">\n")
 }
 
 func (v *visitor) writeQuotationList(ln *ast.NestedListNode) {
@@ -422,13 +421,13 @@ func (v *visitor) writeRow(row ast.TableRow, cellStart, cellEnd string) {
 func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
 	switch bn.Syntax {
 	case "gif", "jpeg", "png":
-		v.b.WriteString("<img src=\"data:image/", bn.Syntax, ";base64,")
+		v.b.WriteStrings("<img src=\"data:image/", bn.Syntax, ";base64,")
 		v.b.WriteBase64(bn.Blob)
 		v.b.WriteString("\" title=\"")
 		v.writeEscaped(bn.Title)
 		v.b.WriteString("\">\n")
 	default:
-		v.b.WriteString("<p class=\"error\">Unable to display BLOB with syntax '", bn.Syntax, "'.</p>\n")
+		v.b.WriteStrings("<p class=\"error\">Unable to display BLOB with syntax '", bn.Syntax, "'.</p>\n")
 	}
 }
 
@@ -528,7 +527,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 			v.b.WriteString("svg+xml;utf8,")
 			v.writeEscaped(string(in.Blob))
 		default:
-			v.b.WriteString(in.Syntax, ";base64,")
+			v.b.WriteStrings(in.Syntax, ";base64,")
 			v.b.WriteBase64(in.Blob)
 		}
 	} else {
@@ -557,11 +556,9 @@ func (v *visitor) VisitCite(cn *ast.CiteNode) {
 			v.b.WriteString(cn.Key)
 			// TODO: Attrs
 		} else {
-			v.b.WriteString("<a href=\"", url)
-			v.b.WriteByte('"')
+			v.b.WriteStrings("<a href=\"", url, "\"")
 			v.visitAttributes(cn.Attrs)
-			v.b.WriteByte('>')
-			v.b.WriteString(cn.Key, "</a>")
+			v.b.WriteStrings(">", cn.Key, "</a>")
 		}
 		if len(cn.Inlines) > 0 {
 			v.b.WriteString(", ")
@@ -573,33 +570,33 @@ func (v *visitor) VisitCite(cn *ast.CiteNode) {
 // VisitFootnote write HTML code for a footnote.
 func (v *visitor) VisitFootnote(fn *ast.FootnoteNode) {
 	v.enc.footnotes = append(v.enc.footnotes, fn)
-	n := fmt.Sprintf("%d", len(v.enc.footnotes))
-	v.b.WriteString("<sup id=\"fnref:", n, "\"><a href=\"#fn:", n, "\" class=\"zs-footnote-ref\" role=\"doc-noteref\">", n, "</a></sup>")
+	n := strconv.Itoa(len(v.enc.footnotes))
+	v.b.WriteStrings("<sup id=\"fnref:", n, "\"><a href=\"#fn:", n, "\" class=\"zs-footnote-ref\" role=\"doc-noteref\">", n, "</a></sup>")
 	// TODO: what to do with Attrs?
 }
 
 // VisitMark writes HTML code to mark a position.
 func (v *visitor) VisitMark(mn *ast.MarkNode) {
 	if len(mn.Text) > 0 {
-		v.b.WriteString("<a id=\"", mn.Text, "\"></a>")
+		v.b.WriteStrings("<a id=\"", mn.Text, "\"></a>")
 	}
 }
 
-var formatCode = map[ast.FormatCode][]byte{
-	ast.FormatItalic:    []byte("i"),
-	ast.FormatEmph:      []byte("em"),
-	ast.FormatBold:      []byte("b"),
-	ast.FormatStrong:    []byte("strong"),
-	ast.FormatUnder:     []byte("u"), // TODO: ändern in <span class="XXX">
-	ast.FormatInsert:    []byte("ins"),
-	ast.FormatStrike:    []byte("s"),
-	ast.FormatDelete:    []byte("del"),
-	ast.FormatSuper:     []byte("sup"),
-	ast.FormatSub:       []byte("sub"),
-	ast.FormatQuotation: []byte("q"),
-	ast.FormatSmall:     []byte("small"),
-	ast.FormatSpan:      []byte("span"),
-	ast.FormatMonospace: []byte("span"),
+var formatCode = map[ast.FormatCode]string{
+	ast.FormatItalic:    "i",
+	ast.FormatEmph:      "em",
+	ast.FormatBold:      "b",
+	ast.FormatStrong:    "strong",
+	ast.FormatUnder:     "u", // TODO: ändern in <span class="XXX">
+	ast.FormatInsert:    "ins",
+	ast.FormatStrike:    "s",
+	ast.FormatDelete:    "del",
+	ast.FormatSuper:     "sup",
+	ast.FormatSub:       "sub",
+	ast.FormatQuotation: "q",
+	ast.FormatSmall:     "small",
+	ast.FormatSpan:      "span",
+	ast.FormatMonospace: "span",
 }
 
 // VisitFormat write HTML code for formatting text.
@@ -608,8 +605,11 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 		v.visitQuotes(fn)
 		return
 	}
-	v.b.WriteByte('<')
-	v.b.Write(formatCode[fn.Code])
+	code, ok := formatCode[fn.Code]
+	if !ok {
+		panic(fmt.Sprintf("Unknown format code %v", fn.Code))
+	}
+	v.b.WriteStrings("<", code)
 	switch fn.Code {
 	case ast.FormatMonospace:
 		v.b.WriteString(" style=\"font-family:monospace\"")
@@ -617,9 +617,7 @@ func (v *visitor) VisitFormat(fn *ast.FormatNode) {
 	v.visitAttributes(fn.Attrs)
 	v.b.WriteByte('>')
 	v.acceptInlineSlice(fn.Inlines)
-	v.b.WriteString("</")
-	v.b.Write(formatCode[fn.Code])
-	v.b.WriteByte('>')
+	v.b.WriteStrings("</", code, ">")
 }
 
 var langQuotes = map[string][2]string{
@@ -718,10 +716,10 @@ func (v *visitor) writeEndnotes() {
 			// Do not use a range loop above, because a footnote may contain
 			// a footnote. Therefore v.enc.footnote may grow during the loop.
 			fn := v.enc.footnotes[i]
-			n := fmt.Sprintf("%d", i+1)
-			v.b.WriteString("<li id=\"fn:", n, "\" role=\"doc-endnote\">")
+			n := strconv.Itoa(i + 1)
+			v.b.WriteStrings("<li id=\"fn:", n, "\" role=\"doc-endnote\">")
 			v.acceptInlineSlice(fn.Inlines)
-			v.b.WriteString(" <a href=\"#fnref:", n, "\" class=\"zs-footnote-backref\" role=\"doc-backlink\">&#x21a9;&#xfe0e;</a></li>\n")
+			v.b.WriteStrings(" <a href=\"#fnref:", n, "\" class=\"zs-footnote-backref\" role=\"doc-backlink\">&#x21a9;&#xfe0e;</a></li>\n")
 		}
 		v.b.WriteString("</ol>\n")
 	}
@@ -744,8 +742,7 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 		if k == "" || k == "-" {
 			continue
 		}
-		v.b.WriteByte(' ')
-		v.b.WriteString(k)
+		v.b.WriteStrings(" ", k)
 		vl := a.Attrs[k]
 		if len(vl) > 0 {
 			v.b.WriteString("=\"")
@@ -783,7 +780,7 @@ func (v *visitor) writeEscaped(s string) {
 		default:
 			continue
 		}
-		v.b.WriteString(s[last:i], html)
+		v.b.WriteStrings(s[last:i], html)
 		last = i + 1
 	}
 	v.b.WriteString(s[last:])

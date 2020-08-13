@@ -182,8 +182,7 @@ func (v *visitor) VisitText(tn *ast.TextNode) {
 
 // VisitTag writes tag content.
 func (v *visitor) VisitTag(tn *ast.TagNode) {
-	v.b.WriteByte('#')
-	v.b.WriteString(tn.Tag)
+	v.b.WriteStrings("#", tn.Tag)
 }
 
 // VisitSpace emits a white space.

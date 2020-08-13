@@ -50,8 +50,13 @@ func (w *BufWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// WriteString writes the contents of sl into the buffer.
-func (w *BufWriter) WriteString(sl ...string) {
+// WriteString writes the contents of s into the buffer.
+func (w *BufWriter) WriteString(s string) {
+	w.Write([]byte(s))
+}
+
+// WriteStrings writes the contents of sl into the buffer.
+func (w *BufWriter) WriteStrings(sl ...string) {
 	for _, s := range sl {
 		w.Write([]byte(s))
 	}
@@ -61,6 +66,11 @@ func (w *BufWriter) WriteString(sl ...string) {
 func (w *BufWriter) WriteByte(b byte) error {
 	w.buf = append(w.buf, b)
 	return nil
+}
+
+// WriteBytes writes the content of bs into the buffer.
+func (w *BufWriter) WriteBytes(bs ...byte) {
+	w.buf = append(w.buf, bs...)
 }
 
 // WriteBase64 writes the content of p into the buffer, encoded with base64.
