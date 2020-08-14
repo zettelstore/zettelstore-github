@@ -73,7 +73,7 @@ var goData = goStore{
 <a href="{{url 'c' ""}}">Reload</a>
 </nav>
 </div>
-<a href="{{url 'n' ""}}">New</a>
+{{if not config.IsReadOnly}}<a href="{{url 'n' ""}}">New</a>{{end}}
 {{- block "menu" .}}{{end -}}
 <form action="{{url 's' ""}}">
 <input type="text" placeholder="Search.." name="s">
@@ -143,13 +143,14 @@ var goData = goStore{
 <header>
 <h1>{{.HTMLTitle}}</h1>
 <div class="zs-meta">
-<a href="{{url 'e' .Meta.ID}}">Edit</a> &#183; {{ .Meta.ID}} &#183;
+{{if not config.IsReadOnly}}<a href="{{url 'e' .Meta.ID}}">Edit</a> &#183;
+{{ .Meta.ID}} &#183;{{end}}
 <a href="{{url 'i' .Meta.ID}}">Info</a> &#183;
 {{- with .Meta.GetDefault "role" "*"}} (<a href="{{url $.Key ""}}?role={{.}}">{{.}}</a>){{end}}
 {{- with .Meta.GetListOrNil %q}}
 {{- if .}}:{{range .}} <a href="{{url $.Key ""}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
 {{- end}}
-&#183; <a href="{{url 'n' .Meta.ID}}">Clone</a>
+{{if not config.IsReadOnly}}&#183; <a href="{{url 'n' .Meta.ID}}">Clone</a>{{end}}
 {{with .Meta.GetDefault "url" ""}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}
 </div>
 </header>
@@ -173,12 +174,12 @@ var goData = goStore{
 <div class="zs-meta">
 <a href="{{url 'h' $.Meta.ID}}">Web</a>{{range $f := .Formats}} &#183; <a href="{{url 'z' $.Meta.ID}}?_format={{$f}}">{{$f}}</a>{{end}}
 </div>
-<a href="{{url 'e' .Meta.ID}}">Edit</a> &#183;
-<a href="{{url 'n' .Meta.ID}}">Clone</a> &#183;
+{{if not config.IsReadOnly}}<a href="{{url 'e' .Meta.ID}}">Edit</a> &#183;
+<a href="{{url 'n' .Meta.ID}}">Clone</a> &#183;{{end}}
 <a href="{{url 'm' .Meta.ID}}">Meta</a> &#183;
-<a href="{{url 'c' .Meta.ID}}">Content</a> &#183;
+<a href="{{url 'c' .Meta.ID}}">Content</a> {{if not config.IsReadOnly}}&#183;
 <a href="{{url 'r' .Meta.ID}}">Rename</a> &#183;
-<a href="{{url 'd' .Meta.ID}}">Delete</a>
+<a href="{{url 'd' .Meta.ID}}">Delete</a>{{end}}
 </header>
 <h2>Interpreted Meta Data</h2>
 <table>

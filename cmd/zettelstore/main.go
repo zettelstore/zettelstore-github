@@ -46,7 +46,7 @@ var (
 	releaseVersion string = ""
 )
 
-func setupRouting(s store.Store) *router.Router {
+func setupRouting(s store.Store, readonly bool) *router.Router {
 	te := adapter.NewTemplateEngine(s)
 	p := parser.New()
 	p.InitCache(s)
@@ -60,26 +60,34 @@ func setupRouting(s store.Store) *router.Router {
 
 	router := router.NewRouter()
 	router.Handle("/", adapter.MakeGetRootHandler(s, listHTMLMetaHandler, getHTMLZettelHandler))
-	router.AddListRoute('a', http.MethodGet, adapter.MakeGetLoginHandler(te))
-	router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(usecase.NewAuthenticate(s)))
+	if !readonly {
+		router.AddListRoute('a', http.MethodGet, adapter.MakeGetLoginHandler(te))
+		router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(usecase.NewAuthenticate(s)))
+	}
 	router.AddZettelRoute('b', http.MethodGet, adapter.MakeGetBodyHandler('b', te, p, ucGetZettel, ucGetMeta))
 	router.AddListRoute('c', http.MethodGet, adapter.MakeReloadHandler(usecase.NewReload(s)))
 	router.AddZettelRoute('c', http.MethodGet, adapter.MakeGetContentHandler(ucGetZettel))
-	router.AddZettelRoute('d', http.MethodGet, adapter.MakeGetDeleteZettelHandler(te, ucGetZettel))
-	router.AddZettelRoute('d', http.MethodPost, adapter.MakePostDeleteZettelHandler(usecase.NewDeleteZettel(s)))
-	router.AddZettelRoute('e', http.MethodGet, adapter.MakeEditGetZettelHandler(te, ucGetZettel))
-	router.AddZettelRoute('e', http.MethodPost, adapter.MakeEditSetZettelHandler(usecase.NewUpdateZettel(s)))
+	if !readonly {
+		router.AddZettelRoute('d', http.MethodGet, adapter.MakeGetDeleteZettelHandler(te, ucGetZettel))
+		router.AddZettelRoute('d', http.MethodPost, adapter.MakePostDeleteZettelHandler(usecase.NewDeleteZettel(s)))
+		router.AddZettelRoute('e', http.MethodGet, adapter.MakeEditGetZettelHandler(te, ucGetZettel))
+		router.AddZettelRoute('e', http.MethodPost, adapter.MakeEditSetZettelHandler(usecase.NewUpdateZettel(s)))
+	}
 	router.AddListRoute('h', http.MethodGet, listHTMLMetaHandler)
 	router.AddZettelRoute('h', http.MethodGet, getHTMLZettelHandler)
 	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, p, ucGetZettel, ucGetMeta))
 	router.AddZettelRoute('m', http.MethodGet, adapter.MakeGetMetaHandler(p, ucGetMeta))
-	router.AddListRoute('n', http.MethodGet, getNewZettelHandler)
-	router.AddListRoute('n', http.MethodPost, postNewZettelHandler)
-	router.AddZettelRoute('n', http.MethodGet, getNewZettelHandler)
-	router.AddZettelRoute('n', http.MethodPost, postNewZettelHandler)
+	if !readonly {
+		router.AddListRoute('n', http.MethodGet, getNewZettelHandler)
+		router.AddListRoute('n', http.MethodPost, postNewZettelHandler)
+		router.AddZettelRoute('n', http.MethodGet, getNewZettelHandler)
+		router.AddZettelRoute('n', http.MethodPost, postNewZettelHandler)
+	}
 	router.AddListRoute('r', http.MethodGet, adapter.MakeListRoleHandler(te, usecase.NewListRole(s)))
-	router.AddZettelRoute('r', http.MethodGet, adapter.MakeGetRenameZettelHandler(te, ucGetMeta))
-	router.AddZettelRoute('r', http.MethodPost, adapter.MakePostRenameZettelHandler(usecase.NewRenameZettel(s)))
+	if !readonly {
+		router.AddZettelRoute('r', http.MethodGet, adapter.MakeGetRenameZettelHandler(te, ucGetMeta))
+		router.AddZettelRoute('r', http.MethodPost, adapter.MakePostRenameZettelHandler(usecase.NewRenameZettel(s)))
+	}
 	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, usecase.NewListTags(s)))
 	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, p, usecase.NewSearch(s)))
 	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler('z', te, p, usecase.NewListMeta(s)))
@@ -92,9 +100,11 @@ func main() {
 
 	var port uint64
 	var dir string
+	var readonly bool
 
 	flag.Uint64Var(&port, "p", 23123, "port number")
 	flag.StringVar(&dir, "d", "./zettel", "zettel directory")
+	flag.BoolVar(&readonly, "r", false, "system read-only mode")
 	flag.Parse()
 
 	err := os.MkdirAll(dir, 0755)
@@ -109,13 +119,16 @@ func main() {
 	if err = cs.Start(context.Background()); err != nil {
 		log.Fatalf("Unable to start zettel store: %v", err)
 	}
-	config.SetupConfiguration(cs)
+	config.SetupConfiguration(cs, readonly)
 
-	router := setupRouting(cs)
+	router := setupRouting(cs, readonly)
 
 	v := config.Config.GetVersion()
 	log.Printf("Release %v, Build %v", v.Release, v.Build)
 	log.Printf("Listening on port %v", port)
 	log.Printf("Zettel location %q", cs.Location())
+	if readonly {
+		log.Println("Read-only node")
+	}
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
 }

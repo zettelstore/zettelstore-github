@@ -55,7 +55,7 @@ func (c Type) GetVersion() Version {
 }
 
 // SetupConfiguration enables the configuration data.
-func SetupConfiguration(store store.Store) {
+func SetupConfiguration(store store.Store, readOnly bool) {
 	if configStock != nil {
 		panic("configStock already set")
 	}
@@ -63,9 +63,11 @@ func SetupConfiguration(store store.Store) {
 	if err := configStock.Subscribe(domain.ConfigurationID); err != nil {
 		panic(err)
 	}
+	readonly = readOnly
 }
 
 var configStock stock.Stock
+var readonly bool
 
 // Type is the type for the config variable.
 type Type struct{}
@@ -80,6 +82,9 @@ func getConfigurationMeta() *domain.Meta {
 	}
 	return configStock.GetMeta(domain.ConfigurationID)
 }
+
+// IsReadOnly returns whether the system is in read-only mode or not.
+func (c Type) IsReadOnly() bool { return readonly }
 
 // GetDefaultTitle returns the current value of the "default-title" key.
 func (c Type) GetDefaultTitle() string {
