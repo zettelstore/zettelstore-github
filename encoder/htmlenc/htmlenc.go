@@ -175,12 +175,14 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 		v.visibleSpace = oldVisible
 
 	case ast.VerbatimComment:
-		v.b.WriteString("<!-- ")
-		for _, line := range vn.Lines {
-			v.writeEscaped(line)
-			v.b.WriteByte('\n')
+		if vn.Attrs.HasDefault() {
+			v.b.WriteString("<!--\n")
+			for _, line := range vn.Lines {
+				v.writeEscaped(line)
+				v.b.WriteByte('\n')
+			}
+			v.b.WriteString("-->\n")
 		}
-		v.b.WriteString("-->\n")
 
 	case ast.VerbatimHTML:
 		for _, line := range vn.Lines {
