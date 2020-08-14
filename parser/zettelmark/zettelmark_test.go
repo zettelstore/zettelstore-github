@@ -90,7 +90,7 @@ func TestText(t *testing.T) {
 		{"\\aa", "(PARA aa)"},
 		{"a\\a", "(PARA aa)"},
 		{"\\+", "(PARA +)"},
-		{"\\ ", "(PARA " + string(160) + ")"},
+		{"\\ ", "(PARA \u00a0)"},
 		{"...", "(PARA \u2026)"},
 		{"...,", "(PARA \u2026,)"},
 		{"...;", "(PARA \u2026;)"},
@@ -336,8 +336,8 @@ func TestMixFormatCode(t *testing.T) {
 
 func TestNDash(t *testing.T) {
 	checkTcs(t, TestCases{
-		{"--", "(PARA \U00002013)"},
-		{"a--b", "(PARA a\U00002013b)"},
+		{"--", "(PARA \u2013)"},
+		{"a--b", "(PARA a\u2013b)"},
 	})
 }
 

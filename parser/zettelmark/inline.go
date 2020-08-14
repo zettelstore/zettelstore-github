@@ -140,7 +140,7 @@ func (cp *zmkP) parseBackslashRest() *ast.TextNode {
 		return &ast.TextNode{Text: "\\"}
 	case ' ':
 		inp.Next()
-		return &ast.TextNode{Text: string(160)}
+		return &ast.TextNode{Text: "\u00a0"}
 	}
 	pos := inp.Pos
 	inp.Next()
@@ -470,7 +470,7 @@ func (cp *zmkP) parseNdash() (res *ast.TextNode, success bool) {
 	}
 	inp.Next()
 	inp.Next()
-	return &ast.TextNode{Text: "\U00002013"}, true
+	return &ast.TextNode{Text: "\u2013"}, true
 }
 
 func (cp *zmkP) parseEntity() (res *ast.TextNode, success bool) {

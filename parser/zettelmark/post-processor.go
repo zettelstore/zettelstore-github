@@ -419,7 +419,7 @@ func (pp *postProcessor) processInlineSliceCopy(ins ast.InlineSlice) int {
 						}
 					case *ast.TextNode:
 						if pp.inVerse {
-							ins[toPos] = &ast.TextNode{Text: strings.Repeat(string(160), len(in.Lexeme)) + nn.Text}
+							ins[toPos] = &ast.TextNode{Text: strings.Repeat("\u00a0", len(in.Lexeme)) + nn.Text}
 							fromPos++
 							again = true
 						}

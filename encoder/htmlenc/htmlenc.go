@@ -796,7 +796,7 @@ func (v *visitor) writeEscaped(s string) {
 			html = "\uFFFD"
 		case ' ':
 			if v.visibleSpace {
-				html = "\U00002423"
+				html = "\u2423"
 			} else {
 				continue
 			}
