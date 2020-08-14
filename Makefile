@@ -33,20 +33,17 @@ check:
 validate: test check
 
 race:
-	CG0_ENABLED=0 go test -race ./...
-
-run:
-	CG0_ENABLED=0 go run cmd/zettelstore/main.go
+	go test -race ./...
 
 build:
 	mkdir -p bin
-	CG0_ENABLED=0 go build $(GOFLAGS) -o bin/zettelstore $(PACKAGE)
+	CGO_ENABLED=0 go build $(GOFLAGS) -o bin/zettelstore $(PACKAGE)
 
 release:
 	mkdir -p releases
-	CG0_ENABLED=0 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore $(PACKAGE)
-	CG0_ENABLED=0 GOOS=darwin go build $(GOFLAGS) -o releases/iZettelstore $(PACKAGE)
-	CG0_ENABLED=0 GOOS=windows go build $(GOFLAGS) -o releases/zettelstore.exe $(PACKAGE)
+	CGO_ENABLED=0 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore $(PACKAGE)
+	CGO_ENABLED=0 GOOS=darwin go build $(GOFLAGS) -o releases/iZettelstore $(PACKAGE)
+	CGO_ENABLED=0 GOOS=windows go build $(GOFLAGS) -o releases/zettelstore.exe $(PACKAGE)
 
 clean:
 	rm -rf bin releases
