@@ -26,16 +26,6 @@ import (
 	"zettelstore.de/z/store/stock"
 )
 
-// StartupData will be provided by the application. It will not change.
-type StartupData struct {
-	Release string
-	Build   string
-
-	ListenAddr string
-	Dirs       []string
-	Readonly   bool
-}
-
 // Version describes all elements of a software version.
 type Version struct {
 	Release string // Official software release version
@@ -43,27 +33,25 @@ type Version struct {
 	// More to come
 }
 
-var v Version
+var startupConfig *domain.Meta
 
 // SetupStartup initializes the startup data.
-func SetupStartup(cfg *StartupData) {
-	if len(cfg.Release) > 0 {
-		v.Release = cfg.Release
-	} else {
-		v.Release = "unknown"
+func SetupStartup(cfg *domain.Meta) {
+	if s := cfg.GetDefault("release-version", ""); len(s) == 0 {
+		cfg.Set("release-version", "unknown")
 	}
-	if len(cfg.Build) > 0 {
-		v.Build = cfg.Build
-	} else {
-		v.Build = "unknown"
+	if s := cfg.GetDefault("build-version", ""); len(s) == 0 {
+		cfg.Set("build-version", "unknown")
 	}
-
-	readonly = cfg.Readonly
+	startupConfig = cfg
 }
 
 // GetVersion returns the current software version data.
 func (c Type) GetVersion() Version {
-	return v
+	return Version{
+		Release: startupConfig.GetDefault("release-version", ""),
+		Build:   startupConfig.GetDefault("build-version", ""),
+	}
 }
 
 // SetupConfiguration enables the configuration data.
@@ -78,7 +66,6 @@ func SetupConfiguration(store store.Store) {
 }
 
 var configStock stock.Stock
-var readonly bool
 
 // Type is the type for the config variable.
 type Type struct{}
@@ -95,7 +82,7 @@ func getConfigurationMeta() *domain.Meta {
 }
 
 // IsReadOnly returns whether the system is in read-only mode or not.
-func (c Type) IsReadOnly() bool { return readonly }
+func (c Type) IsReadOnly() bool { return startupConfig.GetBool("readonly") }
 
 // GetDefaultTitle returns the current value of the "default-title" key.
 func (c Type) GetDefaultTitle() string {

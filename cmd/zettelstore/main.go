@@ -23,13 +23,15 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
 	_ "zettelstore.de/z/cmd"
 	"zettelstore.de/z/config"
+	"zettelstore.de/z/domain"
+	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/store"
 	"zettelstore.de/z/store/chainstore"
@@ -95,30 +97,53 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 	return router
 }
 
-func setupConfig(cfg *config.StartupData) {
-	cfg.Release = releaseVersion
-	cfg.Build = buildVersion
-
+func setupConfig() (cfg *domain.Meta) {
+	var configFile string
 	var port uint64
 	var dir string
 	var readonly bool
 
+	flag.StringVar(&configFile, "c", ".zscfg", "configuration file")
 	flag.Uint64Var(&port, "p", 23123, "port number")
 	flag.StringVar(&dir, "d", "./zettel", "zettel directory")
 	flag.BoolVar(&readonly, "r", false, "system read-only mode")
 	flag.Parse()
 
-	cfg.Dirs = []string{dir}
-	cfg.ListenAddr = fmt.Sprintf(":%d", port)
-	cfg.Readonly = readonly
+	if content, err := ioutil.ReadFile(configFile); err != nil {
+		cfg = domain.NewMeta("")
+	} else {
+		cfg = domain.NewMetaFromInput("", input.NewInput(string(content)))
+	}
+	flag.Visit(func(flg *flag.Flag) {
+		switch flg.Name {
+		case "p":
+			cfg.Set("listen-addr", ":"+flg.Value.String())
+		case "d":
+			cfg.Set("store-dir-1", flg.Value.String())
+		case "r":
+			cfg.Set("readonly", flg.Value.String())
+		}
+	})
+
+	if _, ok := cfg.Get("listen-addr"); !ok {
+		cfg.Set("listen-addr", ":23123")
+	}
+	if _, ok := cfg.Get("store-dir-1"); !ok {
+		cfg.Set("store-dir-1", "./zettel")
+	}
+	if _, ok := cfg.Get("readonly"); !ok {
+		cfg.Set("readonly", "0")
+	}
+	cfg.Set("release-version", releaseVersion)
+	cfg.Set("build-version", buildVersion)
+	return cfg
 }
 
 func main() {
-	var cfg config.StartupData
-	setupConfig(&cfg)
-	config.SetupStartup(&cfg)
+	cfg := setupConfig()
+	config.SetupStartup(cfg)
 
-	dir := cfg.Dirs[0]
+	dir, _ := cfg.Get("store-dir-1")
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		log.Fatalf("Unable to create zettel directory %q: %v", dir, err)
@@ -133,14 +158,16 @@ func main() {
 	}
 	config.SetupConfiguration(cs)
 
-	router := setupRouting(cs, cfg.Readonly)
+	readonly := cfg.GetBool("readonly")
+	router := setupRouting(cs, readonly)
 
 	v := config.Config.GetVersion()
 	log.Printf("Release %v, Build %v", v.Release, v.Build)
-	log.Printf("Listening on %v", cfg.ListenAddr)
+	listenAddr, _ := cfg.Get("listen-addr")
+	log.Printf("Listening on %v", listenAddr)
 	log.Printf("Zettel location %q", cs.Location())
-	if cfg.Readonly {
+	if readonly {
 		log.Println("Read-only node")
 	}
-	log.Fatal(http.ListenAndServe(cfg.ListenAddr, router))
+	log.Fatal(http.ListenAndServe(listenAddr, router))
 }
