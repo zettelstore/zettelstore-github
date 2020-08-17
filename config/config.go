@@ -37,12 +37,16 @@ var startupConfig *domain.Meta
 
 // SetupStartup initializes the startup data.
 func SetupStartup(cfg *domain.Meta) {
+	if startupConfig != nil {
+		panic("startupConfig already set")
+	}
 	if s := cfg.GetDefault("release-version", ""); len(s) == 0 {
 		cfg.Set("release-version", "unknown")
 	}
 	if s := cfg.GetDefault("build-version", ""); len(s) == 0 {
 		cfg.Set("build-version", "unknown")
 	}
+	cfg.Freeze()
 	startupConfig = cfg
 }
 
