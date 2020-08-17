@@ -26,6 +26,16 @@ import (
 	"zettelstore.de/z/store/stock"
 )
 
+// StartupData will be provided by the application. It will not change.
+type StartupData struct {
+	Release string
+	Build   string
+
+	ListenAddr string
+	Dirs       []string
+	Readonly   bool
+}
+
 // Version describes all elements of a software version.
 type Version struct {
 	Release string // Official software release version
@@ -35,18 +45,20 @@ type Version struct {
 
 var v Version
 
-// SetupVersion initializes the version data.
-func SetupVersion(release string, build string) {
-	if len(release) > 0 {
-		v.Release = release
+// SetupStartup initializes the startup data.
+func SetupStartup(cfg *StartupData) {
+	if len(cfg.Release) > 0 {
+		v.Release = cfg.Release
 	} else {
 		v.Release = "unknown"
 	}
-	if len(build) > 0 {
-		v.Build = build
+	if len(cfg.Build) > 0 {
+		v.Build = cfg.Build
 	} else {
 		v.Build = "unknown"
 	}
+
+	readonly = cfg.Readonly
 }
 
 // GetVersion returns the current software version data.
@@ -55,7 +67,7 @@ func (c Type) GetVersion() Version {
 }
 
 // SetupConfiguration enables the configuration data.
-func SetupConfiguration(store store.Store, readOnly bool) {
+func SetupConfiguration(store store.Store) {
 	if configStock != nil {
 		panic("configStock already set")
 	}
@@ -63,7 +75,6 @@ func SetupConfiguration(store store.Store, readOnly bool) {
 	if err := configStock.Subscribe(domain.ConfigurationID); err != nil {
 		panic(err)
 	}
-	readonly = readOnly
 }
 
 var configStock stock.Stock

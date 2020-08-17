@@ -95,8 +95,9 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 	return router
 }
 
-func main() {
-	config.SetupVersion(releaseVersion, buildVersion)
+func setupConfig(cfg *config.StartupData) {
+	cfg.Release = releaseVersion
+	cfg.Build = buildVersion
 
 	var port uint64
 	var dir string
@@ -107,6 +108,17 @@ func main() {
 	flag.BoolVar(&readonly, "r", false, "system read-only mode")
 	flag.Parse()
 
+	cfg.Dirs = []string{dir}
+	cfg.ListenAddr = fmt.Sprintf(":%d", port)
+	cfg.Readonly = readonly
+}
+
+func main() {
+	var cfg config.StartupData
+	setupConfig(&cfg)
+	config.SetupStartup(&cfg)
+
+	dir := cfg.Dirs[0]
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
 		log.Fatalf("Unable to create zettel directory %q: %v", dir, err)
@@ -119,16 +131,16 @@ func main() {
 	if err = cs.Start(context.Background()); err != nil {
 		log.Fatalf("Unable to start zettel store: %v", err)
 	}
-	config.SetupConfiguration(cs, readonly)
+	config.SetupConfiguration(cs)
 
-	router := setupRouting(cs, readonly)
+	router := setupRouting(cs, cfg.Readonly)
 
 	v := config.Config.GetVersion()
 	log.Printf("Release %v, Build %v", v.Release, v.Build)
-	log.Printf("Listening on port %v", port)
+	log.Printf("Listening on %v", cfg.ListenAddr)
 	log.Printf("Zettel location %q", cs.Location())
-	if readonly {
+	if cfg.Readonly {
 		log.Println("Read-only node")
 	}
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
+	log.Fatal(http.ListenAndServe(cfg.ListenAddr, router))
 }
