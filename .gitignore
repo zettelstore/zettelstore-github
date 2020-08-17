@@ -19,3 +19,5 @@
 bin/
 releases/
 
+# zettelstor config file
+.zscfg

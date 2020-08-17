@@ -23,6 +23,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -119,7 +120,7 @@ func setupConfig() (cfg *domain.Meta) {
 		case "p":
 			cfg.Set("listen-addr", ":"+flg.Value.String())
 		case "d":
-			cfg.Set("store-dir-1", flg.Value.String())
+			cfg.Set("store-1-dir", flg.Value.String())
 		case "r":
 			cfg.Set("readonly", flg.Value.String())
 		}
@@ -128,8 +129,8 @@ func setupConfig() (cfg *domain.Meta) {
 	if _, ok := cfg.Get("listen-addr"); !ok {
 		cfg.Set("listen-addr", ":23123")
 	}
-	if _, ok := cfg.Get("store-dir-1"); !ok {
-		cfg.Set("store-dir-1", "./zettel")
+	if _, ok := cfg.Get("store-1-dir"); !ok {
+		cfg.Set("store-1-dir", "./zettel")
 	}
 	if _, ok := cfg.Get("readonly"); !ok {
 		cfg.Set("readonly", "0")
@@ -143,17 +144,29 @@ func main() {
 	cfg := setupConfig()
 	config.SetupStartup(cfg)
 
-	dir, _ := cfg.Get("store-dir-1")
-	err := os.MkdirAll(dir, 0755)
-	if err != nil {
-		log.Fatalf("Unable to create zettel directory %q: %v", dir, err)
+	var stores []store.Store
+	cnt := 1
+	for {
+		dir, ok := cfg.Get(fmt.Sprintf("store-%v-dir", cnt))
+		if !ok {
+			break
+		}
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Fatalf("Unable to create zettel directory %q: %v", dir, err)
+		}
+		fs, err := filestore.NewStore(dir)
+		if err != nil {
+			log.Fatalf("Unable to create filestore for %q: %v", dir, err)
+		}
+		stores = append(stores, fs)
+		cnt++
 	}
-	fs, err := filestore.NewStore(dir)
-	if err != nil {
-		log.Fatalf("Unable to create filestore for %q: %v", dir, err)
+	if len(stores) == 0 {
+		log.Fatalln("No stores specified")
 	}
-	cs := chainstore.NewStore(fs, gostore.NewStore())
-	if err = cs.Start(context.Background()); err != nil {
+	stores = append(stores, gostore.NewStore())
+	cs := chainstore.NewStore(stores...)
+	if err := cs.Start(context.Background()); err != nil {
 		log.Fatalf("Unable to start zettel store: %v", err)
 	}
 	config.SetupConfiguration(cs)
