@@ -88,6 +88,11 @@ func getConfigurationMeta() *domain.Meta {
 // IsReadOnly returns whether the system is in read-only mode or not.
 func (c Type) IsReadOnly() bool { return startupConfig.GetBool("readonly") }
 
+// GetURLPrefix returns the configured prefix to be used when providing URL to the service.
+func (c Type) GetURLPrefix() string {
+	return startupConfig.GetDefault("url-prefix", "/")
+}
+
 // GetDefaultTitle returns the current value of the "default-title" key.
 func (c Type) GetDefaultTitle() string {
 	if config := getConfigurationMeta(); config != nil {

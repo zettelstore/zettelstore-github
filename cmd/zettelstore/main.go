@@ -136,6 +136,9 @@ func setupConfig() (cfg *domain.Meta) {
 	if _, ok := cfg.Get("verbose"); !ok {
 		cfg.Set("verbose", "false")
 	}
+	if prefix, ok := cfg.Get("url-prefix"); !ok || len(prefix) == 0 || prefix[0] != '/' || prefix[len(prefix)-1] != '/' {
+		cfg.Set("url-prefix", "/")
+	}
 	cfg.Set("release-version", releaseVersion)
 	cfg.Set("build-version", buildVersion)
 	return cfg

@@ -87,8 +87,7 @@ func (te *TemplateEngine) cacheGetTemplate(id domain.ZettelID) (*template.Templa
 func urlFor(key byte, id domain.ZettelID) string {
 	var sb strings.Builder
 
-	// TODO: get präfix
-	sb.WriteByte('/')
+	sb.WriteString(config.Config.GetURLPrefix())
 	if key != '/' {
 		sb.WriteByte(key)
 		sb.WriteByte('/')
