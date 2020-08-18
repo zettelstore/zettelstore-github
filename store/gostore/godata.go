@@ -350,15 +350,15 @@ html {
   font-size: 1rem;
   font-family: serif;
   scroll-behavior: smooth;
-	height: 100%;
+  height: 100%;
 }
 body {
   margin: 0;
   min-height: 100vh;
   text-rendering: optimizeSpeed;
-  line-height: 1.5;
+  line-height: 1.6;
   overflow-x: hidden;
-  background-color: hsl(210, 20%, 98%);
+  background-color: #f8f8f8 ;
   height: 100%;
 }
 nav.zs-menu {
@@ -538,23 +538,26 @@ img {
   max-width: 100%;
 }
 .zs-endnotes {
-padding-top: 1rem;
-border-top: 1px solid;
+  padding-top: 1rem;
+  border-top: 1px solid;
 }
 code,pre,kbd {
   font-family: monospace;
   font-size: 85%;
 }
-code {
-	padding: 2px;
-  background: hsl(210, 28%, 93%);
+p code {
+  padding: .1rem .2rem;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: .25rem;
 }
 pre {
   padding: .5rem .7rem;
   max-width: 100%;
   overflow: auto;
-  border-radius: 4px;
-  background: hsl(210, 28%, 93%);
+  border: 1px solid #ccc;
+  border-radius: .5rem;
+  background: #f0f0f0;
 }
 pre code {
   font-size: 95%;
@@ -563,7 +566,7 @@ pre code {
 div.zs-indication {
   padding: .5rem .7rem;
   max-width: 100%;
-  border-radius: 4px;
+  border-radius: .5rem;
   border: 1px solid black;
 }
 div.zs-indication p:first-child {
@@ -571,28 +574,28 @@ div.zs-indication p:first-child {
 }
 span.zs-indication {
   border: 1px solid black;
-  border-radius: 2px;
-  padding: 2px 4px;
+  border-radius: .25rem;
+  padding: .1rem .2rem;
   font-size: 95%;
 }
 .zs-example { border-style: dotted }
 kbd {
   background: hsl(210, 5%, 100%);
   border: 1px solid hsl(210, 5%, 70%);
-  border-radius: 2px;
-  padding: 2px 4px;
+  border-radius: .25rem;
+  padding: .1rem .2rem;
   font-size: 75%;
 }
 .zs-meta {
-font-size:.75rem;
-color:#888;
-margin-bottom:1rem;
+  font-size:.75rem;
+  color:#888;
+  margin-bottom:1rem;
 }
 .zs-meta a {
-color:#888;
+  color:#888;
 }
 h1+.zs-meta {
-margin-top:-1rem;
+  margin-top:-1rem;
 }
 @media (prefers-reduced-motion: reduce) {
   * {
