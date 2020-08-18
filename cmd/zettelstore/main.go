@@ -99,18 +99,14 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 }
 
 func setupConfig() (cfg *domain.Meta) {
-	var configFile string
-	var port uint64
-	var dir string
-	var readonly bool
-
-	flag.StringVar(&configFile, "c", ".zscfg", "configuration file")
-	flag.Uint64Var(&port, "p", 23123, "port number")
-	flag.StringVar(&dir, "d", "./zettel", "zettel directory")
-	flag.BoolVar(&readonly, "r", false, "system read-only mode")
+	configFile := flag.String("c", ".zscfg", "configuration file")
+	flag.Uint("p", 23123, "port number")
+	flag.String("d", "./zettel", "zettel directory")
+	flag.Bool("r", false, "system-wide read-only mode")
+	flag.Bool("v", false, "verbose mode")
 	flag.Parse()
 
-	if content, err := ioutil.ReadFile(configFile); err != nil {
+	if content, err := ioutil.ReadFile(*configFile); err != nil {
 		cfg = domain.NewMeta("")
 	} else {
 		cfg = domain.NewMetaFromInput("", input.NewInput(string(content)))
@@ -123,6 +119,8 @@ func setupConfig() (cfg *domain.Meta) {
 			cfg.Set("store-1-dir", flg.Value.String())
 		case "r":
 			cfg.Set("readonly", flg.Value.String())
+		case "v":
+			cfg.Set("verbose", flg.Value.String())
 		}
 	})
 
@@ -133,7 +131,10 @@ func setupConfig() (cfg *domain.Meta) {
 		cfg.Set("store-1-dir", "./zettel")
 	}
 	if _, ok := cfg.Get("readonly"); !ok {
-		cfg.Set("readonly", "0")
+		cfg.Set("readonly", "false")
+	}
+	if _, ok := cfg.Get("verbose"); !ok {
+		cfg.Set("verbose", "false")
 	}
 	cfg.Set("release-version", releaseVersion)
 	cfg.Set("build-version", buildVersion)
@@ -174,13 +175,18 @@ func main() {
 	readonly := cfg.GetBool("readonly")
 	router := setupRouting(cs, readonly)
 
-	v := config.Config.GetVersion()
-	log.Printf("Release %v, Build %v", v.Release, v.Build)
 	listenAddr, _ := cfg.Get("listen-addr")
-	log.Printf("Listening on %v", listenAddr)
-	log.Printf("Zettel location %q", cs.Location())
-	if readonly {
-		log.Println("Read-only node")
+	if cfg.GetBool("verbose") {
+		log.Println("Configuration")
+		cfg.Write(os.Stderr)
+	} else {
+		v := config.Config.GetVersion()
+		log.Printf("Release %v, Build %v", v.Release, v.Build)
+		log.Printf("Listening on %v", listenAddr)
+		log.Printf("Zettel location %q", cs.Location())
+		if readonly {
+			log.Println("Read-only node")
+		}
 	}
 	log.Fatal(http.ListenAndServe(listenAddr, router))
 }
