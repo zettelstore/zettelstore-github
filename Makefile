@@ -41,9 +41,9 @@ build:
 
 release:
 	mkdir -p releases
-	CGO_ENABLED=0 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore $(PACKAGE)
-	CGO_ENABLED=0 GOOS=darwin go build $(GOFLAGS) -o releases/iZettelstore $(PACKAGE)
-	CGO_ENABLED=0 GOOS=windows go build $(GOFLAGS) -o releases/zettelstore.exe $(PACKAGE)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore $(PACKAGE)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build $(GOFLAGS) -o releases/iZettelstore $(PACKAGE)
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build $(GOFLAGS) -o releases/zettelstore.exe $(PACKAGE)
 
 clean:
 	rm -rf bin releases
