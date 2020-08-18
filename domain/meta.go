@@ -227,7 +227,7 @@ func (m *Meta) GetList(key string) ([]string, bool) {
 	return ListFromValue(value), true
 }
 
-// GetListOrNil retrueves the string list value of a given key. If there was
+// GetListOrNil retrieves the string list value of a given key. If there was
 // nothing stores, a nil list is returned.
 func (m *Meta) GetListOrNil(key string) []string {
 	if value, ok := m.GetList(key); ok {
@@ -359,6 +359,10 @@ func NewMetaFromInput(id ZettelID, inp *input.Input) *Meta {
 			return meta
 		case input.EOS:
 			return meta
+		case '%':
+			skipToEOL(inp)
+			inp.EatEOL()
+			continue
 		}
 		parseHeader(meta, inp)
 		if inp.Ch == '-' && inp.PeekN(0) == '-' && inp.PeekN(1) == '-' {

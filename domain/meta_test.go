@@ -261,7 +261,10 @@ func TestNewMetaFromInput(t *testing.T) {
 	}{
 		{"", []MetaPair{}},
 		{" a:b", []MetaPair{{"a", "b"}}},
+		{"%a:b", []MetaPair{}},
 		{"a:b\r\n\r\nc:d", []MetaPair{{"a", "b"}}},
+		{"a:b\r\n%c:d", []MetaPair{{"a", "b"}}},
+		{"% a:b\r\n c:d", []MetaPair{{"c", "d"}}},
 		{"---\r\na:b\r\n", []MetaPair{{"a", "b"}}},
 		{"---\r\na:b\r\n--\r\nc:d", []MetaPair{{"a", "b"}, {"c", "d"}}},
 		{"---\r\na:b\r\n---\r\nc:d", []MetaPair{{"a", "b"}}},
