@@ -21,6 +21,8 @@
 package config
 
 import (
+	"fmt"
+
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 	"zettelstore.de/z/store/stock"
@@ -129,14 +131,17 @@ func (c Type) GetDefaultLang() string {
 	return domain.MetaValueLang
 }
 
-var defIconMaterial = "<img class=\"zs-text-icon\" src=\"/c/" + string(domain.MaterialIconID) + "\">"
-
 // GetIconMaterial returns the current value of the "icon-material" key.
 func (c Type) GetIconMaterial() string {
 	if config := getConfigurationMeta(); config != nil {
-		return config.GetDefault(domain.MetaKeyIconMaterial, defIconMaterial)
+		if html, ok := config.Get(domain.MetaKeyIconMaterial); ok {
+			return html
+		}
 	}
-	return defIconMaterial
+	return fmt.Sprintf(
+		"<img class=\"zs-text-icon\" src=\"%vc/%v\">",
+		c.GetURLPrefix(),
+		domain.MaterialIconID)
 }
 
 // GetSiteName returns the current value of the "site-name" key.
