@@ -167,7 +167,7 @@ func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
 		if i == 0 { // "title" is number 0...
 			if withTitle && !v.enc.ignoreMeta[pair.Key] {
 				v.b.WriteStrings("<meta name=\"zs-", pair.Key, "\" content=\"")
-				v.writeEscaped(pair.Value)
+				v.writeQuotedEscaped(pair.Value)
 				v.b.WriteString("\">")
 			}
 			continue
@@ -184,7 +184,7 @@ func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
 
 func (v *visitor) writeMeta(prefix, key, value string) {
 	v.b.WriteStrings("\n<meta name=\"", prefix, key, "\" content=\"")
-	v.writeEscaped(value)
+	v.writeQuotedEscaped(value)
 	v.b.WriteString("\">")
 }
 
@@ -207,7 +207,7 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 		v.visitAttributes(vn.Attrs)
 		v.b.WriteByte('>')
 		for _, line := range vn.Lines {
-			v.writeEscaped(line)
+			v.writeHTMLEscaped(line)
 			v.b.WriteByte('\n')
 		}
 		v.b.WriteString("</code></pre>\n")
@@ -217,7 +217,7 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 		if vn.Attrs.HasDefault() {
 			v.b.WriteString("<!--\n")
 			for _, line := range vn.Lines {
-				v.writeEscaped(line)
+				v.writeHTMLEscaped(line)
 				v.b.WriteByte('\n')
 			}
 			v.b.WriteString("-->\n")
@@ -488,7 +488,7 @@ func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
 		v.b.WriteStrings("<img src=\"data:image/", bn.Syntax, ";base64,")
 		v.b.WriteBase64(bn.Blob)
 		v.b.WriteString("\" title=\"")
-		v.writeEscaped(bn.Title)
+		v.writeQuotedEscaped(bn.Title)
 		v.b.WriteString("\">\n")
 	default:
 		v.b.WriteStrings("<p class=\"error\">Unable to display BLOB with syntax '", bn.Syntax, "'.</p>\n")
@@ -497,14 +497,14 @@ func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
 
 // VisitText writes text content.
 func (v *visitor) VisitText(tn *ast.TextNode) {
-	v.writeEscaped(tn.Text)
+	v.writeHTMLEscaped(tn.Text)
 }
 
 // VisitTag writes tag content.
 func (v *visitor) VisitTag(tn *ast.TagNode) {
 	// TODO: erst mal als span. Link wäre gut, muss man vermutlich via Callback lösen.
 	v.b.WriteString("<span class=\"zettel-tag\">")
-	v.writeEscaped(tn.Tag)
+	v.writeHTMLEscaped(tn.Tag)
 	v.b.WriteString("</span>")
 }
 
@@ -556,7 +556,7 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 		v.b.WriteString(v.enc.material)
 	default:
 		v.b.WriteString("<a href=\"")
-		v.writeEscaped(ln.Ref.Value)
+		v.writeQuotedEscaped(ln.Ref.Value)
 		v.b.WriteByte('"')
 		v.visitAttributes(ln.Attrs)
 		v.b.WriteByte('>')
@@ -589,7 +589,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 		switch in.Syntax {
 		case "svg":
 			v.b.WriteString("svg+xml;utf8,")
-			v.writeEscaped(string(in.Blob))
+			v.writeQuotedEscaped(string(in.Blob))
 		default:
 			v.b.WriteStrings(in.Syntax, ";base64,")
 			v.b.WriteBase64(in.Blob)
@@ -745,7 +745,7 @@ func (v *visitor) VisitLiteral(ln *ast.LiteralNode) {
 		v.writeLiteral("<samp", "</samp>", ln.Attrs, ln.Text)
 	case ast.LiteralComment:
 		v.b.WriteString("<!-- ")
-		v.writeEscaped(ln.Text)
+		v.writeHTMLEscaped(ln.Text) // writeCommentEscaped
 		v.b.WriteString(" -->")
 	case ast.LiteralHTML:
 		v.b.WriteString(ln.Text)
@@ -762,7 +762,7 @@ func (v *visitor) writeLiteral(codeS, codeE string, attrs *ast.Attributes, text 
 	v.b.WriteString(codeS)
 	v.visitAttributes(attrs)
 	v.b.WriteByte('>')
-	v.writeEscaped(text)
+	v.writeHTMLEscaped(text)
 	v.b.WriteString(codeE)
 	v.visibleSpace = oldVisible
 }
@@ -820,13 +820,13 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 		vl := a.Attrs[k]
 		if len(vl) > 0 {
 			v.b.WriteString("=\"")
-			v.writeEscaped(vl)
+			v.writeQuotedEscaped(vl)
 			v.b.WriteByte('"')
 		}
 	}
 }
 
-func (v *visitor) writeEscaped(s string) {
+func (v *visitor) writeHTMLEscaped(s string) {
 	last := 0
 	var html string
 	for i := 0; i < len(s); i++ {
@@ -860,9 +860,33 @@ func (v *visitor) writeEscaped(s string) {
 	v.b.WriteString(s[last:])
 }
 
+func (v *visitor) writeQuotedEscaped(s string) {
+	last := 0
+	var html string
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '\000':
+			html = "\uFFFD"
+		case '"':
+			if v.xhtml {
+				html = "&quot;"
+			} else {
+				html = "&#34;"
+			}
+		case '&':
+			html = "&amp;"
+		default:
+			continue
+		}
+		v.b.WriteStrings(s[last:i], html)
+		last = i + 1
+	}
+	v.b.WriteString(s[last:])
+}
+
 func (v *visitor) writeReference(ref *ast.Reference) {
 	if ref.URL == nil {
-		v.writeEscaped(ref.Value)
+		v.writeHTMLEscaped(ref.Value)
 		return
 	}
 	v.b.WriteString(ref.URL.String())
