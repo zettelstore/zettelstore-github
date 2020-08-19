@@ -42,6 +42,7 @@ build:
 release:
 	mkdir -p releases
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore $(PACKAGE)
+	CGO_ENABLED=0 GOARCH=arm GOARM=6 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore-arm6 $(PACKAGE)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build $(GOFLAGS) -o releases/iZettelstore $(PACKAGE)
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build $(GOFLAGS) -o releases/zettelstore.exe $(PACKAGE)
 
