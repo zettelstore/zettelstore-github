@@ -87,7 +87,11 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 	case *encoder.AdaptCiteOption:
 		he.adaptCite = opt.Adapter
 	default:
-		fmt.Println("HESO", option, option.Name())
+		var name string
+		if option != nil {
+			name = option.Name()
+		}
+		fmt.Println("HESO", option, name)
 	}
 }
 
@@ -159,8 +163,6 @@ var mapMetaKey = map[string]string{
 }
 
 func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
-	fmt.Println("ACVE", v.enc)
-	fmt.Println("HEIM", v.enc.ignoreMeta)
 	for i, pair := range meta.Pairs() {
 		if i == 0 { // "title" is number 0...
 			if withTitle && !v.enc.ignoreMeta[pair.Key] {

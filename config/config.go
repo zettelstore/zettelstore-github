@@ -220,7 +220,7 @@ func (c Type) AddDefaultValues(meta *domain.Meta) *domain.Meta {
 			if result == meta {
 				result = meta.Clone()
 			}
-			if val := f(c); len(val) > 0 {
+			if val := f(c); len(val) > 0 || meta.Type(k) == domain.MetaTypeEmpty {
 				result.Set(k, val)
 			}
 		}

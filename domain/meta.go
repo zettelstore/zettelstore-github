@@ -121,7 +121,7 @@ var keyTypeMap = map[string]byte{
 	MetaKeyCopyright:        MetaTypeString,
 	MetaKeyCred:             MetaTypeCred,
 	MetaKeyDefaultCopyright: MetaTypeString,
-	MetaKeyDefaultLicense:   MetaTypeString,
+	MetaKeyDefaultLicense:   MetaTypeEmpty,
 	MetaKeyDefaultLang:      MetaTypeWord,
 	MetaKeyDefaultRole:      MetaTypeWord,
 	MetaKeyDefaultSyntax:    MetaTypeWord,
