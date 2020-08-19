@@ -35,7 +35,7 @@ type Encoder interface {
 	SetOption(Option)
 
 	WriteZettel(io.Writer, *ast.Zettel) (int, error)
-	WriteMeta(io.Writer, *domain.Meta, ast.InlineSlice) (int, error)
+	WriteMeta(io.Writer, *domain.Meta) (int, error)
 	WriteBlocks(io.Writer, ast.BlockSlice) (int, error)
 	WriteInlines(io.Writer, ast.InlineSlice) (int, error)
 }

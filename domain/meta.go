@@ -44,6 +44,20 @@ func NewMeta(id ZettelID) *Meta {
 	return &Meta{ID: id, pairs: make(map[string]string, 3)}
 }
 
+// Clone returns a new copy of the same meta data that is not frozen.
+func (m *Meta) Clone() *Meta {
+	pairs := make(map[string]string, len(m.pairs))
+	for k, v := range m.pairs {
+		pairs[k] = v
+	}
+	return &Meta{
+		ID:      m.ID,
+		pairs:   pairs,
+		frozen:  false,
+		YamlSep: m.YamlSep,
+	}
+}
+
 var reKey = regexp.MustCompile("^[0-9a-z][-0-9a-z]{0,254}$")
 
 // KeyIsValid returns true, the the key is a valid string.
@@ -58,14 +72,18 @@ const (
 	MetaKeyTags             = "tags"
 	MetaKeySyntax           = "syntax"
 	MetaKeyRole             = "role"
+	MetaKeyCopyright        = "copyright"
 	MetaKeyCred             = "cred"
+	MetaKeyDefaultCopyright = "default-copyright"
 	MetaKeyDefaultLang      = "default-lang"
+	MetaKeyDefaultLicense   = "default-license"
 	MetaKeyDefaultRole      = "default-role"
 	MetaKeyDefaultSyntax    = "default-syntax"
 	MetaKeyDefaultTitle     = "default-title"
 	MetaKeyIconMaterial     = "icon-material"
 	MetaKeyIdent            = "ident"
 	MetaKeyLang             = "lang"
+	MetaKeyLicense          = "license"
 	MetaKeyOwner            = "owner"
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
@@ -76,11 +94,8 @@ const (
 
 // Predefined default values.
 const (
-	MetaValueLang     = "en"
-	MetaValueRole     = "zettel"
-	MetaValueSyntax   = "zmk"
-	MetaValueTitle    = "Untitled"
-	MetaValueSiteName = "Zettelstore"
+	MetaValueSyntax = "zmk"
+	MetaValueTitle  = "Untitled"
 )
 
 // Supported key types.
@@ -103,13 +118,17 @@ var keyTypeMap = map[string]byte{
 	MetaKeyTags:             MetaTypeTagSet,
 	MetaKeySyntax:           MetaTypeWord,
 	MetaKeyRole:             MetaTypeWord,
+	MetaKeyCopyright:        MetaTypeString,
 	MetaKeyCred:             MetaTypeCred,
+	MetaKeyDefaultCopyright: MetaTypeString,
+	MetaKeyDefaultLicense:   MetaTypeString,
 	MetaKeyDefaultLang:      MetaTypeWord,
 	MetaKeyDefaultRole:      MetaTypeWord,
 	MetaKeyDefaultSyntax:    MetaTypeWord,
 	MetaKeyDefaultTitle:     MetaTypeString,
 	MetaKeyIdent:            MetaTypeWord,
 	MetaKeyLang:             MetaTypeWord,
+	MetaKeyLicense:          MetaTypeEmpty,
 	MetaKeyOwner:            MetaTypeID,
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
@@ -179,6 +198,9 @@ func (m *Meta) SetList(key string, values []string) {
 		m.pairs[key] = strings.Join(values, " ")
 	}
 }
+
+// IsFrozen returns whether meta can be changed or not.
+func (m *Meta) IsFrozen() bool { return m.frozen }
 
 // Freeze defines frozen meta data, i.e. changing them will result in a panic.
 func (m *Meta) Freeze() {

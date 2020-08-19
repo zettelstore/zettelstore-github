@@ -48,6 +48,20 @@ func formatBlocks(bs ast.BlockSlice, format string, options ...encoder.Option) (
 	return content.String(), nil
 }
 
+func formatMeta(meta *domain.Meta, format string, options ...encoder.Option) (string, error) {
+	enc := encoder.Create(format, options...)
+	if enc == nil {
+		return "", errNoSuchFormat
+	}
+
+	var content strings.Builder
+	_, err := enc.WriteMeta(&content, meta)
+	if err != nil {
+		return "", err
+	}
+	return content.String(), nil
+}
+
 func formatInlines(is ast.InlineSlice, format string, options ...encoder.Option) (string, error) {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
@@ -82,13 +96,13 @@ func writeBlocks(w io.Writer, bs ast.BlockSlice, format string, options ...encod
 	return err
 }
 
-func writeMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice, format string, options ...encoder.Option) error {
+func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder.Option) error {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return errNoSuchFormat
 	}
 
-	_, err := enc.WriteMeta(w, meta, title)
+	_, err := enc.WriteMeta(w, meta)
 	return err
 }
 

@@ -25,7 +25,6 @@ import (
 	"log"
 	"net/http"
 
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
@@ -54,14 +53,21 @@ func MakeGetZettelHandler(
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z := p.ParseZettel(zettel, syntax)
+		z, meta := p.ParseZettel(zettel, syntax)
 
 		format := getFormat(r, "html")
 		w.Header().Set("Content-Type", formatContentType(format))
 		err = writeZettel(w, z, format,
-			&encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()},
+			&encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
 			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
+			&encoder.MetaOption{Meta: meta},
+			&encoder.StringsOption{
+				Key: "no-meta",
+				Value: []string{
+					domain.MetaKeyLang,
+				},
+			},
 		)
 		if err != nil {
 			if err == errNoSuchFormat {

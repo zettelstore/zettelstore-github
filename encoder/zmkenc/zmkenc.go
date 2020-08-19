@@ -53,7 +53,7 @@ func (ze *zmkEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) 
 }
 
 // WriteMeta encodes meta data as zmk.
-func (ze *zmkEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
+func (ze *zmkEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return meta.Write(w)
 }
 

@@ -26,7 +26,6 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
@@ -48,9 +47,8 @@ func MakeGetMetaHandler(p *parser.Parser, getMeta usecase.GetMeta) http.HandlerF
 		}
 
 		if format := getFormat(r, "raw"); format != "raw" {
-			title := p.ParseTitle(id, input.NewInput(meta.GetDefault(domain.MetaKeyTitle, domain.MetaValueTitle)))
 			w.Header().Set("Content-Type", formatContentType(format))
-			err = writeMeta(w, meta, title, format)
+			err = writeMeta(w, meta, format)
 			if err == errNoSuchFormat {
 				http.Error(w, fmt.Sprintf("Meta data for zettel %q not available in format %q", id, format), http.StatusNotFound)
 				log.Println(err, format)

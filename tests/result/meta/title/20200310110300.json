@@ -1,1 +1,1 @@
-{"title":[{"t":"Text","s":"A"},{"t":"Space"},{"t":"Quote","i":[{"t":"Text","s":"Title"}]},{"t":"Space"},{"t":"Text","s":"with"},{"t":"Space"},{"t":"Italic","i":[{"t":"Text","s":"Markup"}]},{"t":"Text","s":","},{"t":"Space"},{"t":"Code","a":{"":"zmk"},"s":"Zettelmarkup"}],"syntax":"zmk","role":"zettel"}
+{"title":"A \"\"Title\"\" with //Markup//, ``Zettelmarkup``{=zmk}","syntax":"zmk","role":"zettel"}

@@ -107,7 +107,9 @@ func (c Type) GetDefaultTitle() string {
 func (c Type) GetDefaultSyntax() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
-			return config.GetDefault(domain.MetaKeyDefaultSyntax, domain.MetaValueSyntax)
+			if syntax, ok := config.Get(domain.MetaKeyDefaultSyntax); ok {
+				return syntax
+			}
 		}
 	}
 	return domain.MetaValueSyntax
@@ -117,18 +119,49 @@ func (c Type) GetDefaultSyntax() string {
 func (c Type) GetDefaultRole() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
-			return config.GetDefault(domain.MetaKeyDefaultRole, domain.MetaValueRole)
+			if role, ok := config.Get(domain.MetaKeyDefaultRole); ok {
+				return role
+			}
 		}
 	}
-	return domain.MetaValueRole
+	return "zettel"
 }
 
 // GetDefaultLang returns the current value of the "default-lang" key.
 func (c Type) GetDefaultLang() string {
-	if config := getConfigurationMeta(); config != nil {
-		return config.GetDefault(domain.MetaKeyDefaultLang, domain.MetaValueLang)
+	if configStock != nil {
+		if config := getConfigurationMeta(); config != nil {
+			if lang, ok := config.Get(domain.MetaKeyDefaultLang); ok {
+				return lang
+			}
+		}
 	}
-	return domain.MetaValueLang
+	return "en"
+}
+
+// GetDefaultCopyright returns the current value of the "default-copyright" key.
+func (c Type) GetDefaultCopyright() string {
+	if configStock != nil {
+		if config := getConfigurationMeta(); config != nil {
+			if copyright, ok := config.Get(domain.MetaKeyDefaultCopyright); ok {
+				return copyright
+			}
+		}
+		// TODO: get owner
+	}
+	return ""
+}
+
+// GetDefaultLicense returns the current value of the "default-license" key.
+func (c Type) GetDefaultLicense() string {
+	if configStock != nil {
+		if config := getConfigurationMeta(); config != nil {
+			if license, ok := config.Get(domain.MetaKeyDefaultLicense); ok {
+				return license
+			}
+		}
+	}
+	return ""
 }
 
 // GetIconMaterial returns the current value of the "icon-material" key.
@@ -147,9 +180,11 @@ func (c Type) GetIconMaterial() string {
 // GetSiteName returns the current value of the "site-name" key.
 func (c Type) GetSiteName() string {
 	if config := getConfigurationMeta(); config != nil {
-		return config.GetDefault(domain.MetaKeySiteName, domain.MetaValueSiteName)
+		if name, ok := config.Get(domain.MetaKeySiteName); ok {
+			return name
+		}
 	}
-	return domain.MetaValueSiteName
+	return "Zettelstore"
 }
 
 // GetYAMLHeader returns the current value of the "yaml-header" key.
@@ -166,4 +201,32 @@ func (c Type) GetZettelFileSyntax() []string {
 		return config.GetListOrNil(domain.MetaKeyZettelFileSyntax)
 	}
 	return nil
+}
+
+var mapDefaultKeys = map[string]func(Type) string{
+	domain.MetaKeyCopyright: Type.GetDefaultCopyright,
+	domain.MetaKeyLang:      Type.GetDefaultLang,
+	domain.MetaKeyLicense:   Type.GetDefaultLicense,
+	domain.MetaKeyRole:      Type.GetDefaultRole,
+	domain.MetaKeySyntax:    Type.GetDefaultSyntax,
+	domain.MetaKeyTitle:     Type.GetDefaultTitle,
+}
+
+// AddDefaultValues enriches the given meta data with its default values.
+func (c Type) AddDefaultValues(meta *domain.Meta) *domain.Meta {
+	result := meta
+	for k, f := range mapDefaultKeys {
+		if _, ok := result.Get(k); !ok {
+			if result == meta {
+				result = meta.Clone()
+			}
+			if val := f(c); len(val) > 0 {
+				result.Set(k, val)
+			}
+		}
+	}
+	if result != meta && meta.IsFrozen() {
+		result.Freeze()
+	}
+	return result
 }

@@ -44,6 +44,8 @@ type htmlEncoder struct {
 	adaptLink  func(*ast.LinkNode) *ast.LinkNode
 	adaptImage func(*ast.ImageNode) *ast.ImageNode
 	adaptCite  func(*ast.CiteNode) (cn *ast.CiteNode, url string)
+	meta       *domain.Meta
+	ignoreMeta map[string]bool
 
 	footnotes []*ast.FootnoteNode
 }
@@ -68,6 +70,16 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 		case "xhtml":
 			he.xhtml = opt.Value
 		}
+	case *encoder.MetaOption:
+		he.meta = opt.Meta
+	case *encoder.StringsOption:
+		switch opt.Key {
+		case "no-meta":
+			he.ignoreMeta = make(map[string]bool, len(opt.Value))
+			for _, v := range opt.Value {
+				he.ignoreMeta[v] = true
+			}
+		}
 	case *encoder.AdaptLinkOption:
 		he.adaptLink = opt.Adapter
 	case *encoder.AdaptImageOption:
@@ -86,7 +98,15 @@ func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 		v.b.WriteString("<!DOCTYPE html>\n")
 	}
 	v.b.WriteStrings("<html lang=\"", he.lang, "\">\n<head>\n<meta charset=\"utf-8\">\n")
-	v.acceptMeta(zettel.Meta, zettel.Title)
+	textEnc := encoder.Create("text")
+	var sb strings.Builder
+	textEnc.WriteInlines(&sb, zettel.Title)
+	v.b.WriteStrings("<title>", sb.String(), "</title>")
+	if he.meta != nil {
+		v.acceptMeta(he.meta, false)
+	} else {
+		v.acceptMeta(zettel.Meta, false)
+	}
 	v.b.WriteString("\n</head>\n<body>\n")
 	v.acceptBlockSlice(zettel.Ast)
 	v.writeEndnotes()
@@ -96,9 +116,9 @@ func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (he *htmlEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
+func (he *htmlEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	v := newVisitor(he, w)
-	v.acceptMeta(meta, title)
+	v.acceptMeta(meta, true)
 	length, err := v.b.Flush()
 	return length, err
 }
@@ -133,20 +153,37 @@ func newVisitor(he *htmlEncoder, w io.Writer) *visitor {
 	return &visitor{enc: he, b: encoder.NewBufWriter(w), xhtml: he.xhtml}
 }
 
-func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
-	textEnc := encoder.Create("text")
-	var sb strings.Builder
-	textEnc.WriteInlines(&sb, title)
-	v.b.WriteStrings("<title>", sb.String(), "</title>")
+var mapMetaKey = map[string]string{
+	domain.MetaKeyCopyright: "copyright",
+	domain.MetaKeyLicense:   "license",
+}
 
+func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
+	fmt.Println("ACVE", v.enc)
+	fmt.Println("HEIM", v.enc.ignoreMeta)
 	for i, pair := range meta.Pairs() {
 		if i == 0 { // "title" is number 0...
+			if withTitle && !v.enc.ignoreMeta[pair.Key] {
+				v.b.WriteStrings("<meta name=\"zs-", pair.Key, "\" content=\"")
+				v.writeEscaped(pair.Value)
+				v.b.WriteString("\">")
+			}
 			continue
 		}
-		v.b.WriteStrings("\n<meta name=\"zettel-", pair.Key, "\" content=\"")
-		v.writeEscaped(pair.Value)
-		v.b.WriteString("\">")
+		if !v.enc.ignoreMeta[pair.Key] {
+			if key, ok := mapMetaKey[pair.Key]; ok {
+				v.writeMeta("", key, pair.Value)
+			} else {
+				v.writeMeta("zs-", pair.Key, pair.Value)
+			}
+		}
 	}
+}
+
+func (v *visitor) writeMeta(prefix, key, value string) {
+	v.b.WriteStrings("\n<meta name=\"", prefix, key, "\" content=\"")
+	v.writeEscaped(value)
+	v.b.WriteString("\">")
 }
 
 // VisitPara emits HTML code for a paragraph: <p>...</p>

@@ -23,6 +23,7 @@ package encoder
 
 import (
 	"zettelstore.de/z/ast"
+	"zettelstore.de/z/domain"
 )
 
 // StringOption is an option with a string value
@@ -42,6 +43,23 @@ type BoolOption struct {
 
 // Name returns the visible name of this option.
 func (bo *BoolOption) Name() string { return bo.Key }
+
+// MetaOption is an option with meta data as the value.
+type MetaOption struct {
+	Meta *domain.Meta
+}
+
+// Name returns the visible name of this option.
+func (mo *MetaOption) Name() string { return "meta" }
+
+// StringsOption is an option that have a sequence of strings as the value.
+type StringsOption struct {
+	Key   string
+	Value []string
+}
+
+// Name returns the visible name of this option.
+func (so *StringsOption) Name() string { return so.Key }
 
 // AdaptLinkOption specifies a link adapter.
 type AdaptLinkOption struct {

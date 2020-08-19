@@ -55,10 +55,26 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z := p.ParseZettel(zettel, syntax)
+		z, meta := p.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()}
+		langOption := &encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")}
 		textTitle, err := formatInlines(z.Title, "text", langOption)
+		if err != nil {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			log.Println(err)
+			return
+		}
+		metaHeader, err := formatMeta(
+			meta,
+			"html",
+			&encoder.StringsOption{
+				Key: "no-meta",
+				Value: []string{
+					domain.MetaKeyTitle,
+					domain.MetaKeyLang,
+				},
+			},
+		)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -70,7 +86,6 @@ func MakeGetHTMLZettelHandler(
 			log.Println(err)
 			return
 		}
-
 		htmlContent, err := formatBlocks(
 			z.Ast,
 			"html",
@@ -86,19 +101,21 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
-			Key       byte
-			Meta      *domain.Meta
-			Lang      string
-			Title     string
-			HTMLTitle template.HTML
-			Content   template.HTML
+			Key        byte
+			Meta       *domain.Meta
+			MetaHeader template.HTML
+			Lang       string
+			Title      string
+			HTMLTitle  template.HTML
+			Content    template.HTML
 		}{
-			Key:       key,
-			Meta:      zettel.Meta,
-			Lang:      langOption.Value,
-			Title:     textTitle, // TODO: merge with site-title?
-			HTMLTitle: template.HTML(htmlTitle),
-			Content:   template.HTML(htmlContent),
+			Key:        key,
+			Meta:       z.Meta,
+			MetaHeader: template.HTML(metaHeader),
+			Lang:       langOption.Value,
+			Title:      textTitle, // TODO: merge with site-title?
+			HTMLTitle:  template.HTML(htmlTitle),
+			Content:    template.HTML(htmlContent),
 		})
 	}
 }

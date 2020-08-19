@@ -57,6 +57,7 @@ var goData = goStore{
 <meta name="referrer" content="same-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Zettelstore {{config.GetVersion.Release}}, build {{config.GetVersion.Build}}">
+{{- block "meta-header" .}}{{end}}
 <link rel="stylesheet" href="{{url 'c' %q}}">
 {{- block "header" .}}{{end}}
 <title>{{.Title}}</title>
@@ -138,7 +139,10 @@ var goData = goStore{
 				domain.MetaKeyRole:   roleConfiguration,
 			},
 			domain.NewContent(fmt.Sprintf(
-				`{{define "content"}}
+				`{{define "meta-header"}}
+{{- .MetaHeader}}
+{{- end}}
+{{define "content"}}
 <article>
 <header>
 <h1>{{.HTMLTitle}}</h1>

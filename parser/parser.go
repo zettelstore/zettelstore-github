@@ -25,6 +25,7 @@ import (
 	"sync"
 
 	"zettelstore.de/z/ast"
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/input"
 )
@@ -164,18 +165,19 @@ func (p *Parser) ParseTitle(id domain.ZettelID, inp *input.Input) ast.InlineSlic
 }
 
 // ParseZettel parses the zettel based on the syntax.
-func (p *Parser) ParseZettel(zettel domain.Zettel, syntax string) *ast.Zettel {
-	meta := zettel.Meta
+func (p *Parser) ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, *domain.Meta) {
+	meta := config.Config.AddDefaultValues(zettel.Meta)
 	if len(syntax) == 0 {
 		syntax, _ = meta.Get(domain.MetaKeySyntax)
 	}
 	title, _ := meta.Get(domain.MetaKeyTitle)
+	id := meta.ID
 	z := &ast.Zettel{
-		ID:      meta.ID,
-		Meta:    meta,
+		ID:      id,
+		Meta:    zettel.Meta,
 		Content: zettel.Content,
-		Title:   p.ParseTitle(meta.ID, input.NewInput(title)),
-		Ast:     p.ParseBlocks(meta.ID, input.NewInput(zettel.Content.AsString()), meta, syntax),
+		Title:   p.ParseTitle(id, input.NewInput(title)),
+		Ast:     p.ParseBlocks(id, input.NewInput(zettel.Content.AsString()), zettel.Meta, syntax),
 	}
-	return z
+	return z, meta
 }

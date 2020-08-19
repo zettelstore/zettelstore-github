@@ -28,7 +28,6 @@ import (
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/collect"
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/input"
@@ -64,9 +63,9 @@ func MakeGetInfoHandler(te *TemplateEngine, p *parser.Parser, getZettel usecase.
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z := p.ParseZettel(zettel, syntax)
+		z, meta := p.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()}
+		langOption := &encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")}
 		getTitle := func(id domain.ZettelID) (string, bool) {
 			meta, err := getMeta.Run(r.Context(), id)
 			if err != nil {
@@ -98,7 +97,7 @@ func MakeGetInfoHandler(te *TemplateEngine, p *parser.Parser, getZettel usecase.
 			ExtLinks []string
 			Formats  []string
 		}{
-			Meta:     zettel.Meta,
+			Meta:     z.Meta,
 			Lang:     langOption.Value,
 			Title:    textTitle, // TODO: merge with site-title?
 			IntLinks: intLinks,

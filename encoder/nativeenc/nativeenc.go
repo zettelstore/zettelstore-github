@@ -42,11 +42,14 @@ func createEncoder() encoder.Encoder {
 type nativeEncoder struct {
 	adaptLink  func(*ast.LinkNode) *ast.LinkNode
 	adaptImage func(*ast.ImageNode) *ast.ImageNode
+	meta       *domain.Meta
 }
 
 // SetOption sets one option for this encoder.
 func (ne *nativeEncoder) SetOption(option encoder.Option) {
 	switch opt := option.(type) {
+	case *encoder.MetaOption:
+		ne.meta = opt.Meta
 	case *encoder.AdaptLinkOption:
 		ne.adaptLink = opt.Adapter
 	case *encoder.AdaptImageOption:
@@ -57,7 +60,14 @@ func (ne *nativeEncoder) SetOption(option encoder.Option) {
 // WriteZettel encodes the zettel to the writer.
 func (ne *nativeEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
 	v := newVisitor(w, ne)
-	v.acceptMeta(zettel.Meta, zettel.Title)
+	v.b.WriteString("[Title ")
+	v.acceptInlineSlice(zettel.Title)
+	v.b.WriteByte(']')
+	if ne.meta != nil {
+		v.acceptMeta(ne.meta, false)
+	} else {
+		v.acceptMeta(zettel.Meta, false)
+	}
 	v.b.WriteByte('\n')
 	v.acceptBlockSlice(zettel.Ast)
 	length, err := v.b.Flush()
@@ -65,9 +75,9 @@ func (ne *nativeEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, erro
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (ne *nativeEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
+func (ne *nativeEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	v := newVisitor(w, ne)
-	v.acceptMeta(meta, title)
+	v.acceptMeta(meta, true)
 	length, err := v.b.Flush()
 	return length, err
 }
@@ -105,10 +115,12 @@ var (
 	rawNewline     = []byte{'\\', 'n'}
 )
 
-func (v *visitor) acceptMeta(meta *domain.Meta, title ast.InlineSlice) {
-	v.b.WriteString("[Title ")
-	v.acceptInlineSlice(title)
-	v.b.WriteByte('[')
+func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
+	if withTitle {
+		v.b.WriteString("[Title \"")
+		v.writeEscaped(meta.GetDefault(domain.MetaKeyTitle, ""))
+		v.b.WriteString("\"]")
+	}
 	v.writeMetaList(meta, domain.MetaKeyTags, "Tags")
 	v.writeMetaString(meta, domain.MetaKeySyntax, "Syntax")
 	v.writeMetaString(meta, domain.MetaKeyRole, "Role")
