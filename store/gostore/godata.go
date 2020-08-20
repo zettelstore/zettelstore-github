@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	syntaxTemplate    = "template"
+	syntaxTemplate    = "go-template-html"
 	roleConfiguration = "configuration"
 )
 

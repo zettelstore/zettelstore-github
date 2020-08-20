@@ -48,13 +48,7 @@ func init() {
 		ParseInlines: parseSVGInlines,
 	})
 	parser.Register(&parser.Info{
-		Name:         "template",
-		AltNames:     []string{"template-html"},
-		ParseBlocks:  parseBlocks,
-		ParseInlines: parseInlines,
-	})
-	parser.Register(&parser.Info{
-		Name:         "template-text",
+		Name:         "go-template-html",
 		ParseBlocks:  parseBlocks,
 		ParseInlines: parseInlines,
 	})
