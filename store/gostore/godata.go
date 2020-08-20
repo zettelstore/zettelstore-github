@@ -549,7 +549,7 @@ code,pre,kbd {
   font-family: monospace;
   font-size: 85%;
 }
-p code {
+code {
   padding: .1rem .2rem;
   background: #f0f0f0;
   border: 1px solid #ccc;
@@ -566,6 +566,8 @@ pre {
 pre code {
   font-size: 95%;
   position: relative;
+  padding: 0;
+  border: none;
 }
 div.zs-indication {
   padding: .5rem .7rem;
