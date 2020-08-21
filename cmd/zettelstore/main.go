@@ -114,7 +114,7 @@ func setupConfig() (cfg *domain.Meta) {
 	flag.Visit(func(flg *flag.Flag) {
 		switch flg.Name {
 		case "p":
-			cfg.Set("listen-addr", ":"+flg.Value.String())
+			cfg.Set("listen-addr", "127.0.0.1:"+flg.Value.String())
 		case "d":
 			cfg.Set("store-1-dir", flg.Value.String())
 		case "r":
@@ -125,7 +125,7 @@ func setupConfig() (cfg *domain.Meta) {
 	})
 
 	if _, ok := cfg.Get("listen-addr"); !ok {
-		cfg.Set("listen-addr", ":23123")
+		cfg.Set("listen-addr", "127.0.0.1:23123")
 	}
 	if _, ok := cfg.Get("store-1-dir"); !ok {
 		cfg.Set("store-1-dir", "./zettel")
