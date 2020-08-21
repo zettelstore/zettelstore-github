@@ -30,8 +30,7 @@ import (
 
 // Version describes all elements of a software version.
 type Version struct {
-	Release string // Official software release version
-	Build   string // Internal representation of build process
+	Build string // Representation of build process
 	// More to come
 }
 
@@ -41,9 +40,6 @@ var startupConfig *domain.Meta
 func SetupStartup(cfg *domain.Meta) {
 	if startupConfig != nil {
 		panic("startupConfig already set")
-	}
-	if s := cfg.GetDefault("release-version", ""); len(s) == 0 {
-		cfg.Set("release-version", "unknown")
 	}
 	if s := cfg.GetDefault("build-version", ""); len(s) == 0 {
 		cfg.Set("build-version", "unknown")
@@ -55,8 +51,7 @@ func SetupStartup(cfg *domain.Meta) {
 // GetVersion returns the current software version data.
 func (c Type) GetVersion() Version {
 	return Version{
-		Release: startupConfig.GetDefault("release-version", ""),
-		Build:   startupConfig.GetDefault("build-version", ""),
+		Build: startupConfig.GetDefault("build-version", ""),
 	}
 }
 

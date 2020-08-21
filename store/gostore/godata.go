@@ -56,7 +56,7 @@ var goData = goStore{
 <meta charset="utf-8">
 <meta name="referrer" content="same-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Zettelstore {{config.GetVersion.Release}}, build {{config.GetVersion.Build}}">
+<meta name="generator" content="Zettelstore, build {{config.GetVersion.Build}}">
 {{- block "meta-header" .}}{{end}}
 <link rel="stylesheet" href="{{url 'c' %q}}">
 {{- block "header" .}}{{end}}

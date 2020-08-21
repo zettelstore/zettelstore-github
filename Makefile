@@ -20,8 +20,8 @@
 
 PACKAGE := zettelstore.de/z/cmd/zettelstore
 
-GO_LDFLAGS := -s -w -X main.buildVersion=$(shell git describe --tags --always --dirty || echo unknown)
-GOFLAGS := -ldflags "$(GO_LDFLAGS)"
+GO_LDFLAGS := -X main.buildVersion=$(shell git describe --tags --always --dirty || echo unknown)
+GOFLAGS := -ldflags "$(GO_LDFLAGS)" -tags osusergo,netgo
 
 test:
 	go test ./...
@@ -37,14 +37,14 @@ race:
 
 build:
 	mkdir -p bin
-	CGO_ENABLED=0 go build $(GOFLAGS) -o bin/zettelstore $(PACKAGE)
+	go build $(GOFLAGS) -o bin/zettelstore $(PACKAGE)
 
 release:
 	mkdir -p releases
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore $(PACKAGE)
-	CGO_ENABLED=0 GOARCH=arm GOARM=6 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore-arm6 $(PACKAGE)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build $(GOFLAGS) -o releases/iZettelstore $(PACKAGE)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build $(GOFLAGS) -o releases/zettelstore.exe $(PACKAGE)
+	GOARCH=amd64 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore $(PACKAGE)
+	GOARCH=arm GOARM=6 GOOS=linux go build $(GOFLAGS) -o releases/zettelstore-arm6 $(PACKAGE)
+	GOARCH=amd64 GOOS=darwin go build $(GOFLAGS) -o releases/iZettelstore $(PACKAGE)
+	GOARCH=amd64 GOOS=windows go build $(GOFLAGS) -o releases/zettelstore.exe $(PACKAGE)
 
 clean:
 	rm -rf bin releases

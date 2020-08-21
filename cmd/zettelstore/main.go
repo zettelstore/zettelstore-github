@@ -43,10 +43,9 @@ import (
 	"zettelstore.de/z/web/router"
 )
 
-// Version variables
+// Version variable. Will be filled by build process.
 var (
-	buildVersion   string = ""
-	releaseVersion string = ""
+	buildVersion string = ""
 )
 
 func setupRouting(s store.Store, readonly bool) *router.Router {
@@ -139,7 +138,6 @@ func setupConfig() (cfg *domain.Meta) {
 	if prefix, ok := cfg.Get("url-prefix"); !ok || len(prefix) == 0 || prefix[0] != '/' || prefix[len(prefix)-1] != '/' {
 		cfg.Set("url-prefix", "/")
 	}
-	cfg.Set("release-version", releaseVersion)
 	cfg.Set("build-version", buildVersion)
 	return cfg
 }
@@ -184,7 +182,7 @@ func main() {
 		cfg.Write(os.Stderr)
 	} else {
 		v := config.Config.GetVersion()
-		log.Printf("Release %v, Build %v", v.Release, v.Build)
+		log.Printf("Build %v", v.Build)
 		log.Printf("Listening on %v", listenAddr)
 		log.Printf("Zettel location %q", cs.Location())
 		if readonly {
