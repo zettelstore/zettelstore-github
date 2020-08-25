@@ -22,7 +22,6 @@ package parser
 
 import (
 	"log"
-	"sync"
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/config"
@@ -73,10 +72,6 @@ func Get(name string) *Info {
 
 // Parser is the generic part of the parser system.
 type Parser struct {
-	muBlocks    sync.RWMutex
-	blockCache  map[string]ast.BlockSlice
-	muInlines   sync.RWMutex
-	inlineCache map[string]ast.InlineSlice
 }
 
 // New creates a new parser system.
@@ -85,83 +80,19 @@ func New() *Parser {
 	return p
 }
 
-type parserStore interface {
-	// RegisterChangeObserver registers an observer that will be notified
-	// if a zettel was found to be changed. If the id is empty, all zettel are
-	// possibly changed.
-	RegisterChangeObserver(func(domain.ZettelID))
-}
-
-// InitCache allows parse results to be cached.
-func (p *Parser) InitCache(s parserStore) {
-	//TODO: add cache strategy, e.g. max content size, num entries, duration, ...
-	p.observe("")
-	s.RegisterChangeObserver(p.observe)
-}
-
-func (p *Parser) observe(id domain.ZettelID) {
-	// Remove everything, regardless of id.
-	p.muBlocks.Lock()
-	p.blockCache = make(map[string]ast.BlockSlice, len(p.blockCache))
-	p.muBlocks.Unlock()
-	p.muInlines.Lock()
-	p.inlineCache = make(map[string]ast.InlineSlice, len(p.inlineCache))
-	p.muInlines.Unlock()
-}
-
 // ParseBlocks parses some input and returns a slice of block nodes.
-func (p *Parser) ParseBlocks(id domain.ZettelID, inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
-	key := string(id) + syntax
-	p.muBlocks.RLock()
-	if p.blockCache != nil {
-		bs, ok := p.blockCache[key]
-		if ok {
-			p.muBlocks.RUnlock()
-			return bs
-		}
-	}
-	bs := Get(syntax).ParseBlocks(inp, meta, syntax)
-	if p.blockCache != nil {
-		p.muBlocks.RUnlock()
-		p.muBlocks.Lock()
-		if len(id) > 0 {
-			p.blockCache[key] = bs
-		}
-		p.muBlocks.Unlock()
-	} else {
-		p.muBlocks.RUnlock()
-	}
-	return bs
+func (p *Parser) ParseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+	return Get(syntax).ParseBlocks(inp, meta, syntax)
 }
 
 // ParseInlines parses some input and returns a slice of inline nodes.
-func (p *Parser) ParseInlines(id domain.ZettelID, inp *input.Input, syntax string) ast.InlineSlice {
-	key := string(id) + syntax
-	p.muInlines.RLock()
-	if p.inlineCache != nil {
-		is, ok := p.inlineCache[key]
-		if ok {
-			p.muInlines.RUnlock()
-			return is
-		}
-	}
-	is := Get(syntax).ParseInlines(inp, syntax)
-	if p.inlineCache != nil {
-		p.muInlines.RUnlock()
-		p.muInlines.Lock()
-		if len(id) > 0 {
-			p.inlineCache[key] = is
-		}
-		p.muInlines.Unlock()
-	} else {
-		p.muInlines.RUnlock()
-	}
-	return is
+func (p *Parser) ParseInlines(inp *input.Input, syntax string) ast.InlineSlice {
+	return Get(syntax).ParseInlines(inp, syntax)
 }
 
 // ParseTitle parses the title of a zettel, always as Zettelmarkup
-func (p *Parser) ParseTitle(id domain.ZettelID, inp *input.Input) ast.InlineSlice {
-	return p.ParseInlines(id, inp, "zmk")
+func (p *Parser) ParseTitle(inp *input.Input) ast.InlineSlice {
+	return p.ParseInlines(inp, "zmk")
 }
 
 // ParseZettel parses the zettel based on the syntax.
@@ -176,8 +107,8 @@ func (p *Parser) ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, 
 		ID:      id,
 		Meta:    zettel.Meta,
 		Content: zettel.Content,
-		Title:   p.ParseTitle(id, input.NewInput(title)),
-		Ast:     p.ParseBlocks(id, input.NewInput(zettel.Content.AsString()), zettel.Meta, syntax),
+		Title:   p.ParseTitle(input.NewInput(title)),
+		Ast:     p.ParseBlocks(input.NewInput(zettel.Content.AsString()), zettel.Meta, syntax),
 	}
 	return z, meta
 }

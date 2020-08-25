@@ -99,7 +99,7 @@ func TestMarkdownSpec(t *testing.T) {
 	p := parser.New()
 	for _, tc := range testcases {
 		testID := domain.ZettelID(fmt.Sprintf("%012d01", tc.Example))
-		ast := p.ParseBlocks(testID, input.NewInput(tc.Markdown), nil, "markdown")
+		ast := p.ParseBlocks(input.NewInput(tc.Markdown), nil, "markdown")
 
 		for _, format := range formats {
 			t.Run(fmt.Sprintf("Encode %v %v", format, testID), func(st *testing.T) {
@@ -134,7 +134,7 @@ func TestMarkdownSpec(t *testing.T) {
 			sb.Reset()
 
 			testID = domain.ZettelID(fmt.Sprintf("%012d02", tc.Example))
-			secondAst := p.ParseBlocks(testID, input.NewInput(gotFirst), nil, "zmk")
+			secondAst := p.ParseBlocks(input.NewInput(gotFirst), nil, "zmk")
 			zmkEncoder.WriteBlocks(&sb, secondAst)
 			gotSecond := sb.String()
 			sb.Reset()
@@ -144,7 +144,7 @@ func TestMarkdownSpec(t *testing.T) {
 			}
 
 			testID = domain.ZettelID(fmt.Sprintf("%012d03", tc.Example))
-			thirdAst := p.ParseBlocks(testID, input.NewInput(gotFirst), nil, "zmk")
+			thirdAst := p.ParseBlocks(input.NewInput(gotFirst), nil, "zmk")
 			zmkEncoder.WriteBlocks(&sb, thirdAst)
 			gotThird := sb.String()
 			sb.Reset()

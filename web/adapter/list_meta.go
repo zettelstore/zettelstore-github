@@ -67,7 +67,7 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 	buf.WriteString("\">\n<body>\n<ul>\n")
 	for _, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		htmlTitle, err := formatInlines(p.ParseTitle(meta.ID, input.NewInput(title)), "html")
+		htmlTitle, err := formatInlines(p.ParseTitle(input.NewInput(title)), "html")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -89,7 +89,7 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, p *parse
 	buf.WriteString("{\"list\":[")
 	for i, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		jsonTitle, err := formatInlines(p.ParseTitle(meta.ID, input.NewInput(title)), "json")
+		jsonTitle, err := formatInlines(p.ParseTitle(input.NewInput(title)), "json")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)

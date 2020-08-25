@@ -71,7 +71,7 @@ func MakeGetInfoHandler(te *TemplateEngine, p *parser.Parser, getZettel usecase.
 			if err != nil {
 				return "", false
 			}
-			astTitle := p.ParseTitle(id, input.NewInput(meta.GetDefault(domain.MetaKeyTitle, "")))
+			astTitle := p.ParseTitle(input.NewInput(meta.GetDefault(domain.MetaKeyTitle, "")))
 			title, err := formatInlines(astTitle, "html", langOption)
 			if err == nil {
 				return title, true

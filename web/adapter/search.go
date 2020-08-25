@@ -98,7 +98,7 @@ func MakeSearchHandler(te *TemplateEngine, p *parser.Parser, search usecase.Sear
 		metas := make([]metaInfo, 0, len(metaList))
 		for _, meta := range metaList {
 			title, _ := meta.Get(domain.MetaKeyTitle)
-			htmlTitle, err := formatInlines(p.ParseTitle(meta.ID, input.NewInput(title)), "html", langOption)
+			htmlTitle, err := formatInlines(p.ParseTitle(input.NewInput(title)), "html", langOption)
 			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)

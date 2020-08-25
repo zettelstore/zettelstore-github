@@ -51,7 +51,6 @@ var (
 func setupRouting(s store.Store, readonly bool) *router.Router {
 	te := adapter.NewTemplateEngine(s)
 	p := parser.New()
-	p.InitCache(s)
 
 	ucGetMeta := usecase.NewGetMeta(s)
 	ucGetZettel := usecase.NewGetZettel(s)
