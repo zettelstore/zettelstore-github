@@ -91,8 +91,8 @@ func (p *Parser) ParseInlines(inp *input.Input, syntax string) ast.InlineSlice {
 }
 
 // ParseTitle parses the title of a zettel, always as Zettelmarkup
-func (p *Parser) ParseTitle(inp *input.Input) ast.InlineSlice {
-	return p.ParseInlines(inp, "zmk")
+func (p *Parser) ParseTitle(title string) ast.InlineSlice {
+	return p.ParseInlines(input.NewInput(title), "zmk")
 }
 
 // ParseZettel parses the zettel based on the syntax.
@@ -107,7 +107,7 @@ func (p *Parser) ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, 
 		ID:      id,
 		Meta:    zettel.Meta,
 		Content: zettel.Content,
-		Title:   p.ParseTitle(input.NewInput(title)),
+		Title:   p.ParseTitle(title),
 		Ast:     p.ParseBlocks(input.NewInput(zettel.Content.AsString()), zettel.Meta, syntax),
 	}
 	return z, meta

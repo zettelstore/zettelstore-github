@@ -30,7 +30,6 @@ import (
 	"zettelstore.de/z/collect"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
@@ -71,7 +70,7 @@ func MakeGetInfoHandler(te *TemplateEngine, p *parser.Parser, getZettel usecase.
 			if err != nil {
 				return "", false
 			}
-			astTitle := p.ParseTitle(input.NewInput(meta.GetDefault(domain.MetaKeyTitle, "")))
+			astTitle := p.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
 			title, err := formatInlines(astTitle, "html", langOption)
 			if err == nil {
 				return title, true

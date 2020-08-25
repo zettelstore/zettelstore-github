@@ -29,7 +29,6 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/encoder/jsonenc"
-	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
@@ -67,7 +66,7 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 	buf.WriteString("\">\n<body>\n<ul>\n")
 	for _, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		htmlTitle, err := formatInlines(p.ParseTitle(input.NewInput(title)), "html")
+		htmlTitle, err := formatInlines(p.ParseTitle(title), "html")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -89,7 +88,7 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, p *parse
 	buf.WriteString("{\"list\":[")
 	for i, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		jsonTitle, err := formatInlines(p.ParseTitle(input.NewInput(title)), "json")
+		jsonTitle, err := formatInlines(p.ParseTitle(title), "json")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
