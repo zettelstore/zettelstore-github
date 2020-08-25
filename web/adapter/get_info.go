@@ -41,7 +41,7 @@ type internalReference struct {
 }
 
 // MakeGetInfoHandler creates a new HTTP handler for the use case "get zettel".
-func MakeGetInfoHandler(te *TemplateEngine, p *parser.Parser, getZettel usecase.GetZettel, getMeta usecase.GetMeta) http.HandlerFunc {
+func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := getFormat(r, "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Zettel info not available in format %q", format), http.StatusNotFound)
@@ -62,7 +62,7 @@ func MakeGetInfoHandler(te *TemplateEngine, p *parser.Parser, getZettel usecase.
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z, meta := p.ParseZettel(zettel, syntax)
+		z, meta := parser.ParseZettel(zettel, syntax)
 
 		langOption := &encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")}
 		getTitle := func(id domain.ZettelID) (string, bool) {
@@ -70,7 +70,7 @@ func MakeGetInfoHandler(te *TemplateEngine, p *parser.Parser, getZettel usecase.
 			if err != nil {
 				return "", false
 			}
-			astTitle := p.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
+			astTitle := parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
 			title, err := formatInlines(astTitle, "html", langOption)
 			if err == nil {
 				return title, true

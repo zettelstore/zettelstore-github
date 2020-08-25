@@ -38,7 +38,7 @@ type metaInfo struct {
 }
 
 // MakeListHTMLMetaHandler creates a HTTP handler for rendering the list of zettel as HTML.
-func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, p *parser.Parser, listMeta usecase.ListMeta) http.HandlerFunc {
+func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filter, sorter := getFilterSorter(r)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
@@ -52,7 +52,7 @@ func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, p *parser.Parser, lis
 		metas := make([]metaInfo, 0, len(metaList))
 		for _, meta := range metaList {
 			title, _ := meta.Get(domain.MetaKeyTitle)
-			htmlTitle, err := formatInlines(p.ParseTitle(title), "html", langOption)
+			htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", langOption)
 			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)

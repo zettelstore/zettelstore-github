@@ -47,12 +47,11 @@ func replace(s string, tcs TestCases) TestCases {
 func checkTcs(t *testing.T, tcs TestCases) {
 	t.Helper()
 
-	var p = parser.New()
 	for tcn, tc := range tcs {
 		t.Run(fmt.Sprintf("TC=%02d,src=%q", tcn, tc.source), func(st *testing.T) {
 			st.Helper()
 			inp := input.NewInput(tc.source)
-			bns := p.ParseBlocks(inp, nil, "zmk")
+			bns := parser.ParseBlocks(inp, nil, "zmk")
 			var tv TestVisitor
 			tv.visitBlockSlice(bns)
 			got := tv.String()

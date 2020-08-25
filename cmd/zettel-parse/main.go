@@ -51,7 +51,7 @@ func parse(name string, format string) {
 	src = nil
 	inp := input.NewInput(data)
 	meta := domain.NewMetaFromInput("", inp)
-	z, _ := parser.New().ParseZettel(
+	z, _ := parser.ParseZettel(
 		domain.Zettel{
 			Meta:    meta,
 			Content: domain.NewContent(data[inp.Pos:]),

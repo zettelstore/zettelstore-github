@@ -35,7 +35,7 @@ import (
 )
 
 // MakeSearchHandler creates a new HTTP handler for the use case "search".
-func MakeSearchHandler(te *TemplateEngine, p *parser.Parser, search usecase.Search) http.HandlerFunc {
+func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 		var filter *store.Filter
@@ -88,7 +88,7 @@ func MakeSearchHandler(te *TemplateEngine, p *parser.Parser, search usecase.Sear
 			w.Header().Set("Content-Type", formatContentType(format))
 			switch format {
 			case "json":
-				renderListMetaJSON(w, metaList, p)
+				renderListMetaJSON(w, metaList)
 				return
 			}
 		}
@@ -97,7 +97,7 @@ func MakeSearchHandler(te *TemplateEngine, p *parser.Parser, search usecase.Sear
 		metas := make([]metaInfo, 0, len(metaList))
 		for _, meta := range metaList {
 			title, _ := meta.Get(domain.MetaKeyTitle)
-			htmlTitle, err := formatInlines(p.ParseTitle(title), "html", langOption)
+			htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", langOption)
 			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)

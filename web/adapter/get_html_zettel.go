@@ -37,7 +37,6 @@ import (
 func MakeGetHTMLZettelHandler(
 	key byte,
 	te *TemplateEngine,
-	p *parser.Parser,
 	getZettel usecase.GetZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +54,7 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z, meta := p.ParseZettel(zettel, syntax)
+		z, meta := parser.ParseZettel(zettel, syntax)
 
 		langOption := &encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")}
 		textTitle, err := formatInlines(z.Title, "text", langOption)

@@ -34,7 +34,7 @@ import (
 )
 
 // MakeListMetaHandler creates a new HTTP handler for the use case "list some zettel".
-func MakeListMetaHandler(key byte, te *TemplateEngine, p *parser.Parser, listMeta usecase.ListMeta) http.HandlerFunc {
+func MakeListMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filter, sorter := getFilterSorter(r)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
@@ -48,9 +48,9 @@ func MakeListMetaHandler(key byte, te *TemplateEngine, p *parser.Parser, listMet
 		w.Header().Set("Content-Type", formatContentType(format))
 		switch format {
 		case "html":
-			renderListMetaHTML(w, key, metaList, p)
+			renderListMetaHTML(w, key, metaList)
 		case "json":
-			renderListMetaJSON(w, metaList, p)
+			renderListMetaJSON(w, metaList)
 		default:
 			http.Error(w, fmt.Sprintf("Zettel list not available in format %q", format), http.StatusNotFound)
 			log.Println(err, format)
@@ -58,7 +58,7 @@ func MakeListMetaHandler(key byte, te *TemplateEngine, p *parser.Parser, listMet
 	}
 }
 
-func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta, p *parser.Parser) {
+func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta) {
 	buf := encoder.NewBufWriter(w)
 
 	buf.WriteString("<html lang=\"")
@@ -66,7 +66,7 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 	buf.WriteString("\">\n<body>\n<ul>\n")
 	for _, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		htmlTitle, err := formatInlines(p.ParseTitle(title), "html")
+		htmlTitle, err := formatInlines(parser.ParseTitle(title), "html")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -82,13 +82,13 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 	buf.Flush()
 }
 
-func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, p *parser.Parser) {
+func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta) {
 	buf := encoder.NewBufWriter(w)
 
 	buf.WriteString("{\"list\":[")
 	for i, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		jsonTitle, err := formatInlines(p.ParseTitle(title), "json")
+		jsonTitle, err := formatInlines(parser.ParseTitle(title), "json")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)

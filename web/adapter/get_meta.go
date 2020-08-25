@@ -26,12 +26,11 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
 
 // MakeGetMetaHandler creates a new HTTP handler for the use case "get content".
-func MakeGetMetaHandler(p *parser.Parser, getMeta usecase.GetMeta) http.HandlerFunc {
+func MakeGetMetaHandler(getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := domain.ZettelID(r.URL.Path[1:])
 		if !id.IsValid() {

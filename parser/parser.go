@@ -70,33 +70,23 @@ func Get(name string) *Info {
 	panic("No default parser registered")
 }
 
-// Parser is the generic part of the parser system.
-type Parser struct {
-}
-
-// New creates a new parser system.
-func New() *Parser {
-	p := &Parser{}
-	return p
-}
-
 // ParseBlocks parses some input and returns a slice of block nodes.
-func (p *Parser) ParseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+func ParseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
 	return Get(syntax).ParseBlocks(inp, meta, syntax)
 }
 
 // ParseInlines parses some input and returns a slice of inline nodes.
-func (p *Parser) ParseInlines(inp *input.Input, syntax string) ast.InlineSlice {
+func ParseInlines(inp *input.Input, syntax string) ast.InlineSlice {
 	return Get(syntax).ParseInlines(inp, syntax)
 }
 
 // ParseTitle parses the title of a zettel, always as Zettelmarkup
-func (p *Parser) ParseTitle(title string) ast.InlineSlice {
-	return p.ParseInlines(input.NewInput(title), "zmk")
+func ParseTitle(title string) ast.InlineSlice {
+	return ParseInlines(input.NewInput(title), "zmk")
 }
 
 // ParseZettel parses the zettel based on the syntax.
-func (p *Parser) ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, *domain.Meta) {
+func ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, *domain.Meta) {
 	meta := config.Config.AddDefaultValues(zettel.Meta)
 	if len(syntax) == 0 {
 		syntax, _ = meta.Get(domain.MetaKeySyntax)
@@ -107,8 +97,8 @@ func (p *Parser) ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, 
 		ID:      id,
 		Meta:    zettel.Meta,
 		Content: zettel.Content,
-		Title:   p.ParseTitle(title),
-		Ast:     p.ParseBlocks(input.NewInput(zettel.Content.AsString()), zettel.Meta, syntax),
+		Title:   ParseTitle(title),
+		Ast:     ParseBlocks(input.NewInput(zettel.Content.AsString()), zettel.Meta, syntax),
 	}
 	return z, meta
 }

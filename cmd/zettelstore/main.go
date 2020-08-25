@@ -33,7 +33,6 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/input"
-	"zettelstore.de/z/parser"
 	"zettelstore.de/z/store"
 	"zettelstore.de/z/store/chainstore"
 	"zettelstore.de/z/store/filestore"
@@ -50,12 +49,11 @@ var (
 
 func setupRouting(s store.Store, readonly bool) *router.Router {
 	te := adapter.NewTemplateEngine(s)
-	p := parser.New()
 
 	ucGetMeta := usecase.NewGetMeta(s)
 	ucGetZettel := usecase.NewGetZettel(s)
-	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler('h', te, p, usecase.NewListMeta(s))
-	getHTMLZettelHandler := adapter.MakeGetHTMLZettelHandler('h', te, p, ucGetZettel, ucGetMeta)
+	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler('h', te, usecase.NewListMeta(s))
+	getHTMLZettelHandler := adapter.MakeGetHTMLZettelHandler('h', te, ucGetZettel, ucGetMeta)
 	getNewZettelHandler := adapter.MakeGetNewZettelHandler(te, ucGetZettel)
 	postNewZettelHandler := adapter.MakePostNewZettelHandler(usecase.NewNewZettel(s))
 
@@ -65,7 +63,7 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 		router.AddListRoute('a', http.MethodGet, adapter.MakeGetLoginHandler(te))
 		router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(usecase.NewAuthenticate(s)))
 	}
-	router.AddZettelRoute('b', http.MethodGet, adapter.MakeGetBodyHandler('b', te, p, ucGetZettel, ucGetMeta))
+	router.AddZettelRoute('b', http.MethodGet, adapter.MakeGetBodyHandler('b', te, ucGetZettel, ucGetMeta))
 	router.AddListRoute('c', http.MethodGet, adapter.MakeReloadHandler(usecase.NewReload(s)))
 	router.AddZettelRoute('c', http.MethodGet, adapter.MakeGetContentHandler(ucGetZettel))
 	if !readonly {
@@ -76,8 +74,8 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 	}
 	router.AddListRoute('h', http.MethodGet, listHTMLMetaHandler)
 	router.AddZettelRoute('h', http.MethodGet, getHTMLZettelHandler)
-	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, p, ucGetZettel, ucGetMeta))
-	router.AddZettelRoute('m', http.MethodGet, adapter.MakeGetMetaHandler(p, ucGetMeta))
+	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, ucGetZettel, ucGetMeta))
+	router.AddZettelRoute('m', http.MethodGet, adapter.MakeGetMetaHandler(ucGetMeta))
 	if !readonly {
 		router.AddZettelRoute('n', http.MethodGet, getNewZettelHandler)
 		router.AddZettelRoute('n', http.MethodPost, postNewZettelHandler)
@@ -88,9 +86,9 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 		router.AddZettelRoute('r', http.MethodPost, adapter.MakePostRenameZettelHandler(usecase.NewRenameZettel(s)))
 	}
 	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, usecase.NewListTags(s)))
-	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, p, usecase.NewSearch(s)))
-	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler('z', te, p, usecase.NewListMeta(s)))
-	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler('z', te, p, ucGetZettel, ucGetMeta))
+	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, usecase.NewSearch(s)))
+	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler('z', te, usecase.NewListMeta(s)))
+	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler('z', te, ucGetZettel, ucGetMeta))
 	return router
 }
 

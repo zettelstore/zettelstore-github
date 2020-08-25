@@ -35,7 +35,6 @@ import (
 func MakeGetZettelHandler(
 	key byte,
 	te *TemplateEngine,
-	p *parser.Parser,
 	getZettel usecase.GetZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +52,7 @@ func MakeGetZettelHandler(
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z, meta := p.ParseZettel(zettel, syntax)
+		z, meta := parser.ParseZettel(zettel, syntax)
 
 		format := getFormat(r, "html")
 		w.Header().Set("Content-Type", formatContentType(format))

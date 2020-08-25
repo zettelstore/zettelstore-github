@@ -36,7 +36,6 @@ import (
 func MakeGetBodyHandler(
 	key byte,
 	te *TemplateEngine,
-	p *parser.Parser,
 	getZettel usecase.GetZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +53,7 @@ func MakeGetBodyHandler(
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z, meta := p.ParseZettel(zettel, syntax)
+		z, meta := parser.ParseZettel(zettel, syntax)
 
 		langOption := &encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")}
 		format := getFormat(r, "html")
