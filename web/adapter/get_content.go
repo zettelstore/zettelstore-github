@@ -25,6 +25,7 @@ import (
 	"log"
 	"net/http"
 
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 )
@@ -44,7 +45,13 @@ func MakeGetContentHandler(getZettel usecase.GetZettel) http.HandlerFunc {
 			log.Println(err)
 			return
 		}
-		if contentType, ok := syntaxType[zettel.Meta.GetDefault(domain.MetaKeySyntax, domain.MetaValueSyntax)]; ok {
+		var syntax string
+		if syn, ok := zettel.Meta.Get(domain.MetaKeySyntax); ok {
+			syntax = syn
+		} else {
+			syntax = config.Config.GetDefaultSyntax()
+		}
+		if contentType, ok := syntaxType[syntax]; ok {
 			w.Header().Add("Content-Type", contentType)
 		}
 		_, err = w.Write(zettel.Content.AsBytes())

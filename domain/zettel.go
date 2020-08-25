@@ -71,6 +71,7 @@ const (
 	TagsTemplateID   = ZettelID("00000000010600")
 	BaseCSSID        = ZettelID("00000000020001")
 	MaterialIconID   = ZettelID("00000000030001")
+	TemplateZettelID = ZettelID("00000000040001")
 )
 
 // Content -------------------------------------------------------------------

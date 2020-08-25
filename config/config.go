@@ -93,9 +93,11 @@ func (c Type) GetURLPrefix() string {
 // GetDefaultTitle returns the current value of the "default-title" key.
 func (c Type) GetDefaultTitle() string {
 	if config := getConfigurationMeta(); config != nil {
-		return config.GetDefault(domain.MetaKeyDefaultTitle, domain.MetaValueTitle)
+		if title, ok := config.Get(domain.MetaKeyDefaultTitle); ok {
+			return title
+		}
 	}
-	return domain.MetaValueTitle
+	return "Untitled"
 }
 
 // GetDefaultSyntax returns the current value of the "default-syntax" key.
@@ -107,7 +109,7 @@ func (c Type) GetDefaultSyntax() string {
 			}
 		}
 	}
-	return domain.MetaValueSyntax
+	return "zmk"
 }
 
 // GetDefaultRole returns the current value of the "default-role" key.

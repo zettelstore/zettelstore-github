@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 	_ "zettelstore.de/z/cmd"
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/input"
@@ -69,7 +70,10 @@ func parse(name string, format string) {
 }
 
 func getSyntax(meta *domain.Meta) string {
-	return meta.GetDefault(domain.MetaKeySyntax, domain.MetaValueSyntax)
+	if syntax, ok := meta.Get(domain.MetaKeySyntax); ok {
+		return syntax
+	}
+	return config.Config.GetDefaultSyntax()
 }
 
 func main() {

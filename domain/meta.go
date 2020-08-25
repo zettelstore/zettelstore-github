@@ -92,12 +92,6 @@ const (
 	MetaKeyZettelFileSyntax = "zettel-file-syntax"
 )
 
-// Predefined default values.
-const (
-	MetaValueSyntax = "zmk"
-	MetaValueTitle  = "Untitled"
-)
-
 // Supported key types.
 const (
 	MetaTypeBool    = 'b'

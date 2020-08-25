@@ -39,28 +39,17 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 		}
 		ctx := r.Context()
 		var zettel *domain.Zettel
-		meta := domain.NewMeta("")
 		id := domain.ZettelID(r.URL.Path[1:])
-		if id != "" {
-			if !id.IsValid() {
-				http.NotFound(w, r)
-				return
-			}
-			oldZettel, err := getZettel.Run(ctx, id)
-			if err != nil {
-				http.NotFound(w, r)
-				return
-			}
-			for _, p := range oldZettel.Meta.Pairs() {
-				meta.Set(p.Key, p.Value)
-			}
-			meta.YamlSep = oldZettel.Meta.YamlSep
-			zettel = &domain.Zettel{Meta: meta, Content: oldZettel.Content}
-		} else {
-			meta.Set(domain.MetaKeyRole, config.Config.GetDefaultRole())
-			meta.Set(domain.MetaKeySyntax, config.Config.GetDefaultSyntax())
-			zettel = &domain.Zettel{Meta: meta}
+		if !id.IsValid() {
+			http.NotFound(w, r)
+			return
 		}
+		oldZettel, err := getZettel.Run(ctx, id)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		zettel = &domain.Zettel{Meta: oldZettel.Meta.Clone(), Content: oldZettel.Content}
 
 		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.Config.GetDefaultLang())
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{

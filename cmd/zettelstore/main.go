@@ -80,8 +80,6 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, p, ucGetZettel, ucGetMeta))
 	router.AddZettelRoute('m', http.MethodGet, adapter.MakeGetMetaHandler(p, ucGetMeta))
 	if !readonly {
-		router.AddListRoute('n', http.MethodGet, getNewZettelHandler)
-		router.AddListRoute('n', http.MethodPost, postNewZettelHandler)
 		router.AddZettelRoute('n', http.MethodGet, getNewZettelHandler)
 		router.AddZettelRoute('n', http.MethodPost, postNewZettelHandler)
 	}
