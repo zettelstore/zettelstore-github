@@ -58,18 +58,17 @@ func NewStore(dir string) (store.Store, error) {
 
 // fileStore uses a directory to store zettel as files.
 type fileStore struct {
-	parent      store.Store
-	observers   []func(domain.ZettelID)
-	mxObserver  sync.RWMutex
-	dir         string
-	dirReload   time.Duration
-	dirSrv      *directory.Service
-	fSrvs       uint32
-	fCmds       []chan fileCmd
-	mxCmds      sync.RWMutex
-	metaCache   map[domain.ZettelID]*domain.Meta
-	zettelCache map[domain.ZettelID]domain.Zettel
-	mxCache     sync.RWMutex
+	parent     store.Store
+	observers  []func(domain.ZettelID)
+	mxObserver sync.RWMutex
+	dir        string
+	dirReload  time.Duration
+	dirSrv     *directory.Service
+	fSrvs      uint32
+	fCmds      []chan fileCmd
+	mxCmds     sync.RWMutex
+	metaCache  map[domain.ZettelID]*domain.Meta
+	mxCache    sync.RWMutex
 }
 
 func (fs *fileStore) isStopped() bool {
@@ -157,9 +156,6 @@ func (fs *fileStore) GetZettel(ctx context.Context, id domain.ZettelID) (domain.
 	if fs.isStopped() {
 		return domain.Zettel{}, store.ErrStopped
 	}
-	if zettel, ok := fs.cacheGetZettel(id); ok {
-		return zettel, nil
-	}
 
 	entry := fs.dirSrv.GetEntry(id)
 	if len(entry.ID) == 0 {
@@ -176,7 +172,7 @@ func (fs *fileStore) GetZettel(ctx context.Context, id domain.ZettelID) (domain.
 	}
 	fs.cleanupMeta(ctx, res.meta)
 	zettel := domain.Zettel{Meta: res.meta, Content: domain.NewContent(res.content)}
-	fs.cacheSetZettel(zettel)
+	fs.cacheSetMeta(res.meta)
 	return zettel, nil
 }
 
@@ -276,8 +272,8 @@ func (fs *fileStore) SetZettel(ctx context.Context, zettel domain.Zettel) error 
 	if newEntry && err == nil {
 		fs.dirSrv.UpdateEntry(&entry)
 
-		// Make zettel available, because file store may need some time to update directory.
-		fs.cacheSetZettel(zettel)
+		// Make meta available, because file store may need some time to update directory.
+		fs.cacheSetMeta(zettel.Meta)
 	}
 	return err
 }
@@ -401,10 +397,8 @@ func (fs *fileStore) cacheChange(id domain.ZettelID) {
 	fs.mxCache.Lock()
 	if len(id) == 0 {
 		fs.metaCache = make(map[domain.ZettelID]*domain.Meta, len(fs.metaCache))
-		fs.zettelCache = make(map[domain.ZettelID]domain.Zettel)
 	} else {
 		delete(fs.metaCache, id)
-		delete(fs.zettelCache, id)
 	}
 	fs.mxCache.Unlock()
 }
@@ -421,20 +415,4 @@ func (fs *fileStore) cacheGetMeta(id domain.ZettelID) (*domain.Meta, bool) {
 	meta, ok := fs.metaCache[id]
 	fs.mxCache.RUnlock()
 	return meta, ok
-}
-
-func (fs *fileStore) cacheSetZettel(zettel domain.Zettel) {
-	meta := zettel.Meta
-	fs.mxCache.Lock()
-	meta.Freeze()
-	fs.metaCache[meta.ID] = meta
-	fs.zettelCache[meta.ID] = zettel
-	fs.mxCache.Unlock()
-}
-
-func (fs *fileStore) cacheGetZettel(id domain.ZettelID) (domain.Zettel, bool) {
-	fs.mxCache.RLock()
-	zettel, ok := fs.zettelCache[id]
-	fs.mxCache.RUnlock()
-	return zettel, ok
 }
