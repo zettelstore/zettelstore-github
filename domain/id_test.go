@@ -26,16 +26,38 @@ import (
 	"zettelstore.de/z/domain"
 )
 
+func TestParseZettelID(t *testing.T) {
+}
+
 func TestIsValid(t *testing.T) {
 	validIDs := []string{
 		"00000000000000",
+		"00000000000001",
+		"00000000000020",
+		"00000000000300",
+		"00000000004000",
+		"00000000050000",
+		"00000000600000",
+		"00000007000000",
+		"00000080000000",
+		"00000900000000",
+		"00001000000000",
+		"00020000000000",
+		"00300000000000",
+		"04000000000000",
+		"50000000000000",
 		"99999999999999",
 		"20200310195100",
 	}
 
 	for i, id := range validIDs {
-		if !domain.ZettelID(id).IsValid() || !domain.IsValidID(id) {
-			t.Errorf("i=%d: id=%q is not valid, but should be", i, id)
+		zid, err := domain.ParseZettelID(id)
+		if err != nil {
+			t.Errorf("i=%d: id=%q is not valid, but should be. err=%v", i, id, err)
+		}
+		s := zid.Format()
+		if s != id {
+			t.Errorf("i=%d: zid=%v does not format to %q, but to %q", i, zid, id, s)
 		}
 	}
 
@@ -47,7 +69,7 @@ func TestIsValid(t *testing.T) {
 	}
 
 	for i, id := range invalidIDs {
-		if domain.ZettelID(id).IsValid() || domain.IsValidID(id) {
+		if _, err := domain.ParseZettelID(id); err == nil {
 			t.Errorf("i=%d: id=%q is valid, but should not be", i, id)
 		}
 	}

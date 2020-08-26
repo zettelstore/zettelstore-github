@@ -22,6 +22,7 @@ package domain
 
 import (
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -31,6 +32,40 @@ import (
 // the form "YYYYMMDDHHmmSS". The store tries to set the last two digits to
 // "00".
 type ZettelID string
+
+// ZettelIDnew is the internal identification of a zettel. Typically, it is a
+// time stamp of the form "YYYYMMDDHHmmSS" converted to an unsigned integer.
+// A zettelstore implementation should try to set the last two digits to zero,
+// e.g. the seconds should be zero,
+type ZettelIDnew uint64
+
+// ParseZettelID interprets a string as a zettel identification and
+// returns its integer value.
+func ParseZettelID(s string) (ZettelIDnew, error) {
+	if len(s) != 14 {
+		return 0, strconv.ErrSyntax
+	}
+	res, err := strconv.ParseUint(s, 10, 47)
+	if err != nil {
+		return 0, err
+	}
+	if res > 99999999999999 {
+		return 0, strconv.ErrRange
+	}
+	return ZettelIDnew(res), nil
+}
+
+const digits = "0123456789"
+
+// Format converts the zettel identification to a string of 14 digits.
+func (id ZettelIDnew) Format() string {
+	var result [14]byte
+	for i := 13; i >= 0; i-- {
+		result[i] = digits[id%10]
+		id = id / 10
+	}
+	return string(result[0:])
+}
 
 // RegexpID contains the regexp string that determines a valid zettel id.
 const RegexpID = "[0-9]{14}"
