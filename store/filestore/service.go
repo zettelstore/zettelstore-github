@@ -248,7 +248,7 @@ func parseMetaContentFile(id domain.ZettelID, path string) (*domain.Meta, string
 
 func cleanupMeta(meta *domain.Meta, entry *directory.Entry) {
 	if title, ok := meta.Get(domain.MetaKeyTitle); !ok || title == "" {
-		meta.Set(domain.MetaKeyTitle, string(entry.ID))
+		meta.Set(domain.MetaKeyTitle, entry.ID.Format())
 	}
 
 	switch entry.MetaSpec {
@@ -284,7 +284,7 @@ func calculateSyntax(entry *directory.Entry) string {
 
 func calculateMeta(entry *directory.Entry) *domain.Meta {
 	meta := domain.NewMeta(entry.ID)
-	meta.Set(domain.MetaKeyTitle, string(entry.ID))
+	meta.Set(domain.MetaKeyTitle, entry.ID.Format())
 	meta.Set(domain.MetaKeySyntax, calculateSyntax(entry))
 	return meta
 }

@@ -73,7 +73,7 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			}
 		}
 		if filter == nil || len(filter.Expr) == 0 {
-			http.Redirect(w, r, urlFor('h', ""), http.StatusFound)
+			http.Redirect(w, r, urlForList('h'), http.StatusFound)
 			return
 		}
 

@@ -48,8 +48,8 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			return
 		}
 
-		id := domain.ZettelID(r.URL.Path[1:])
-		if !id.IsValid() {
+		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -114,7 +114,10 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, bool), links []*as
 	extLinks := make([]string, 0, len(links))
 	for _, ref := range links {
 		if ref.IsZettel() {
-			id := domain.ZettelID(ref.Value)
+			id, err := domain.ParseZettelID(ref.Value)
+			if err != nil {
+				panic(err)
+			}
 			title, ok := getTitle(id)
 			if len(title) == 0 {
 				title = ref.Value

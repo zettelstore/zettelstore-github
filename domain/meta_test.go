@@ -27,7 +27,7 @@ import (
 	"zettelstore.de/z/input"
 )
 
-const testID = ZettelID("98765432101234")
+const testID = ZettelID(98765432101234)
 
 func newMeta(title string, tags []string, syntax string) *Meta {
 	m := NewMeta(testID)

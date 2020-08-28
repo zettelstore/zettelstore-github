@@ -101,7 +101,7 @@ func ParseReference(s string) *Reference {
 	if len(s) == 0 {
 		return &Reference{URL: nil, Value: s, State: RefStateInvalid}
 	}
-	if domain.IsValidID(s) {
+	if _, err := domain.ParseZettelID(s); err == nil {
 		return &Reference{URL: nil, Value: s, State: RefStateZettel}
 	}
 	u, err := url.Parse(s)

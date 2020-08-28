@@ -39,8 +39,8 @@ func MakeGetBodyHandler(
 	getZettel usecase.GetZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := domain.ZettelID(r.URL.Path[1:])
-		if !id.IsValid() {
+		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}

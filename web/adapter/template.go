@@ -56,14 +56,14 @@ func NewTemplateEngine(s store.Store) *TemplateEngine {
 	te := &TemplateEngine{
 		store: s,
 	}
-	te.observe("")
+	te.observe(true, domain.InvalidZettelID)
 	s.RegisterChangeObserver(te.observe)
 	return te
 }
 
-func (te *TemplateEngine) observe(id domain.ZettelID) {
+func (te *TemplateEngine) observe(all bool, id domain.ZettelID) {
 	te.mxCache.Lock()
-	if len(id) == 0 || id == domain.BaseTemplateID {
+	if all || id == domain.BaseTemplateID {
 		te.templateCache = make(map[domain.ZettelID]*template.Template, len(te.templateCache))
 	} else {
 		delete(te.templateCache, id)
@@ -84,17 +84,21 @@ func (te *TemplateEngine) cacheGetTemplate(id domain.ZettelID) (*template.Templa
 	return t, ok
 }
 
-func urlFor(key byte, id domain.ZettelID) string {
+func urlForList(key byte) string {
 	var sb strings.Builder
 
 	sb.WriteString(config.Config.GetURLPrefix())
-	if key != '/' {
-		sb.WriteByte(key)
-		sb.WriteByte('/')
-		if len(id) > 0 {
-			sb.WriteString(string(id))
-		}
-	}
+	sb.WriteByte(key)
+	return sb.String()
+}
+
+func urlForZettel(key byte, id domain.ZettelID) string {
+	var sb strings.Builder
+
+	sb.WriteString(config.Config.GetURLPrefix())
+	sb.WriteByte(key)
+	sb.WriteByte('/')
+	sb.WriteString(id.Format())
 	return sb.String()
 }
 
@@ -111,7 +115,11 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 
 	case domain.MetaTypeID:
 		value, _ := meta.Get(key)
-		return template.HTML("<a href=\"" + urlFor('h', domain.ZettelID(value)) + "\">" + value + "</a>")
+		zid, err := domain.ParseZettelID(value)
+		if err != nil {
+			return template.HTML(value)
+		}
+		return template.HTML("<a href=\"" + urlForZettel('h', zid) + "\">" + value + "</a>")
 
 	case domain.MetaTypeTagSet, domain.MetaTypeWordSet:
 		values, _ := meta.GetList(key)
@@ -146,7 +154,7 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 
 func writeLink(b *strings.Builder, key, value string) {
 	b.WriteString("<a href=\"")
-	b.WriteString(urlFor('h', ""))
+	b.WriteString(urlForList('h'))
 	b.WriteByte('?')
 	b.WriteString(template.URLQueryEscaper(key))
 	b.WriteByte('=')
@@ -165,7 +173,8 @@ func htmlify(s string) template.HTML {
 }
 
 var funcMap = template.FuncMap{
-	"url":           urlFor,
+	"urlList":       urlForList,
+	"urlZettel":     urlForZettel,
 	"htmlMetaValue": htmlMetaValue,
 	"config":        configObj,
 	"HTML":          htmlify,

@@ -122,7 +122,7 @@ func renderListTagsJSON(w http.ResponseWriter, tagData usecase.TagData) {
 				buf.WriteByte(',')
 			}
 			buf.WriteByte('"')
-			buf.WriteString(string(meta.ID))
+			buf.WriteString(meta.ID.Format())
 			buf.WriteByte('"')
 		}
 		buf.WriteString("]")

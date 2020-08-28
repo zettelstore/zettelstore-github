@@ -76,7 +76,7 @@ func (gs *goStore) Stop(ctx context.Context) error {
 // RegisterChangeObserver registers an observer that will be notified
 // if a zettel was found to be changed. If the id is empty, all zettel are
 // possibly changed.
-func (gs *goStore) RegisterChangeObserver(f func(domain.ZettelID)) {
+func (gs *goStore) RegisterChangeObserver(f store.ObserverFunc) {
 	// This store never changes anything. So ignore the registration.
 }
 

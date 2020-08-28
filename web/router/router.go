@@ -23,8 +23,6 @@ package router
 import (
 	"net/http"
 	"regexp"
-
-	"zettelstore.de/z/domain"
 )
 
 type (
@@ -69,7 +67,7 @@ func (rt *Router) addRoute(key byte, httpMethod string, handler http.Handler, in
 			rt.maxKey = key
 		}
 		rt.reURL = regexp.MustCompile(
-			"^/(?:([" + string(rt.minKey) + "-" + string(rt.maxKey) + "])(?:/(?:(" + domain.RegexpID + ")/?)?)?)$")
+			"^/(?:([" + string(rt.minKey) + "-" + string(rt.maxKey) + "])(?:/(?:([0-9]{14})/?)?)?)$")
 	}
 
 	mh, hasKey := rt.tables[index][key]

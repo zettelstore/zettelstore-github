@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/store"
 )
 
 // Service specifies a directory service.
@@ -32,7 +33,7 @@ type Service struct {
 	dirPath     string
 	ticker      *time.Ticker
 	cmds        chan dirCmd
-	changeFuncs []func(domain.ZettelID)
+	changeFuncs []store.ObserverFunc
 	mxFuncs     sync.RWMutex
 }
 
@@ -67,7 +68,7 @@ func (srv *Service) Stop() {
 }
 
 // Subscribe to invalidation events.
-func (srv *Service) Subscribe(changeFunc func(domain.ZettelID)) {
+func (srv *Service) Subscribe(changeFunc store.ObserverFunc) {
 	srv.mxFuncs.Lock()
 	if changeFunc != nil {
 		srv.changeFuncs = append(srv.changeFuncs, changeFunc)
@@ -75,12 +76,12 @@ func (srv *Service) Subscribe(changeFunc func(domain.ZettelID)) {
 	srv.mxFuncs.Unlock()
 }
 
-func (srv *Service) notifyChange(id domain.ZettelID) {
+func (srv *Service) notifyChange(all bool, id domain.ZettelID) {
 	srv.mxFuncs.RLock()
 	changeFuncs := srv.changeFuncs
 	srv.mxFuncs.RUnlock()
 	for _, changeF := range changeFuncs {
-		changeF(id)
+		changeF(all, id)
 	}
 }
 

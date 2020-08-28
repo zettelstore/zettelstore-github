@@ -21,44 +21,40 @@
 package domain
 
 import (
-	"regexp"
 	"strconv"
 	"time"
 )
 
 // ZettelID ------------------------------------------------------------------
 
-// ZettelID is the identification of a zettel. Typically, it is a time stamp in
-// the form "YYYYMMDDHHmmSS". The store tries to set the last two digits to
-// "00".
-type ZettelID string
-
-// ZettelIDnew is the internal identification of a zettel. Typically, it is a
+// ZettelID is the internal identification of a zettel. Typically, it is a
 // time stamp of the form "YYYYMMDDHHmmSS" converted to an unsigned integer.
 // A zettelstore implementation should try to set the last two digits to zero,
 // e.g. the seconds should be zero,
-type ZettelIDnew uint64
+type ZettelID uint64
+
+// InvalidZettelID is a ZettelID that will never be valid
+const InvalidZettelID = ZettelID(100000000000000)
+
+const maxZettelID = 99999999999999
 
 // ParseZettelID interprets a string as a zettel identification and
 // returns its integer value.
-func ParseZettelID(s string) (ZettelIDnew, error) {
+func ParseZettelID(s string) (ZettelID, error) {
 	if len(s) != 14 {
-		return 0, strconv.ErrSyntax
+		return InvalidZettelID, strconv.ErrSyntax
 	}
 	res, err := strconv.ParseUint(s, 10, 47)
 	if err != nil {
-		return 0, err
+		return InvalidZettelID, err
 	}
-	if res > 99999999999999 {
-		return 0, strconv.ErrRange
-	}
-	return ZettelIDnew(res), nil
+	return ZettelID(res), nil
 }
 
 const digits = "0123456789"
 
 // Format converts the zettel identification to a string of 14 digits.
-func (id ZettelIDnew) Format() string {
+func (id ZettelID) Format() string {
 	var result [14]byte
 	for i := 13; i >= 0; i-- {
 		result[i] = digits[id%10]
@@ -67,46 +63,41 @@ func (id ZettelIDnew) Format() string {
 	return string(result[0:])
 }
 
-// RegexpID contains the regexp string that determines a valid zettel id.
-const RegexpID = "[0-9]{14}"
-
-var reID = regexp.MustCompile("^" + RegexpID + "$")
-
-// IsValidID returns true, if string is a valid zettel ID.
-func IsValidID(s string) bool {
-	return reID.MatchString(s)
-}
-
-// IsValid returns true, the the zettel id is a valid string.
-func (id ZettelID) IsValid() bool {
-	return IsValidID(string(id))
-}
+// IsValid determines if zettel id is a valid one, e.g. consists of max. 14 digits.
+func (id ZettelID) IsValid() bool { return id <= maxZettelID }
 
 // NewZettelID returns a new zettel ID based on the current time.
 func NewZettelID(withSeconds bool) ZettelID {
 	now := time.Now()
+	var s string
 	if withSeconds {
-		return ZettelID(now.Format("20060102150405"))
+		s = now.Format("20060102150405")
+	} else {
+		s = now.Format("20060102150400")
 	}
-	return ZettelID(now.Format("20060102150400"))
+	res, err := ParseZettelID(s)
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
 
 // Some important ZettelIDs
 const (
-	ConfigurationID  = ZettelID("00000000000000")
-	BaseTemplateID   = ZettelID("00000000010100")
-	LoginTemplateID  = ZettelID("00000000010200")
-	ListTemplateID   = ZettelID("00000000010300")
-	DetailTemplateID = ZettelID("00000000010401")
-	InfoTemplateID   = ZettelID("00000000010402")
-	FormTemplateID   = ZettelID("00000000010403")
-	RenameTemplateID = ZettelID("00000000010404")
-	DeleteTemplateID = ZettelID("00000000010405")
-	RolesTemplateID  = ZettelID("00000000010500")
-	TagsTemplateID   = ZettelID("00000000010600")
-	BaseCSSID        = ZettelID("00000000020001")
-	MaterialIconID   = ZettelID("00000000030001")
-	TemplateZettelID = ZettelID("00000000040001")
+	ConfigurationID  = ZettelID(0)
+	BaseTemplateID   = ZettelID(10100)
+	LoginTemplateID  = ZettelID(10200)
+	ListTemplateID   = ZettelID(10300)
+	DetailTemplateID = ZettelID(10401)
+	InfoTemplateID   = ZettelID(10402)
+	FormTemplateID   = ZettelID(10403)
+	RenameTemplateID = ZettelID(10404)
+	DeleteTemplateID = ZettelID(10405)
+	RolesTemplateID  = ZettelID(10500)
+	TagsTemplateID   = ZettelID(10600)
+	BaseCSSID        = ZettelID(20001)
+	MaterialIconID   = ZettelID(30001)
+	TemplateZettelID = ZettelID(40001)
 )
 
 // Content -------------------------------------------------------------------

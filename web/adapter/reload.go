@@ -43,6 +43,6 @@ func MakeReloadHandler(reload usecase.Reload) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, urlFor('/', ""), http.StatusFound)
+		http.Redirect(w, r, urlForList('/'), http.StatusFound)
 	}
 }

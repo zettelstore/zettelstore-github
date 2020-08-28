@@ -181,7 +181,7 @@ func createSearchAllFunc(values []string, negate bool) FilterFunc {
 		if !ok {
 			match = createMatchFunc(domain.MetaKeyID, values)
 		}
-		return match(string(meta.ID)) != negate
+		return match(meta.ID.Format()) != negate
 	}
 }
 

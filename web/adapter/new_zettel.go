@@ -37,19 +37,18 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 			http.Error(w, fmt.Sprintf("New zettel not possible in format %q", format), http.StatusNotFound)
 			return
 		}
-		ctx := r.Context()
-		var zettel *domain.Zettel
-		id := domain.ZettelID(r.URL.Path[1:])
-		if !id.IsValid() {
+		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
+		ctx := r.Context()
 		oldZettel, err := getZettel.Run(ctx, id)
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
-		zettel = &domain.Zettel{Meta: oldZettel.Meta.Clone(), Content: oldZettel.Content}
+		zettel := &domain.Zettel{Meta: oldZettel.Meta.Clone(), Content: oldZettel.Content}
 
 		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.Config.GetDefaultLang())
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
@@ -64,7 +63,7 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 // MakePostNewZettelHandler creates a new HTTP handler to store content of an existing zettel.
 func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zettel, err := parseZettelForm(r, "")
+		zettel, err := parseZettelForm(r, domain.InvalidZettelID)
 		if err != nil {
 			http.Error(w, "Unable to read form data", http.StatusInternalServerError)
 			log.Println(err)
@@ -76,6 +75,6 @@ func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, urlFor('h', zettel.Meta.ID), http.StatusFound)
+		http.Redirect(w, r, urlForZettel('h', zettel.Meta.ID), http.StatusFound)
 	}
 }

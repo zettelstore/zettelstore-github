@@ -33,8 +33,8 @@ import (
 // MakeEditGetZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
 func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := domain.ZettelID(r.URL.Path[1:])
-		if !id.IsValid() {
+		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -66,8 +66,8 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 // MakeEditSetZettelHandler creates a new HTTP handler to store content of an existing zettel.
 func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := domain.ZettelID(r.URL.Path[1:])
-		if !id.IsValid() {
+		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -83,6 +83,6 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, urlFor('h', id), http.StatusFound)
+		http.Redirect(w, r, urlForZettel('h', id), http.StatusFound)
 	}
 }

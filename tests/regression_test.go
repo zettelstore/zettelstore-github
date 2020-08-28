@@ -147,12 +147,12 @@ func TestContentRegression(t *testing.T) {
 			}
 			z, _ := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
-				t.Run(fmt.Sprintf("%s::%s(%s)", store.Location(), meta.ID, format), func(st *testing.T) {
-					resultName := filepath.Join(wd, "result", "content", storeName, string(z.ID)+"."+format)
+				t.Run(fmt.Sprintf("%s::%d(%s)", store.Location(), meta.ID, format), func(st *testing.T) {
+					resultName := filepath.Join(wd, "result", "content", storeName, z.ID.Format()+"."+format)
 					checkBlocksFile(st, resultName, z, format)
 				})
 			}
-			t.Run(fmt.Sprintf("%s::%s", store.Location(), meta.ID), func(st *testing.T) {
+			t.Run(fmt.Sprintf("%s::%d", store.Location(), meta.ID), func(st *testing.T) {
 				checkZmkEncoder(st, z)
 			})
 		}
@@ -196,8 +196,8 @@ func TestMetaRegression(t *testing.T) {
 			}
 			z, _ := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
-				t.Run(fmt.Sprintf("%s::%s(%s)", store.Location(), meta.ID, format), func(st *testing.T) {
-					resultName := filepath.Join(wd, "result", "meta", storeName, string(z.ID)+"."+format)
+				t.Run(fmt.Sprintf("%s::%d(%s)", store.Location(), meta.ID, format), func(st *testing.T) {
+					resultName := filepath.Join(wd, "result", "meta", storeName, z.ID.Format()+"."+format)
 					checkMetaFile(st, resultName, z, format)
 				})
 			}

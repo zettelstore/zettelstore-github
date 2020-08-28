@@ -205,7 +205,7 @@ func (m *Meta) Freeze() {
 // whether there was a value stored or not.
 func (m *Meta) Get(key string) (string, bool) {
 	if key == MetaKeyID {
-		return string(m.ID), true
+		return m.ID.Format(), true
 	}
 	value, ok := m.pairs[key]
 	return value, ok
@@ -504,7 +504,7 @@ func addToMeta(m *Meta, key, val string) {
 	case MetaTypeWordSet:
 		addSet(m, key, strings.ToLower(v), func(s string) bool { return true })
 	case MetaTypeID:
-		if IsValidID(val) {
+		if _, err := ParseZettelID(val); err == nil {
 			m.Set(key, val)
 		}
 	//case MetaContextKey:

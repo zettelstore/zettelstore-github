@@ -102,7 +102,7 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 					close(ready)
 					ready = nil
 				}
-				srv.notifyChange("")
+				srv.notifyChange(true, domain.ZettelID(0))
 			case fileStatusError:
 				log.Println("FILESTORE", "ERROR", ev.err)
 			case fileStatusUpdate:
@@ -110,14 +110,14 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 					dirMapUpdate(newMap, ev)
 				} else {
 					dirMapUpdate(curMap, ev)
-					srv.notifyChange(ev.id)
+					srv.notifyChange(false, ev.id)
 				}
 			case fileStatusDelete:
 				if newMap != nil {
 					delete(newMap, ev.id)
 				} else {
 					delete(curMap, ev.id)
-					srv.notifyChange(ev.id)
+					srv.notifyChange(false, ev.id)
 				}
 			}
 		case cmd, ok := <-srv.cmds:
@@ -154,7 +154,7 @@ type resGetEntry = Entry
 func (cmd *cmdGetEntry) run(m dirMap) {
 	entry := m[cmd.id]
 	if entry == nil {
-		cmd.result <- Entry{}
+		cmd.result <- Entry{ID: domain.InvalidZettelID}
 	} else {
 		cmd.result <- *entry
 	}

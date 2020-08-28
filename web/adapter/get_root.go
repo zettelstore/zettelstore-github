@@ -42,7 +42,7 @@ func MakeGetRootHandler(s getRootStore, listZettel, getZettel http.HandlerFunc) 
 		meta, err := s.GetMeta(r.Context(), domain.ConfigurationID)
 		if err == nil {
 			if start, ok := meta.Get("start"); ok {
-				if startID := domain.ZettelID(start); startID.IsValid() {
+				if startID, err := domain.ParseZettelID(start); err == nil {
 					if _, err = s.GetMeta(r.Context(), startID); err == nil {
 						r.URL.Path = "/" + start
 						getZettel(w, r)

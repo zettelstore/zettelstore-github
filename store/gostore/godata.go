@@ -58,25 +58,25 @@ var goData = goStore{
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Zettelstore, build {{config.GetVersion.Build}}">
 {{- block "meta-header" .}}{{end}}
-<link rel="stylesheet" href="{{url 'c' %q}}">
+<link rel="stylesheet" href="{{urlZettel 'c' %d}}">
 {{- block "header" .}}{{end}}
 <title>{{.Title}}</title>
 </head>
 <body>
 <nav class="zs-menu">
-<a href="{{url '/' ""}}">Home</a>
+<a href="{{urlList '/'}}">Home</a>
 <div class="zs-dropdown">
 <button>Lists</button>
 <nav class="zs-dropdown-content">
-<a href="{{url 'h' ""}}">List Zettel</a>
-<a href="{{url 'r' ""}}">List Roles</a>
-<a href="{{url 't' ""}}">List Tags</a>
-<a href="{{url 'c' ""}}">Reload</a>
+<a href="{{urlList 'h'}}">List Zettel</a>
+<a href="{{urlList 'r'}}">List Roles</a>
+<a href="{{urlList 't'}}">List Tags</a>
+<a href="{{urlList 'c'}}">Reload</a>
 </nav>
 </div>
-{{if not config.IsReadOnly}}<a href="{{url 'n' %q}}">New</a>{{end}}
+{{if not config.IsReadOnly}}<a href="{{urlZettel 'n' %d}}">New</a>{{end}}
 {{- block "menu" .}}{{end -}}
-<form action="{{url 's' ""}}">
+<form action="{{urlList 's'}}">
 <input type="text" placeholder="Search.." name="s">
 </form>
 </nav>
@@ -127,7 +127,7 @@ var goData = goStore{
 				`{{define "content"}}
 <h1>{{.Title}}</h1>
 <ul>
-{{range .Metas}}<li><a href="{{url $.Key .Meta.ID}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetListOrNil %q}} <a href="{{url $.Key ""}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
+{{range .Metas}}<li><a href="{{urlZettel $.Key .Meta.ID}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetListOrNil %q}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
 </ul>
 <p>Items: {{len .Metas}}</p>
 {{end}}`,
@@ -148,14 +148,14 @@ var goData = goStore{
 <header>
 <h1>{{.HTMLTitle}}</h1>
 <div class="zs-meta">
-{{if not config.IsReadOnly}}<a href="{{url 'e' .Meta.ID}}">Edit</a> &#183;
+{{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.ID}}">Edit</a> &#183;
 {{ .Meta.ID}} &#183;{{end}}
-<a href="{{url 'i' .Meta.ID}}">Info</a> &#183;
-{{- with .Meta.GetDefault "role" "*"}} (<a href="{{url $.Key ""}}?role={{.}}">{{.}}</a>){{end}}
+<a href="{{urlZettel 'i' .Meta.ID}}">Info</a> &#183;
+{{- with .Meta.GetDefault "role" "*"}} (<a href="{{urlList $.Key}}?role={{.}}">{{.}}</a>){{end}}
 {{- with .Meta.GetListOrNil %q}}
-{{- if .}}:{{range .}} <a href="{{url $.Key ""}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
+{{- if .}}:{{range .}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
 {{- end}}
-{{if not config.IsReadOnly}}&#183; <a href="{{url 'n' .Meta.ID}}">Clone</a>{{end}}
+{{if not config.IsReadOnly}}&#183; <a href="{{urlZettel 'n' .Meta.ID}}">Clone</a>{{end}}
 {{with .Meta.GetDefault "url" ""}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}
 </div>
 </header>
@@ -177,14 +177,14 @@ var goData = goStore{
 <header>
 <h1>Information for Zettel {{.Meta.ID}}</h1>
 <div class="zs-meta">
-<a href="{{url 'h' $.Meta.ID}}">Web</a>{{range $f := .Formats}} &#183; <a href="{{url 'z' $.Meta.ID}}?_format={{$f}}">{{$f}}</a>{{end}}
+<a href="{{urlZettel 'h' $.Meta.ID}}">Web</a>{{range $f := .Formats}} &#183; <a href="{{urlZettel 'z' $.Meta.ID}}?_format={{$f}}">{{$f}}</a>{{end}}
 </div>
-{{if not config.IsReadOnly}}<a href="{{url 'e' .Meta.ID}}">Edit</a> &#183;
-<a href="{{url 'n' .Meta.ID}}">Clone</a> &#183;{{end}}
-<a href="{{url 'm' .Meta.ID}}">Meta</a> &#183;
-<a href="{{url 'c' .Meta.ID}}">Content</a> {{if not config.IsReadOnly}}&#183;
-<a href="{{url 'r' .Meta.ID}}">Rename</a> &#183;
-<a href="{{url 'd' .Meta.ID}}">Delete</a>{{end}}
+{{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.ID}}">Edit</a> &#183;
+<a href="{{urlZettel 'n' .Meta.ID}}">Clone</a> &#183;{{end}}
+<a href="{{urlZettel 'm' .Meta.ID}}">Meta</a> &#183;
+<a href="{{urlZettel 'c' .Meta.ID}}">Content</a> {{if not config.IsReadOnly}}&#183;
+<a href="{{urlZettel 'r' .Meta.ID}}">Rename</a> &#183;
+<a href="{{urlZettel 'd' .Meta.ID}}">Delete</a>{{end}}
 </header>
 <h2>Interpreted Meta Data</h2>
 <table>
@@ -197,7 +197,7 @@ var goData = goStore{
 {{if .IntLinks}}
 <h3>Internal</h3>
 <ul>
-{{range .IntLinks}}<li>{{if .Found}}<a href="{{url 'h' .ID}}">{{.Title}}</a>{{else}}{{.ID}}{{end}}</li>{{end}}
+{{range .IntLinks}}<li>{{if .Found}}<a href="{{urlZettel 'h' .ID}}">{{.Title}}</a>{{else}}{{.ID}}{{end}}</li>{{end}}
 </ul>
 {{end}}
 {{if .ExtLinks}}
@@ -321,7 +321,7 @@ var goData = goStore{
 			`{{define "content"}}
 <h1>Currently used roles</h1>
 <ul>
-{{range .Roles}}<li><a href="{{url 'h' ""}}?role={{.}}">{{.}}</a></li>{{end}}
+{{range .Roles}}<li><a href="{{urlList 'h'}}?role={{.}}">{{.}}</a></li>{{end}}
 </ul>
 {{end}}`,
 		},
@@ -335,9 +335,9 @@ var goData = goStore{
 			`{{define "content"}}
 <h1>Currently used tags</h1>
 <div class="zs-meta">
-<a href="{{url 't' ""}}">All</a>{{range .Counts}}, <a href="{{url 't' ""}}?min={{.}}">{{.}}</a>{{end}}
+<a href="{{urlList 't'}}">All</a>{{range .Counts}}, <a href="{{urlList 't'}}?min={{.}}">{{.}}</a>{{end}}
 </div>
-{{range .Tags}} <a href="{{url 'h' ""}}?tags={{.Name}}" style="font-size:{{.Size}}%">{{.Name}}</a><sup>{{.Count}}</sup>{{end}}
+{{range .Tags}} <a href="{{urlList 'h'}}?tags={{.Name}}" style="font-size:{{.Size}}%">{{.Name}}</a><sup>{{.Count}}</sup>{{end}}
 {{end}}`,
 		},
 

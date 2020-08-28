@@ -79,7 +79,7 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 func successfulLogin(w http.ResponseWriter, r *http.Request, ident string) {
 	switch format := getFormat(r, "html"); format {
 	case "html":
-		http.Redirect(w, r, urlFor('/', ""), http.StatusFound)
+		http.Redirect(w, r, urlForList('/'), http.StatusFound)
 	default:
 	}
 }
@@ -87,7 +87,7 @@ func successfulLogin(w http.ResponseWriter, r *http.Request, ident string) {
 func failedLogin(w http.ResponseWriter, r *http.Request) {
 	switch format := getFormat(r, "html"); format {
 	case "html":
-		http.Redirect(w, r, urlFor('a', ""), http.StatusFound)
+		http.Redirect(w, r, urlForList('a'), http.StatusFound)
 	default:
 		http.Error(w, "Authentication failed", http.StatusUnauthorized)
 		w.Header().Set("WWW-Authenticate", `Bearer realm="Default"`)

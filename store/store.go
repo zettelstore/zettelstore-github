@@ -27,6 +27,12 @@ import (
 	"zettelstore.de/z/domain"
 )
 
+// ObserverFunc is the function that will be called if something changed.
+// If the first parameter, a bool, is true, then all zettel are possibly
+// changed. If it has the value false, the given ZettelID will identify the
+// changed zettel.
+type ObserverFunc func(bool, domain.ZettelID)
+
 // Store is implemented by all Zettel stores.
 type Store interface {
 	// SetParentStore is called when the store is part of a bigger store.
@@ -44,9 +50,8 @@ type Store interface {
 	Stop(ctx context.Context) error
 
 	// RegisterChangeObserver registers an observer that will be notified
-	// if a zettel was found to be changed. If the id is empty, all zettel are
-	// possibly changed.
-	RegisterChangeObserver(func(domain.ZettelID))
+	// if one or all zettel are found to be changed.
+	RegisterChangeObserver(ObserverFunc)
 
 	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error)
@@ -82,12 +87,12 @@ var ErrStopped = errors.New("Store is stopped")
 // ErrUnknownID is returned if the zettel ID is unknown to the store.
 type ErrUnknownID struct{ ID domain.ZettelID }
 
-func (err *ErrUnknownID) Error() string { return "Unknown Zettel ID: " + string(err.ID) }
+func (err *ErrUnknownID) Error() string { return "Unknown Zettel ID: " + err.ID.Format() }
 
 // ErrInvalidID is returned if the zettel ID is not appropriate for the store operation.
 type ErrInvalidID struct{ ID domain.ZettelID }
 
-func (err *ErrInvalidID) Error() string { return "Invalid Zettel ID: " + string(err.ID) }
+func (err *ErrInvalidID) Error() string { return "Invalid Zettel ID: " + err.ID.Format() }
 
 // Filter specifies a mechanism for selecting zettel.
 type Filter struct {

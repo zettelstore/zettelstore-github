@@ -101,9 +101,9 @@ func setupConfig() (cfg *domain.Meta) {
 	flag.Parse()
 
 	if content, err := ioutil.ReadFile(*configFile); err != nil {
-		cfg = domain.NewMeta("")
+		cfg = domain.NewMeta(domain.InvalidZettelID)
 	} else {
-		cfg = domain.NewMetaFromInput("", input.NewInput(string(content)))
+		cfg = domain.NewMetaFromInput(domain.InvalidZettelID, input.NewInput(string(content)))
 	}
 	flag.Visit(func(flg *flag.Flag) {
 		switch flg.Name {

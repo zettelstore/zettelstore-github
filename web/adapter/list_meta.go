@@ -73,7 +73,7 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 			return
 		}
 		buf.WriteString("<li><a href=\"")
-		buf.WriteString(urlFor(key, meta.ID))
+		buf.WriteString(urlForZettel(key, meta.ID))
 		buf.WriteString("\">")
 		buf.WriteString(htmlTitle)
 		buf.WriteString("</a></li>\n")
@@ -98,9 +98,9 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta) {
 			buf.WriteByte(',')
 		}
 		buf.WriteString("{\"id\":\"")
-		buf.WriteString(string(meta.ID))
+		buf.WriteString(meta.ID.Format())
 		buf.WriteString("\",\"url\":\"")
-		buf.WriteString(urlFor('z', meta.ID))
+		buf.WriteString(urlForZettel('z', meta.ID))
 		buf.WriteString("\",\"meta\":{\"title\":")
 		buf.WriteString(jsonTitle)
 		if syntax, ok := meta.Get(domain.MetaKeySyntax); ok {

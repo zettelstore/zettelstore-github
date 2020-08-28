@@ -25,14 +25,14 @@ import (
 	"sync"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/store"
 )
 
 // Store is a store that is used by a stock.
 type Store interface {
 	// RegisterChangeObserver registers an observer that will be notified
-	// if a zettel was found to be changed. If the id is empty, all zettel are
-	// possibly changed.
-	RegisterChangeObserver(func(domain.ZettelID))
+	// if all or one zettel are found to be changed.
+	RegisterChangeObserver(ob store.ObserverFunc)
 
 	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error)
@@ -63,8 +63,8 @@ type defaultStock struct {
 }
 
 // observe tracks all changes the store signals.
-func (s *defaultStock) observe(id domain.ZettelID) {
-	if id != "" {
+func (s *defaultStock) observe(all bool, id domain.ZettelID) {
+	if !all {
 		s.mxSubs.RLock()
 		defer s.mxSubs.RUnlock()
 		if _, found := s.subs[id]; found {

@@ -92,10 +92,14 @@ func watchDirectory(directory string, events chan<- *fileEvent, done <-chan stru
 	}
 
 	sendFileEvent := func(status fileStatus, path string, match []string) sendResult {
+		id, err := domain.ParseZettelID(match[1])
+		if err != nil {
+			panic(err)
+		}
 		event := &fileEvent{
 			status: status,
 			path:   path,
-			id:     domain.ZettelID(match[1]),
+			id:     id,
 			ext:    match[3],
 		}
 		return sendEvent(event)

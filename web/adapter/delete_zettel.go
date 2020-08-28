@@ -44,8 +44,8 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 			return
 		}
 
-		id := domain.ZettelID(r.URL.Path[1:])
-		if !id.IsValid() {
+		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -61,7 +61,7 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.Config.GetDefaultLang())
 		te.renderTemplate(ctx, w, domain.DeleteTemplateID, deleteZettelData{
 			Meta:  zettel.Meta,
-			Title: "Delete Zettel " + string(zettel.Meta.ID),
+			Title: "Delete Zettel " + zettel.Meta.ID.Format(),
 			Lang:  lang,
 		})
 	}
@@ -70,8 +70,8 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 // MakePostDeleteZettelHandler creates a new HTTP handler to delete a zettel.
 func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := domain.ZettelID(r.URL.Path[1:])
-		if !id.IsValid() {
+		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -81,6 +81,6 @@ func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.Handler
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, urlFor('/', ""), http.StatusFound)
+		http.Redirect(w, r, urlForList('/'), http.StatusFound)
 	}
 }

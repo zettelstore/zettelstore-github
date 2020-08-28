@@ -34,7 +34,7 @@ import (
 // chStore implements a chained store.
 type chStore struct {
 	stores     []store.Store
-	observers  []func(domain.ZettelID)
+	observers  []store.ObserverFunc
 	mxObserver sync.RWMutex
 }
 
@@ -53,12 +53,12 @@ func NewStore(stores ...store.Store) store.Store {
 	return cs
 }
 
-func (cs *chStore) notifyChanged(id domain.ZettelID) {
+func (cs *chStore) notifyChanged(all bool, id domain.ZettelID) {
 	cs.mxObserver.RLock()
 	observers := cs.observers
 	cs.mxObserver.RUnlock()
 	for _, ob := range observers {
-		ob(id)
+		ob(all, id)
 	}
 }
 
@@ -117,7 +117,7 @@ func (cs *chStore) Stop(ctx context.Context) error {
 // RegisterChangeObserver registers an observer that will be notified
 // if a zettel was found to be changed. If the id is empty, all zettel are
 // possibly changed.
-func (cs *chStore) RegisterChangeObserver(f func(domain.ZettelID)) {
+func (cs *chStore) RegisterChangeObserver(f store.ObserverFunc) {
 	cs.mxObserver.Lock()
 	cs.observers = append(cs.observers, f)
 	cs.mxObserver.Unlock()
@@ -191,10 +191,10 @@ func (cs *chStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.Sor
 	sPos := make([]int, len(sMetas))
 	for {
 		maxI := -1
-		maxID := domain.ZettelID("")
+		maxID := int64(-1)
 		for i, pos := range sPos {
 			if pos < len(sMetas[i]) {
-				if id := sMetas[i][pos].ID; id > maxID {
+				if id := int64(sMetas[i][pos].ID); id > maxID {
 					maxID = id
 					maxI = i
 				} else if id == maxID {

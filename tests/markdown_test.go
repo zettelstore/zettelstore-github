@@ -27,7 +27,6 @@ import (
 	"strings"
 	"testing"
 
-	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	_ "zettelstore.de/z/encoder/htmlenc"
 	_ "zettelstore.de/z/encoder/jsonenc"
@@ -97,7 +96,7 @@ func TestMarkdownSpec(t *testing.T) {
 	zmkEncoder := encoder.Create("zmk")
 	var sb strings.Builder
 	for _, tc := range testcases {
-		testID := domain.ZettelID(fmt.Sprintf("%012d01", tc.Example))
+		testID := tc.Example*100 + 1
 		ast := parser.ParseBlocks(input.NewInput(tc.Markdown), nil, "markdown")
 
 		for _, format := range formats {
@@ -127,12 +126,12 @@ func TestMarkdownSpec(t *testing.T) {
 				sb.Reset()
 			})
 		}
-		t.Run(fmt.Sprintf("Encode zmk %s", testID), func(st *testing.T) {
+		t.Run(fmt.Sprintf("Encode zmk %14d", testID), func(st *testing.T) {
 			zmkEncoder.WriteBlocks(&sb, ast)
 			gotFirst := sb.String()
 			sb.Reset()
 
-			testID = domain.ZettelID(fmt.Sprintf("%012d02", tc.Example))
+			testID = tc.Example*100 + 2
 			secondAst := parser.ParseBlocks(input.NewInput(gotFirst), nil, "zmk")
 			zmkEncoder.WriteBlocks(&sb, secondAst)
 			gotSecond := sb.String()
@@ -142,7 +141,7 @@ func TestMarkdownSpec(t *testing.T) {
 				//st.Errorf("\nCMD: %q\n1st: %q\n2nd: %q", tc.Markdown, gotFirst, gotSecond)
 			}
 
-			testID = domain.ZettelID(fmt.Sprintf("%012d03", tc.Example))
+			testID = tc.Example*100 + 3
 			thirdAst := parser.ParseBlocks(input.NewInput(gotFirst), nil, "zmk")
 			zmkEncoder.WriteBlocks(&sb, thirdAst)
 			gotThird := sb.String()
