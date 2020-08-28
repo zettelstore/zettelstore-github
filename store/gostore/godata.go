@@ -149,7 +149,7 @@ var goData = goStore{
 <h1>{{.HTMLTitle}}</h1>
 <div class="zs-meta">
 {{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.ID}}">Edit</a> &#183;
-{{ .Meta.ID}} &#183;{{end}}
+{{ .Meta.ID.Format}} &#183;{{end}}
 <a href="{{urlZettel 'i' .Meta.ID}}">Info</a> &#183;
 {{- with .Meta.GetDefault "role" "*"}} (<a href="{{urlList $.Key}}?role={{.}}">{{.}}</a>){{end}}
 {{- with .Meta.GetListOrNil %q}}
