@@ -85,11 +85,11 @@ func (te *TemplateEngine) cacheGetTemplate(id domain.ZettelID) (*template.Templa
 }
 
 func urlForList(key byte) string {
-	var sb strings.Builder
-
-	sb.WriteString(config.Config.GetURLPrefix())
-	sb.WriteByte(key)
-	return sb.String()
+	prefix := config.Config.GetURLPrefix()
+	if key == '/' {
+		return prefix
+	}
+	return prefix + string(rune(key))
 }
 
 func urlForZettel(key byte, id domain.ZettelID) string {

@@ -171,7 +171,7 @@ func (c Type) GetIconMaterial() string {
 	return fmt.Sprintf(
 		"<img class=\"zs-text-icon\" src=\"%vc/%v\">",
 		c.GetURLPrefix(),
-		domain.MaterialIconID)
+		domain.MaterialIconID.Format())
 }
 
 // GetSiteName returns the current value of the "site-name" key.
