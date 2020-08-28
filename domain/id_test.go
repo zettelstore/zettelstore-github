@@ -31,7 +31,6 @@ func TestParseZettelID(t *testing.T) {
 
 func TestIsValid(t *testing.T) {
 	validIDs := []string{
-		"00000000000000",
 		"00000000000001",
 		"00000000000020",
 		"00000000000300",
@@ -63,6 +62,7 @@ func TestIsValid(t *testing.T) {
 
 	invalidIDs := []string{
 		"", "0", "a",
+		"00000000000000",
 		"000000000000000",
 		"99999999999999a",
 		"20200310T195100",

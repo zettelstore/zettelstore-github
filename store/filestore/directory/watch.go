@@ -60,9 +60,9 @@ type fileEvent struct {
 type sendResult int
 
 const (
-	sendDone   sendResult = 0
-	sendReload            = 1
-	sendExit              = 2
+	sendDone sendResult = iota
+	sendReload
+	sendExit
 )
 
 func watchDirectory(directory string, events chan<- *fileEvent, done <-chan struct{}) {
@@ -94,7 +94,7 @@ func watchDirectory(directory string, events chan<- *fileEvent, done <-chan stru
 	sendFileEvent := func(status fileStatus, path string, match []string) sendResult {
 		id, err := domain.ParseZettelID(match[1])
 		if err != nil {
-			panic(err)
+			return sendDone
 		}
 		event := &fileEvent{
 			status: status,

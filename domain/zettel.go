@@ -34,7 +34,7 @@ import (
 type ZettelID uint64
 
 // InvalidZettelID is a ZettelID that will never be valid
-const InvalidZettelID = ZettelID(100000000000000)
+const InvalidZettelID = ZettelID(0)
 
 const maxZettelID = 99999999999999
 
@@ -48,12 +48,16 @@ func ParseZettelID(s string) (ZettelID, error) {
 	if err != nil {
 		return InvalidZettelID, err
 	}
+	if res == 0 {
+		return InvalidZettelID, strconv.ErrRange
+	}
 	return ZettelID(res), nil
 }
 
 const digits = "0123456789"
 
 // Format converts the zettel identification to a string of 14 digits.
+// Only defined for valid ids.
 func (id ZettelID) Format() string {
 	var result [14]byte
 	for i := 13; i >= 0; i-- {
@@ -64,7 +68,7 @@ func (id ZettelID) Format() string {
 }
 
 // IsValid determines if zettel id is a valid one, e.g. consists of max. 14 digits.
-func (id ZettelID) IsValid() bool { return id <= maxZettelID }
+func (id ZettelID) IsValid() bool { return 0 < id && id <= maxZettelID }
 
 // NewZettelID returns a new zettel ID based on the current time.
 func NewZettelID(withSeconds bool) ZettelID {
@@ -84,7 +88,7 @@ func NewZettelID(withSeconds bool) ZettelID {
 
 // Some important ZettelIDs
 const (
-	ConfigurationID  = ZettelID(0)
+	ConfigurationID  = ZettelID(1)
 	BaseTemplateID   = ZettelID(10100)
 	LoginTemplateID  = ZettelID(10200)
 	ListTemplateID   = ZettelID(10300)
