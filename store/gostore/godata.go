@@ -175,7 +175,7 @@ var goData = goStore{
 				`{{define "content"}}
 <article>
 <header>
-<h1>Information for Zettel {{.Meta.ID}}</h1>
+<h1>Information for Zettel {{.Meta.ID.Format}}</h1>
 <div class="zs-meta">
 <a href="{{urlZettel 'h' $.Meta.ID}}">Web</a>{{range $f := .Formats}} &#183; <a href="{{urlZettel 'z' $.Meta.ID}}?_format={{$f}}">{{$f}}</a>{{end}}
 </div>
@@ -268,15 +268,15 @@ var goData = goStore{
 			`{{define "content"}}
 <article>
 <header>
-<h1>Rename Zettel {{.Meta.ID}}</h1>
+<h1>Rename Zettel {{.Meta.ID.Format}}</h1>
 </header>
 <p>Do you really want to rename this zettel?</p>
 <form method="POST">
 <div>
 <label for="newid">New ID</label>
-<input class="zs-input" type="text" id="newid" name="newid" placeholder="ID.." value="{{.Meta.ID}}">
+<input class="zs-input" type="text" id="newid" name="newid" placeholder="ID.." value="{{.Meta.ID.Format}}">
 </div>
-<input type="hidden" id="curid" name="curid" value="{{.Meta.ID}}">
+<input type="hidden" id="curid" name="curid" value="{{.Meta.ID.Format}}">
 <input class="zs-button" type="submit" value="Rename">
 </form>
 <dl>
@@ -297,7 +297,7 @@ var goData = goStore{
 			`{{define "content"}}
 <article>
 <header>
-<h1>Delete Zettel {{.Meta.ID}}</h1>
+<h1>Delete Zettel {{.Meta.ID.Format}}</h1>
 </header>
 <p>Do you really want to delete this zettel?</p>
 <dl>
