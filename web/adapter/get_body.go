@@ -55,7 +55,7 @@ func MakeGetBodyHandler(
 		syntax := r.URL.Query().Get("syntax")
 		z, meta := parser.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")}
+		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetLang(meta)}
 		format := getFormat(r, "html")
 		w.Header().Set("Content-Type", formatContentType(format))
 		err = writeBlocks(w,

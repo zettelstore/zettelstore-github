@@ -227,3 +227,12 @@ func (c Type) AddDefaultValues(meta *domain.Meta) *domain.Meta {
 	}
 	return result
 }
+
+// GetLang returns the value of the "lang" key of the given meta. If there is
+// no such value, GetDefaultLang is returned.
+func (c Type) GetLang(meta *domain.Meta) string {
+	if lang, ok := meta.Get(domain.MetaKeyID); ok && len(lang) > 0 {
+		return lang
+	}
+	return c.GetDefaultLang()
+}

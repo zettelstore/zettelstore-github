@@ -30,12 +30,6 @@ import (
 	"zettelstore.de/z/usecase"
 )
 
-type deleteZettelData struct {
-	Lang  string
-	Title string
-	Meta  *domain.Meta
-}
-
 // MakeGetDeleteZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
 func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -58,11 +52,14 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 			return
 		}
 
-		lang := zettel.Meta.GetDefault(domain.MetaKeyLang, config.Config.GetDefaultLang())
-		te.renderTemplate(ctx, w, domain.DeleteTemplateID, deleteZettelData{
+		te.renderTemplate(ctx, w, domain.DeleteTemplateID, struct {
+			Lang  string
+			Title string
+			Meta  *domain.Meta
+		}{
 			Meta:  zettel.Meta,
 			Title: "Delete Zettel " + zettel.Meta.ID.Format(),
-			Lang:  lang,
+			Lang:  config.Config.GetLang(zettel.Meta),
 		})
 	}
 }

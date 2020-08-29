@@ -28,6 +28,7 @@ import (
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/collect"
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
@@ -64,7 +65,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		syntax := r.URL.Query().Get("syntax")
 		z, meta := parser.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: meta.GetDefault(domain.MetaKeyLang, "")}
+		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetLang(meta)}
 		getTitle := func(id domain.ZettelID) (string, bool) {
 			meta, err := getMeta.Run(r.Context(), id)
 			if err != nil {
