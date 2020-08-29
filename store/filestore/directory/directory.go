@@ -106,6 +106,11 @@ type Entry struct {
 	Duplicates  bool     // multiple content files
 }
 
+// IsValid checks whether the entry is valid.
+func (e *Entry) IsValid() bool {
+	return e.ID.IsValid()
+}
+
 // GetEntries returns an unsorted list of all current directory entries.
 func (srv *Service) GetEntries() []Entry {
 	resChan := make(chan resGetEntries)

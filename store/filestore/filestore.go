@@ -159,7 +159,7 @@ func (fs *fileStore) GetZettel(ctx context.Context, id domain.ZettelID) (domain.
 	}
 
 	entry := fs.dirSrv.GetEntry(id)
-	if !entry.ID.IsValid() {
+	if !entry.IsValid() {
 		return domain.Zettel{}, &store.ErrUnknownID{ID: id}
 	}
 
@@ -187,7 +187,7 @@ func (fs *fileStore) GetMeta(ctx context.Context, id domain.ZettelID) (*domain.M
 		return meta, nil
 	}
 	entry := fs.dirSrv.GetEntry(id)
-	if !entry.ID.IsValid() {
+	if !entry.IsValid() {
 		return nil, &store.ErrUnknownID{ID: id}
 	}
 
@@ -252,7 +252,7 @@ func (fs *fileStore) SetZettel(ctx context.Context, zettel domain.Zettel) error 
 	if meta.ID.IsValid() {
 		// Update existing zettel or create a new one with given ID.
 		entry = fs.dirSrv.GetEntry(meta.ID)
-		if !entry.ID.IsValid() {
+		if !entry.IsValid() {
 			// Existing zettel, but new in this store.
 			entry.ID = meta.ID
 			fs.updateEntryFromMeta(&entry, meta)
@@ -312,7 +312,7 @@ func (fs *fileStore) RenameZettel(ctx context.Context, curID, newID domain.Zette
 		return store.ErrStopped
 	}
 	curEntry := fs.dirSrv.GetEntry(curID)
-	if !curEntry.ID.IsValid() {
+	if !curEntry.IsValid() {
 		return &store.ErrUnknownID{ID: curID}
 	}
 	if curID == newID {
@@ -347,7 +347,7 @@ func (fs *fileStore) DeleteZettel(ctx context.Context, id domain.ZettelID) error
 	}
 
 	entry := fs.dirSrv.GetEntry(id)
-	if !entry.ID.IsValid() {
+	if !entry.IsValid() {
 		fs.notifyChanged(false, id)
 		return nil
 	}
