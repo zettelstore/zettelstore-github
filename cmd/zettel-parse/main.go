@@ -56,7 +56,7 @@ func parse(name string, format string) {
 			Meta:    meta,
 			Content: domain.NewContent(data[inp.Pos:]),
 		},
-		getSyntax(meta),
+		config.Config.GetSyntax(meta),
 	)
 	if enc := encoder.Create(format); enc != nil {
 		if _, err := enc.WriteZettel(os.Stdout, z); err != nil {
@@ -67,13 +67,6 @@ func parse(name string, format string) {
 	} else {
 		fmt.Fprintf(os.Stderr, "Unknown format %q\n", format)
 	}
-}
-
-func getSyntax(meta *domain.Meta) string {
-	if syntax, ok := meta.Get(domain.MetaKeySyntax); ok {
-		return syntax
-	}
-	return config.Config.GetDefaultSyntax()
 }
 
 func main() {

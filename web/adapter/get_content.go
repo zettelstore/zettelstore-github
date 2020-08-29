@@ -45,12 +45,7 @@ func MakeGetContentHandler(getZettel usecase.GetZettel) http.HandlerFunc {
 			log.Println(err)
 			return
 		}
-		var syntax string
-		if syn, ok := zettel.Meta.Get(domain.MetaKeySyntax); ok {
-			syntax = syn
-		} else {
-			syntax = config.Config.GetDefaultSyntax()
-		}
+		syntax := config.Config.GetSyntax(zettel.Meta)
 		if contentType, ok := syntaxType[syntax]; ok {
 			w.Header().Add("Content-Type", contentType)
 		}

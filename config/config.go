@@ -228,10 +228,19 @@ func (c Type) AddDefaultValues(meta *domain.Meta) *domain.Meta {
 	return result
 }
 
+// GetSyntax returns the value of the "syntax" key of the given meta. If there
+// is no such value, GetDefaultLang is returned.
+func (c Type) GetSyntax(meta *domain.Meta) string {
+	if syntax, ok := meta.Get(domain.MetaKeySyntax); ok && len(syntax) > 0 {
+		return syntax
+	}
+	return c.GetDefaultSyntax()
+}
+
 // GetLang returns the value of the "lang" key of the given meta. If there is
 // no such value, GetDefaultLang is returned.
 func (c Type) GetLang(meta *domain.Meta) string {
-	if lang, ok := meta.Get(domain.MetaKeyID); ok && len(lang) > 0 {
+	if lang, ok := meta.Get(domain.MetaKeyLang); ok && len(lang) > 0 {
 		return lang
 	}
 	return c.GetDefaultLang()
