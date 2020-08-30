@@ -23,12 +23,15 @@ package adapter
 import (
 	"context"
 	"errors"
+	"html/template"
 	"io"
 	"strings"
 
 	"zettelstore.de/z/ast"
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
+	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
 
@@ -145,4 +148,24 @@ func makeImageAdapter() func(*ast.ImageNode) *ast.ImageNode {
 		}
 		return &newImage
 	}
+}
+
+type metaInfo struct {
+	Meta  *domain.Meta
+	Title template.HTML
+}
+
+// buildHTMLMetaList builds a zettel list based on a meta list for HTML rendering.
+func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
+	langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()}
+	metas := make([]metaInfo, 0, len(metaList))
+	for _, meta := range metaList {
+		title, _ := meta.Get(domain.MetaKeyTitle)
+		htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", langOption)
+		if err != nil {
+			return nil, err
+		}
+		metas = append(metas, metaInfo{meta, template.HTML(htmlTitle)})
+	}
+	return metas, nil
 }

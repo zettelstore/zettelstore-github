@@ -21,21 +21,13 @@
 package adapter
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
-
-type metaInfo struct {
-	Meta  *domain.Meta
-	Title template.HTML
-}
 
 // MakeListHTMLMetaHandler creates a HTTP handler for rendering the list of zettel as HTML.
 func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
@@ -48,17 +40,11 @@ func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.List
 			return
 		}
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()}
-		metas := make([]metaInfo, 0, len(metaList))
-		for _, meta := range metaList {
-			title, _ := meta.Get(domain.MetaKeyTitle)
-			htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", langOption)
-			if err != nil {
-				http.Error(w, "Internal error", http.StatusInternalServerError)
-				log.Println(err)
-				return
-			}
-			metas = append(metas, metaInfo{meta, template.HTML(htmlTitle)})
+		metas, err := buildHTMLMetaList(metaList)
+		if err != nil {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			log.Println(err)
+			return
 		}
 		te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
 			Key   byte
@@ -67,7 +53,7 @@ func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.List
 			Metas []metaInfo
 		}{
 			Key:   key,
-			Lang:  langOption.Value,
+			Lang:  config.Config.GetDefaultLang(),
 			Title: config.Config.GetSiteName(),
 			Metas: metas,
 		})

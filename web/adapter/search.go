@@ -21,15 +21,12 @@
 package adapter
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/parser"
 	"zettelstore.de/z/store"
 	"zettelstore.de/z/usecase"
 )
@@ -93,17 +90,11 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			}
 		}
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()}
-		metas := make([]metaInfo, 0, len(metaList))
-		for _, meta := range metaList {
-			title, _ := meta.Get(domain.MetaKeyTitle)
-			htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", langOption)
-			if err != nil {
-				http.Error(w, "Internal error", http.StatusInternalServerError)
-				log.Println(err)
-				return
-			}
-			metas = append(metas, metaInfo{meta, template.HTML(htmlTitle)})
+		metas, err := buildHTMLMetaList(metaList)
+		if err != nil {
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			log.Println(err)
+			return
 		}
 		te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
 			Lang  string
@@ -111,7 +102,7 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			Metas []metaInfo
 			Key   byte
 		}{
-			Lang:  langOption.Value,
+			Lang:  config.Config.GetDefaultLang(),
 			Title: config.Config.GetSiteName(),
 			Metas: metas,
 			Key:   'h',
