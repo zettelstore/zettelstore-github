@@ -318,9 +318,6 @@ func (fs *fileStore) RenameZettel(ctx context.Context, curID, newID domain.Zette
 	if curID == newID {
 		return nil
 	}
-	if newID > domain.NewZettelID(true) {
-		return &store.ErrInvalidID{ID: newID}
-	}
 	newEntry := directory.Entry{
 		ID:          newID,
 		MetaSpec:    curEntry.MetaSpec,

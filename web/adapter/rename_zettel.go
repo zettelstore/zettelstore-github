@@ -84,12 +84,12 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 		}
 		newID, err := domain.ParseZettelID(r.PostFormValue("newid"))
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid new ID %q", newID), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Invalid new ID %q", newID.Format()), http.StatusBadRequest)
 			return
 		}
 
 		if err := renameZettel.Run(r.Context(), curID, newID); err != nil {
-			http.Error(w, fmt.Sprintf("Unable to rename zettel %q", curID), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Unable to rename zettel %q to %q", curID.Format(), newID.Format()), http.StatusBadRequest)
 			log.Println(err)
 			return
 		}
