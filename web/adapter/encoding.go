@@ -157,11 +157,17 @@ type metaInfo struct {
 
 // buildHTMLMetaList builds a zettel list based on a meta list for HTML rendering.
 func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
-	langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetDefaultLang()}
+	defaultLang := config.Config.GetDefaultLang()
+	langOption := encoder.StringOption{Key: "lang", Value: ""}
 	metas := make([]metaInfo, 0, len(metaList))
 	for _, meta := range metaList {
+		if lang, ok := meta.Get(domain.MetaKeyLang); ok {
+			langOption.Value = lang
+		} else {
+			langOption.Value = defaultLang
+		}
 		title, _ := meta.Get(domain.MetaKeyTitle)
-		htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", langOption)
+		htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", &langOption)
 		if err != nil {
 			return nil, err
 		}
