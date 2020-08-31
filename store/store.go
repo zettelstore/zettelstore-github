@@ -35,9 +35,6 @@ type ObserverFunc func(bool, domain.ZettelID)
 
 // Store is implemented by all Zettel stores.
 type Store interface {
-	// SetParentStore is called when the store is part of a bigger store.
-	SetParentStore(parent Store)
-
 	// Location returns some information where the store is located.
 	// Format is dependent of the store.
 	Location() string
@@ -54,10 +51,10 @@ type Store interface {
 	RegisterChangeObserver(ObserverFunc)
 
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, id domain.ZettelID) (*domain.Meta, error)
+	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
 
 	// SelectMeta returns all zettel meta data that match the selection criteria.
 	// TODO: more docs
@@ -71,7 +68,7 @@ type Store interface {
 	SetZettel(ctx context.Context, zettel domain.Zettel) error
 
 	// DeleteZettel removes the zettel from the store.
-	DeleteZettel(ctx context.Context, id domain.ZettelID) error
+	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 
 	// Rename changes the current ID to a new ID.
 	RenameZettel(ctx context.Context, curID, newID domain.ZettelID) error

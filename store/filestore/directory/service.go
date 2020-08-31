@@ -102,7 +102,7 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 					close(ready)
 					ready = nil
 				}
-				srv.notifyChange(true, domain.ZettelID(0))
+				srv.notifyChange(true, domain.InvalidZettelID)
 			case fileStatusError:
 				log.Println("FILESTORE", "ERROR", ev.err)
 			case fileStatusUpdate:

@@ -52,13 +52,12 @@ func NewStore(dir string) (store.Store, error) {
 		dirReload: 600 * time.Second, // TODO: make configurable
 		fSrvs:     17,                // TODO: make configurable
 	}
-	fs.cacheChange(true, domain.ZettelID(0))
+	fs.cacheChange(true, domain.InvalidZettelID)
 	return fs, nil
 }
 
 // fileStore uses a directory to store zettel as files.
 type fileStore struct {
-	parent     store.Store
 	observers  []store.ObserverFunc
 	mxObserver sync.RWMutex
 	dir        string
@@ -75,11 +74,6 @@ func (fs *fileStore) isStopped() bool {
 	return fs.dirSrv == nil
 }
 
-// SetParentStore is called when the store is part of a bigger store.
-func (fs *fileStore) SetParentStore(parent store.Store) {
-	fs.parent = parent
-}
-
 // Location returns the directory path of the file store.
 func (fs *fileStore) Location() string {
 	return fmt.Sprintf("dir://%s", fs.dir)
@@ -92,8 +86,7 @@ func (fs *fileStore) Start(ctx context.Context) error {
 	}
 	fs.mxCmds.Lock()
 	fs.fCmds = make([]chan fileCmd, 0, fs.fSrvs)
-	var i uint32
-	for ; i < fs.fSrvs; i++ {
+	for i := uint32(0); i < fs.fSrvs; i++ {
 		cc := make(chan fileCmd)
 		go fileService(i, cc)
 		fs.fCmds = append(fs.fCmds, cc)
@@ -106,24 +99,23 @@ func (fs *fileStore) Start(ctx context.Context) error {
 	return nil
 }
 
-func (fs *fileStore) notifyChanged(all bool, id domain.ZettelID) {
-	fs.cacheChange(false, id)
+func (fs *fileStore) notifyChanged(all bool, zid domain.ZettelID) {
+	fs.cacheChange(all, zid)
 	fs.mxObserver.RLock()
 	observers := fs.observers
 	fs.mxObserver.RUnlock()
 	for _, ob := range observers {
-		ob(all, id)
+		ob(all, zid)
 	}
 }
 
 func (fs *fileStore) getFileChan(zid domain.ZettelID) chan fileCmd {
 	/* Based on https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function */
-	id := zid.Format() // TODO: just hash the two uin32
-	var sum uint32 = 2166136261
-	for i := 0; i < len(id); i++ {
-		sum ^= uint32(id[i])
-		sum *= 16777619
-	}
+	var sum uint32 = 2166136261 ^ uint32(zid)
+	sum *= 16777619
+	sum ^= uint32(zid >> 32)
+	sum *= 16777619
+
 	fs.mxCmds.RLock()
 	defer fs.mxCmds.RUnlock()
 	return fs.fCmds[sum%fs.fSrvs]
@@ -144,7 +136,7 @@ func (fs *fileStore) Stop(ctx context.Context) error {
 }
 
 // RegisterChangeObserver registers an observer that will be notified
-// if a zettel was found to be changed. If the id is empty, all zettel are
+// if a zettel was found to be changed.
 // possibly changed.
 func (fs *fileStore) RegisterChangeObserver(f store.ObserverFunc) {
 	fs.mxObserver.Lock()
@@ -153,18 +145,18 @@ func (fs *fileStore) RegisterChangeObserver(f store.ObserverFunc) {
 }
 
 // GetZettel reads the zettel from a file.
-func (fs *fileStore) GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error) {
+func (fs *fileStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	if fs.isStopped() {
 		return domain.Zettel{}, store.ErrStopped
 	}
 
-	entry := fs.dirSrv.GetEntry(id)
+	entry := fs.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
-		return domain.Zettel{}, &store.ErrUnknownID{ID: id}
+		return domain.Zettel{}, &store.ErrUnknownID{ID: zid}
 	}
 
 	rc := make(chan resGetMetaContent)
-	fs.getFileChan(id) <- &fileGetMetaContent{&entry, rc}
+	fs.getFileChan(zid) <- &fileGetMetaContent{&entry, rc}
 	res := <-rc
 	close(rc)
 
@@ -178,21 +170,21 @@ func (fs *fileStore) GetZettel(ctx context.Context, id domain.ZettelID) (domain.
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (fs *fileStore) GetMeta(ctx context.Context, id domain.ZettelID) (*domain.Meta, error) {
+func (fs *fileStore) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
 	if fs.isStopped() {
 		return nil, store.ErrStopped
 	}
-	meta, ok := fs.cacheGetMeta(id)
+	meta, ok := fs.cacheGetMeta(zid)
 	if ok {
 		return meta, nil
 	}
-	entry := fs.dirSrv.GetEntry(id)
+	entry := fs.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
-		return nil, &store.ErrUnknownID{ID: id}
+		return nil, &store.ErrUnknownID{ID: zid}
 	}
 
 	rc := make(chan resGetMeta)
-	fs.getFileChan(id) <- &fileGetMeta{&entry, rc}
+	fs.getFileChan(zid) <- &fileGetMeta{&entry, rc}
 	res := <-rc
 	close(rc)
 
@@ -338,22 +330,22 @@ func (fs *fileStore) RenameZettel(ctx context.Context, curID, newID domain.Zette
 }
 
 // DeleteZettel removes the zettel from the store.
-func (fs *fileStore) DeleteZettel(ctx context.Context, id domain.ZettelID) error {
+func (fs *fileStore) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
 	if fs.isStopped() {
 		return store.ErrStopped
 	}
 
-	entry := fs.dirSrv.GetEntry(id)
+	entry := fs.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
-		fs.notifyChanged(false, id)
+		fs.notifyChanged(false, zid)
 		return nil
 	}
-	fs.dirSrv.DeleteEntry(id)
+	fs.dirSrv.DeleteEntry(zid)
 	rc := make(chan resDeleteZettel)
-	fs.getFileChan(id) <- &fileDeleteZettel{&entry, rc}
+	fs.getFileChan(zid) <- &fileDeleteZettel{&entry, rc}
 	err := <-rc
 	close(rc)
-	fs.notifyChanged(false, id)
+	fs.notifyChanged(false, zid)
 	return err
 }
 
@@ -391,12 +383,12 @@ func renamePath(path string, curID, newID domain.ZettelID) string {
 	return path
 }
 
-func (fs *fileStore) cacheChange(all bool, id domain.ZettelID) {
+func (fs *fileStore) cacheChange(all bool, zid domain.ZettelID) {
 	fs.mxCache.Lock()
 	if all {
 		fs.metaCache = make(map[domain.ZettelID]*domain.Meta, len(fs.metaCache))
 	} else {
-		delete(fs.metaCache, id)
+		delete(fs.metaCache, zid)
 	}
 	fs.mxCache.Unlock()
 }
@@ -408,9 +400,9 @@ func (fs *fileStore) cacheSetMeta(meta *domain.Meta) {
 	fs.mxCache.Unlock()
 }
 
-func (fs *fileStore) cacheGetMeta(id domain.ZettelID) (*domain.Meta, bool) {
+func (fs *fileStore) cacheGetMeta(zid domain.ZettelID) (*domain.Meta, bool) {
 	fs.mxCache.RLock()
-	meta, ok := fs.metaCache[id]
+	meta, ok := fs.metaCache[zid]
 	fs.mxCache.RUnlock()
 	return meta, ok
 }

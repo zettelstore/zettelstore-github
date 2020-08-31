@@ -30,8 +30,8 @@ import (
 
 type goHeader map[string]string
 
-func makeMeta(id domain.ZettelID, h goHeader) *domain.Meta {
-	m := domain.NewMeta(id)
+func makeMeta(zid domain.ZettelID, h goHeader) *domain.Meta {
+	m := domain.NewMeta(zid)
 	for k, v := range h {
 		m.Set(k, v)
 	}
@@ -54,9 +54,6 @@ func NewStore() store.Store {
 	return &goData
 }
 
-// SetParentStore is called when the store is part of a bigger store.
-func (gs *goStore) SetParentStore(parent store.Store) {}
-
 // Location returns some information where the store is located.
 func (gs *goStore) Location() string {
 	return gs.name
@@ -74,34 +71,33 @@ func (gs *goStore) Stop(ctx context.Context) error {
 }
 
 // RegisterChangeObserver registers an observer that will be notified
-// if a zettel was found to be changed. If the id is empty, all zettel are
-// possibly changed.
+// if a zettel was found to be changed.
 func (gs *goStore) RegisterChangeObserver(f store.ObserverFunc) {
 	// This store never changes anything. So ignore the registration.
 }
 
 // GetZettel retrieves a specific zettel.
-func (gs *goStore) GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error) {
-	if z, ok := gs.zettel[id]; ok {
-		return domain.Zettel{Meta: makeMeta(id, z.header), Content: z.content}, nil
+func (gs *goStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+	if z, ok := gs.zettel[zid]; ok {
+		return domain.Zettel{Meta: makeMeta(zid, z.header), Content: z.content}, nil
 	}
-	return domain.Zettel{}, &store.ErrUnknownID{ID: id}
+	return domain.Zettel{}, &store.ErrUnknownID{ID: zid}
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (gs *goStore) GetMeta(ctx context.Context, id domain.ZettelID) (*domain.Meta, error) {
-	if z, ok := gs.zettel[id]; ok {
-		return makeMeta(id, z.header), nil
+func (gs *goStore) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
+	if z, ok := gs.zettel[zid]; ok {
+		return makeMeta(zid, z.header), nil
 	}
-	return nil, &store.ErrUnknownID{ID: id}
+	return nil, &store.ErrUnknownID{ID: zid}
 }
 
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
 func (gs *goStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) (res []*domain.Meta, err error) {
 	hasMatch := store.CreateFilterFunc(f)
-	for id, zettel := range gs.zettel {
-		meta := makeMeta(id, zettel.header)
+	for zid, zettel := range gs.zettel {
+		meta := makeMeta(zid, zettel.header)
 		if hasMatch(meta) {
 			res = append(res, meta)
 		}
@@ -117,7 +113,7 @@ func (gs *goStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
 }
 
 // DeleteZettel removes the zettel from the store.
-func (gs *goStore) DeleteZettel(ctx context.Context, id domain.ZettelID) error {
+func (gs *goStore) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
 	return errReadOnly
 }
 

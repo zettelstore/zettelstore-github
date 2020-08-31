@@ -47,23 +47,19 @@ func NewStore(stores ...store.Store) store.Store {
 		if s != nil {
 			cs.stores = append(cs.stores, s)
 			s.RegisterChangeObserver(cs.notifyChanged)
-			s.SetParentStore(cs)
 		}
 	}
 	return cs
 }
 
-func (cs *chStore) notifyChanged(all bool, id domain.ZettelID) {
+func (cs *chStore) notifyChanged(all bool, zid domain.ZettelID) {
 	cs.mxObserver.RLock()
 	observers := cs.observers
 	cs.mxObserver.RUnlock()
 	for _, ob := range observers {
-		ob(all, id)
+		ob(all, zid)
 	}
 }
-
-// SetParentStore is called when the store is part of a bigger store.
-func (cs *chStore) SetParentStore(parent store.Store) {}
 
 // Location returns some information where the store is located.
 // Format is dependent of the store.
@@ -115,8 +111,7 @@ func (cs *chStore) Stop(ctx context.Context) error {
 }
 
 // RegisterChangeObserver registers an observer that will be notified
-// if a zettel was found to be changed. If the id is empty, all zettel are
-// possibly changed.
+// if a zettel was found to be changed.
 func (cs *chStore) RegisterChangeObserver(f store.ObserverFunc) {
 	cs.mxObserver.Lock()
 	cs.observers = append(cs.observers, f)
@@ -124,41 +119,41 @@ func (cs *chStore) RegisterChangeObserver(f store.ObserverFunc) {
 }
 
 // GetZettel reads the zettel from a file.
-func (cs *chStore) GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error) {
+func (cs *chStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	nStores := len(cs.stores)
 	if nStores == 0 {
 		return domain.Zettel{}, errEmpty
 	}
 
 	for i := 0; i < nStores; i++ {
-		zettel, err := cs.stores[i].GetZettel(ctx, id)
+		zettel, err := cs.stores[i].GetZettel(ctx, zid)
 		if err == nil {
 			return zettel, nil
 		}
-		if e, ok := err.(*store.ErrUnknownID); !ok || e.ID != id {
+		if e, ok := err.(*store.ErrUnknownID); !ok || e.ID != zid {
 			return domain.Zettel{}, err
 		}
 	}
-	return domain.Zettel{}, &store.ErrUnknownID{ID: id}
+	return domain.Zettel{}, &store.ErrUnknownID{ID: zid}
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (cs *chStore) GetMeta(ctx context.Context, id domain.ZettelID) (*domain.Meta, error) {
+func (cs *chStore) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
 	nStores := len(cs.stores)
 	if nStores == 0 {
 		return nil, errEmpty
 	}
 
 	for i := 0; i < nStores; i++ {
-		meta, err := cs.stores[i].GetMeta(ctx, id)
+		meta, err := cs.stores[i].GetMeta(ctx, zid)
 		if err == nil {
 			return meta, nil
 		}
-		if e, ok := err.(*store.ErrUnknownID); !ok || e.ID != id {
+		if e, ok := err.(*store.ErrUnknownID); !ok || e.ID != zid {
 			return nil, err
 		}
 	}
-	return nil, &store.ErrUnknownID{ID: id}
+	return nil, &store.ErrUnknownID{ID: zid}
 }
 
 // SelectMeta returns all zettel meta data that match the selection
@@ -194,10 +189,10 @@ func (cs *chStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.Sor
 		maxID := int64(-1)
 		for i, pos := range sPos {
 			if pos < len(sMetas[i]) {
-				if id := int64(sMetas[i][pos].ID); id > maxID {
-					maxID = id
+				if zid := int64(sMetas[i][pos].ID); zid > maxID {
+					maxID = zid
 					maxI = i
-				} else if id == maxID {
+				} else if zid == maxID {
 					sPos[i]++
 				}
 			}
@@ -237,9 +232,9 @@ func (cs *chStore) RenameZettel(ctx context.Context, curID, newID domain.ZettelI
 }
 
 // DeleteZettel removes the zettel from the store.
-func (cs *chStore) DeleteZettel(ctx context.Context, id domain.ZettelID) error {
+func (cs *chStore) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
 	if len(cs.stores) > 0 {
-		return cs.stores[0].DeleteZettel(ctx, id)
+		return cs.stores[0].DeleteZettel(ctx, zid)
 	}
 	return errEmpty
 }
