@@ -264,14 +264,8 @@ func cleanupMeta(meta *domain.Meta, entry *directory.Entry) {
 }
 
 var alternativeSyntax = map[string]string{
-	"gv":   "graphviz",
 	"htm":  "html",
-	"jpg":  "jpeg",
-	"md":   "markdown",
-	"pu":   "plantuml",
-	"tmpl": "template",
-	"tpl":  "template-text",
-	"uml":  "plantuml",
+	"tmpl": "go-template-html",
 }
 
 func calculateSyntax(entry *directory.Entry) string {
