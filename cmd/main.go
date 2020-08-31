@@ -64,6 +64,13 @@ func init() {
 			fs.Bool("v", false, "verbose mode")
 		},
 	})
+	RegisterCommand(Command{
+		Name: "file",
+		Func: cmdFile,
+		Flags: func(fs *flag.FlagSet) {
+			fs.String("t", "html", "target output format")
+		},
+	})
 }
 
 func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
@@ -89,6 +96,8 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 			cfg.Set("readonly", flg.Value.String())
 		case "v":
 			cfg.Set("verbose", flg.Value.String())
+		case "t":
+			cfg.Set("target-format", flg.Value.String())
 		}
 	})
 
@@ -103,6 +112,10 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 	}
 	if prefix, ok := cfg.Get("url-prefix"); !ok || len(prefix) == 0 || prefix[0] != '/' || prefix[len(prefix)-1] != '/' {
 		cfg.Set("url-prefix", "/")
+	}
+
+	for i, arg := range fs.Args() {
+		cfg.Set(fmt.Sprintf("arg-%d", i+1), arg)
 	}
 	return cfg
 }
