@@ -28,8 +28,8 @@ import (
 
 // RenameZettelPort is the interface used by this use case.
 type RenameZettelPort interface {
-	// Rename changes the current ID to a new ID.
-	RenameZettel(ctx context.Context, curID, newID domain.ZettelID) error
+	// Rename changes the current id to a new id.
+	RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error
 }
 
 // RenameZettel is the data for this use case.

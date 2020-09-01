@@ -29,7 +29,7 @@ import (
 // GetMetaPort is the interface used by this use case.
 type GetMetaPort interface {
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, id domain.ZettelID) (*domain.Meta, error)
+	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
 }
 
 // GetMeta is the data for this use case.
@@ -43,6 +43,6 @@ func NewGetMeta(port GetMetaPort) GetMeta {
 }
 
 // Run executes the use case.
-func (uc GetMeta) Run(ctx context.Context, id domain.ZettelID) (*domain.Meta, error) {
-	return uc.store.GetMeta(ctx, id)
+func (uc GetMeta) Run(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
+	return uc.store.GetMeta(ctx, zid)
 }

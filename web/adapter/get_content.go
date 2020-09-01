@@ -33,15 +33,15 @@ import (
 // MakeGetContentHandler creates a HTTP handler to return the zettel content.
 func MakeGetContentHandler(getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
 
-		zettel, err := getZettel.Run(r.Context(), id)
+		zettel, err := getZettel.Run(r.Context(), zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", id), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
 			log.Println(err)
 			return
 		}

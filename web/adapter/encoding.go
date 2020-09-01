@@ -112,14 +112,14 @@ func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder
 func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta) func(*ast.LinkNode) *ast.LinkNode {
 	return func(origLink *ast.LinkNode) *ast.LinkNode {
 		if origRef := origLink.Ref; origRef.IsZettel() {
-			id, err := domain.ParseZettelID(origRef.Value)
+			zid, err := domain.ParseZettelID(origRef.Value)
 			if err != nil {
 				panic(err)
 			}
-			_, err = getMeta.Run(ctx, id)
+			_, err = getMeta.Run(ctx, zid)
 			newLink := *origLink
 			if err == nil {
-				newRef := ast.ParseReference(urlForZettel(key, id))
+				newRef := ast.ParseReference(urlForZettel(key, zid))
 				newRef.State = ast.RefStateZettelFound
 				newLink.Ref = newRef
 			} else {
@@ -140,11 +140,11 @@ func makeImageAdapter() func(*ast.ImageNode) *ast.ImageNode {
 		}
 		newImage := *origImage
 		if newImage.Ref.IsZettel() {
-			id, err := domain.ParseZettelID(newImage.Ref.Value)
+			zid, err := domain.ParseZettelID(newImage.Ref.Value)
 			if err != nil {
 				panic(err)
 			}
-			newImage.Ref = ast.ParseReference(urlForZettel('c', id))
+			newImage.Ref = ast.ParseReference(urlForZettel('c', zid))
 		}
 		return &newImage
 	}

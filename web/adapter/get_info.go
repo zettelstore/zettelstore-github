@@ -36,7 +36,7 @@ import (
 )
 
 type internalReference struct {
-	ID    domain.ZettelID
+	Zid   domain.ZettelID
 	Found bool
 	Title template.HTML
 }
@@ -49,16 +49,16 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			return
 		}
 
-		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
 
 		ctx := r.Context()
-		zettel, err := getZettel.Run(ctx, id)
+		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", id), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
@@ -66,8 +66,8 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		z, meta := parser.ParseZettel(zettel, syntax)
 
 		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetLang(meta)}
-		getTitle := func(id domain.ZettelID) (string, bool) {
-			meta, err := getMeta.Run(r.Context(), id)
+		getTitle := func(zid domain.ZettelID) (string, bool) {
+			meta, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
 				return "", false
 			}
@@ -115,15 +115,15 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, bool), links []*as
 	extLinks := make([]string, 0, len(links))
 	for _, ref := range links {
 		if ref.IsZettel() {
-			id, err := domain.ParseZettelID(ref.Value)
+			zid, err := domain.ParseZettelID(ref.Value)
 			if err != nil {
 				panic(err)
 			}
-			title, ok := getTitle(id)
+			title, ok := getTitle(zid)
 			if len(title) == 0 {
 				title = ref.Value
 			}
-			intLinks = append(intLinks, internalReference{id, ok, template.HTML(title)})
+			intLinks = append(intLinks, internalReference{zid, ok, template.HTML(title)})
 		} else {
 			extLinks = append(extLinks, ref.String())
 		}

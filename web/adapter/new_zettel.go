@@ -37,13 +37,13 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 			http.Error(w, fmt.Sprintf("New zettel not possible in format %q", format), http.StatusNotFound)
 			return
 		}
-		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
 		ctx := r.Context()
-		oldZettel, err := getZettel.Run(ctx, id)
+		oldZettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -74,6 +74,6 @@ func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, urlForZettel('h', zettel.Meta.ID), http.StatusFound)
+		http.Redirect(w, r, urlForZettel('h', zettel.Meta.Zid), http.StatusFound)
 	}
 }

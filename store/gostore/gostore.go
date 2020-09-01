@@ -81,7 +81,7 @@ func (gs *goStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Z
 	if z, ok := gs.zettel[zid]; ok {
 		return domain.Zettel{Meta: makeMeta(zid, z.header), Content: z.content}, nil
 	}
-	return domain.Zettel{}, &store.ErrUnknownID{ID: zid}
+	return domain.Zettel{}, &store.ErrUnknownID{Zid: zid}
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
@@ -89,7 +89,7 @@ func (gs *goStore) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Me
 	if z, ok := gs.zettel[zid]; ok {
 		return makeMeta(zid, z.header), nil
 	}
-	return nil, &store.ErrUnknownID{ID: zid}
+	return nil, &store.ErrUnknownID{Zid: zid}
 }
 
 // SelectMeta returns all zettel meta data that match the selection
@@ -117,8 +117,8 @@ func (gs *goStore) DeleteZettel(ctx context.Context, zid domain.ZettelID) error 
 	return errReadOnly
 }
 
-// Rename changes the current ID to a new ID.
-func (gs *goStore) RenameZettel(ctx context.Context, curID, newID domain.ZettelID) error {
+// Rename changes the current id to a new id.
+func (gs *goStore) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
 	return errReadOnly
 }
 

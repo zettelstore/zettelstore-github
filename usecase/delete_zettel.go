@@ -29,7 +29,7 @@ import (
 // DeleteZettelPort is the interface used by this use case.
 type DeleteZettelPort interface {
 	// DeleteZettel removes the zettel from the store.
-	DeleteZettel(ctx context.Context, id domain.ZettelID) error
+	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 }
 
 // DeleteZettel is the data for this use case.
@@ -43,6 +43,6 @@ func NewDeleteZettel(port DeleteZettelPort) DeleteZettel {
 }
 
 // Run executes the use case.
-func (uc DeleteZettel) Run(ctx context.Context, id domain.ZettelID) error {
-	return uc.store.DeleteZettel(ctx, id)
+func (uc DeleteZettel) Run(ctx context.Context, zid domain.ZettelID) error {
+	return uc.store.DeleteZettel(ctx, zid)
 }

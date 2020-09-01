@@ -35,14 +35,14 @@ type Store interface {
 	RegisterChangeObserver(ob store.ObserverFunc)
 
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 }
 
 // Stock allow to get subscribed zettel without reading it from a store.
 type Stock interface {
-	Subscribe(id domain.ZettelID) error
-	GetZettel(id domain.ZettelID) domain.Zettel
-	GetMeta(id domain.ZettelID) *domain.Meta
+	Subscribe(zid domain.ZettelID) error
+	GetZettel(zid domain.ZettelID) domain.Zettel
+	GetMeta(zid domain.ZettelID) *domain.Meta
 }
 
 // NewStock creates a new stock that operates on the given store.
@@ -63,15 +63,15 @@ type defaultStock struct {
 }
 
 // observe tracks all changes the store signals.
-func (s *defaultStock) observe(all bool, id domain.ZettelID) {
+func (s *defaultStock) observe(all bool, zid domain.ZettelID) {
 	if !all {
 		s.mxSubs.RLock()
 		defer s.mxSubs.RUnlock()
-		if _, found := s.subs[id]; found {
+		if _, found := s.subs[zid]; found {
 			go func() {
 				s.mxSubs.Lock()
 				defer s.mxSubs.Unlock()
-				s.update(id)
+				s.update(zid)
 			}()
 		}
 		return
@@ -80,45 +80,45 @@ func (s *defaultStock) observe(all bool, id domain.ZettelID) {
 	go func() {
 		s.mxSubs.Lock()
 		defer s.mxSubs.Unlock()
-		for id := range s.subs {
-			s.update(id)
+		for zid := range s.subs {
+			s.update(zid)
 		}
 	}()
 }
 
-func (s *defaultStock) update(id domain.ZettelID) {
-	if zettel, err := s.store.GetZettel(context.Background(), id); err == nil {
-		s.subs[id] = zettel
+func (s *defaultStock) update(zid domain.ZettelID) {
+	if zettel, err := s.store.GetZettel(context.Background(), zid); err == nil {
+		s.subs[zid] = zettel
 		return
 	}
 }
 
 // Subscribe adds a zettel to the stock.
-func (s *defaultStock) Subscribe(id domain.ZettelID) error {
+func (s *defaultStock) Subscribe(zid domain.ZettelID) error {
 	s.mxSubs.Lock()
 	defer s.mxSubs.Unlock()
-	if _, found := s.subs[id]; found {
+	if _, found := s.subs[zid]; found {
 		return nil
 	}
-	zettel, err := s.store.GetZettel(context.Background(), id)
+	zettel, err := s.store.GetZettel(context.Background(), zid)
 	if err != nil {
 		return err
 	}
-	s.subs[id] = zettel
+	s.subs[zid] = zettel
 	return nil
 }
 
-// GetZettel returns the zettel with the given id, if in stock, else an empty zettel
-func (s *defaultStock) GetZettel(id domain.ZettelID) domain.Zettel {
+// GetZettel returns the zettel with the given zid, if in stock, else an empty zettel
+func (s *defaultStock) GetZettel(zid domain.ZettelID) domain.Zettel {
 	s.mxSubs.RLock()
 	defer s.mxSubs.RUnlock()
-	return s.subs[id]
+	return s.subs[zid]
 }
 
-// GetZettel returns the zettel Meta with the given id, if in stock, else nil.
-func (s *defaultStock) GetMeta(id domain.ZettelID) *domain.Meta {
+// GetZettel returns the zettel Meta with the given zid, if in stock, else nil.
+func (s *defaultStock) GetMeta(zid domain.ZettelID) *domain.Meta {
 	s.mxSubs.RLock()
-	zettel := s.subs[id]
+	zettel := s.subs[zid]
 	s.mxSubs.RUnlock()
 	return zettel.Meta
 }

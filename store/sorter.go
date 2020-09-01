@@ -34,7 +34,7 @@ func ApplySorter(metaList []*domain.Meta, s *Sorter) []*domain.Meta {
 	}
 
 	if s == nil {
-		sort.Slice(metaList, func(i, j int) bool { return metaList[i].ID > metaList[j].ID })
+		sort.Slice(metaList, func(i, j int) bool { return metaList[i].Zid > metaList[j].Zid })
 		return metaList
 	}
 
@@ -64,9 +64,9 @@ func getSortFunc(key string, ml []*domain.Meta) sortFunc {
 	keyType := domain.KeyType(key)
 	if key == domain.MetaKeyID || keyType == domain.MetaTypeCred {
 		if sortDesc {
-			return func(i, j int) bool { return ml[i].ID > ml[j].ID }
+			return func(i, j int) bool { return ml[i].Zid > ml[j].Zid }
 		}
-		return func(i, j int) bool { return ml[i].ID < ml[j].ID }
+		return func(i, j int) bool { return ml[i].Zid < ml[j].Zid }
 	} else if keyType == domain.MetaTypeBool {
 		if sortDesc {
 			return func(i, j int) bool {

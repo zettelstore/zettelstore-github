@@ -58,9 +58,9 @@ func (cmd *fileGetMeta) run() {
 	var err error
 	switch cmd.entry.MetaSpec {
 	case directory.MetaSpecFile:
-		meta, err = parseMetaFile(cmd.entry.ID, cmd.entry.MetaPath)
+		meta, err = parseMetaFile(cmd.entry.Zid, cmd.entry.MetaPath)
 	case directory.MetaSpecHeader:
-		meta, _, err = parseMetaContentFile(cmd.entry.ID, cmd.entry.ContentPath)
+		meta, _, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
 	default:
 		meta = calculateMeta(cmd.entry)
 	}
@@ -91,10 +91,10 @@ func (cmd *fileGetMetaContent) run() {
 
 	switch cmd.entry.MetaSpec {
 	case directory.MetaSpecFile:
-		meta, err = parseMetaFile(cmd.entry.ID, cmd.entry.MetaPath)
+		meta, err = parseMetaFile(cmd.entry.Zid, cmd.entry.MetaPath)
 		content, err = readFileContent(cmd.entry.ContentPath)
 	case directory.MetaSpecHeader:
-		meta, content, err = parseMetaContentFile(cmd.entry.ID, cmd.entry.ContentPath)
+		meta, content, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
 	default:
 		meta = calculateMeta(cmd.entry)
 		content, err = readFileContent(cmd.entry.ContentPath)
@@ -159,7 +159,7 @@ func (cmd *fileSetZettel) run() {
 
 // COMMAND: renameZettel ----------------------------------------
 //
-// Gives an existing zettel a new ID.
+// Gives an existing zettel a new id.
 
 type fileRenameZettel struct {
 	curEntry *directory.Entry
@@ -227,28 +227,28 @@ func readFileContent(path string) (string, error) {
 	return string(data), nil
 }
 
-func parseMetaFile(id domain.ZettelID, path string) (*domain.Meta, error) {
+func parseMetaFile(zid domain.ZettelID, path string) (*domain.Meta, error) {
 	src, err := readFileContent(path)
 	if err != nil {
 		return nil, err
 	}
 	inp := input.NewInput(src)
-	return domain.NewMetaFromInput(id, inp), nil
+	return domain.NewMetaFromInput(zid, inp), nil
 }
 
-func parseMetaContentFile(id domain.ZettelID, path string) (*domain.Meta, string, error) {
+func parseMetaContentFile(zid domain.ZettelID, path string) (*domain.Meta, string, error) {
 	src, err := readFileContent(path)
 	if err != nil {
 		return nil, "", err
 	}
 	inp := input.NewInput(src)
-	meta := domain.NewMetaFromInput(id, inp)
+	meta := domain.NewMetaFromInput(zid, inp)
 	return meta, src[inp.Pos:], nil
 }
 
 func cleanupMeta(meta *domain.Meta, entry *directory.Entry) {
 	if title, ok := meta.Get(domain.MetaKeyTitle); !ok || title == "" {
-		meta.Set(domain.MetaKeyTitle, entry.ID.Format())
+		meta.Set(domain.MetaKeyTitle, entry.Zid.Format())
 	}
 
 	switch entry.MetaSpec {
@@ -277,8 +277,8 @@ func calculateSyntax(entry *directory.Entry) string {
 }
 
 func calculateMeta(entry *directory.Entry) *domain.Meta {
-	meta := domain.NewMeta(entry.ID)
-	meta.Set(domain.MetaKeyTitle, entry.ID.Format())
+	meta := domain.NewMeta(entry.Zid)
+	meta.Set(domain.MetaKeyTitle, entry.Zid.Format())
 	meta.Set(domain.MetaKeySyntax, calculateSyntax(entry))
 	return meta
 }

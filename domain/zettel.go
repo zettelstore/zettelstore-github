@@ -58,19 +58,19 @@ const digits = "0123456789"
 
 // Format converts the zettel identification to a string of 14 digits.
 // Only defined for valid ids.
-func (id ZettelID) Format() string {
+func (zid ZettelID) Format() string {
 	var result [14]byte
 	for i := 13; i >= 0; i-- {
-		result[i] = digits[id%10]
-		id = id / 10
+		result[i] = digits[zid%10]
+		zid /= 10
 	}
 	return string(result[0:])
 }
 
 // IsValid determines if zettel id is a valid one, e.g. consists of max. 14 digits.
-func (id ZettelID) IsValid() bool { return 0 < id && id <= maxZettelID }
+func (zid ZettelID) IsValid() bool { return 0 < zid && zid <= maxZettelID }
 
-// NewZettelID returns a new zettel ID based on the current time.
+// NewZettelID returns a new zettel id based on the current time.
 func NewZettelID(withSeconds bool) ZettelID {
 	now := time.Now()
 	var s string

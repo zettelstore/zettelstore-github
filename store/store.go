@@ -61,17 +61,17 @@ type Store interface {
 	SelectMeta(ctx context.Context, f *Filter, s *Sorter) ([]*domain.Meta, error)
 
 	// SetZettel updates an existing zettel or creates a new one.
-	// It the zettel contains a valid ID, an update operation is assumed,
-	// otherwise the store must assign a new ID for the zettel. In this case, the
-	// meta data of the zettel will contain the updated ID. The caller is
-	// potentially allowed to assign an ID itself, but at own risk.
+	// It the zettel contains a valid Zid, an update operation is assumed,
+	// otherwise the store must assign a new Zid for the zettel. In this case, the
+	// meta data of the zettel will contain the updated Zid. The caller is
+	// potentially allowed to assign an Zid itself, but at own risk.
 	SetZettel(ctx context.Context, zettel domain.Zettel) error
 
 	// DeleteZettel removes the zettel from the store.
 	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 
-	// Rename changes the current ID to a new ID.
-	RenameZettel(ctx context.Context, curID, newID domain.ZettelID) error
+	// Rename changes the current Zid to a new Zid.
+	RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error
 
 	// Reload clears all caches, reloads all internal data to reflect changes
 	// that were possibly undetected.
@@ -81,15 +81,15 @@ type Store interface {
 // ErrStopped is returned if calling methods on a store that was not started.
 var ErrStopped = errors.New("Store is stopped")
 
-// ErrUnknownID is returned if the zettel ID is unknown to the store.
-type ErrUnknownID struct{ ID domain.ZettelID }
+// ErrUnknownID is returned if the zettel id is unknown to the store.
+type ErrUnknownID struct{ Zid domain.ZettelID }
 
-func (err *ErrUnknownID) Error() string { return "Unknown Zettel ID: " + err.ID.Format() }
+func (err *ErrUnknownID) Error() string { return "Unknown Zettel id: " + err.Zid.Format() }
 
-// ErrInvalidID is returned if the zettel ID is not appropriate for the store operation.
-type ErrInvalidID struct{ ID domain.ZettelID }
+// ErrInvalidID is returned if the zettel id is not appropriate for the store operation.
+type ErrInvalidID struct{ Zid domain.ZettelID }
 
-func (err *ErrInvalidID) Error() string { return "Invalid Zettel ID: " + err.ID.Format() }
+func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid.Format() }
 
 // Filter specifies a mechanism for selecting zettel.
 type Filter struct {

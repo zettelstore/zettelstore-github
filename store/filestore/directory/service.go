@@ -44,7 +44,7 @@ func ping(done chan<- struct{}, tick *time.Ticker) {
 
 func newEntry(ev *fileEvent) *Entry {
 	de := new(Entry)
-	de.ID = ev.id
+	de.Zid = ev.zid
 	updateEntry(de, ev)
 	return de
 }
@@ -73,9 +73,9 @@ func updateEntry(de *Entry, ev *fileEvent) {
 type dirMap map[domain.ZettelID]*Entry
 
 func dirMapUpdate(dm dirMap, ev *fileEvent) {
-	de := dm[ev.id]
+	de := dm[ev.zid]
 	if de == nil {
-		dm[ev.id] = newEntry(ev)
+		dm[ev.zid] = newEntry(ev)
 		return
 	}
 	updateEntry(de, ev)
@@ -110,14 +110,14 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 					dirMapUpdate(newMap, ev)
 				} else {
 					dirMapUpdate(curMap, ev)
-					srv.notifyChange(false, ev.id)
+					srv.notifyChange(false, ev.zid)
 				}
 			case fileStatusDelete:
 				if newMap != nil {
-					delete(newMap, ev.id)
+					delete(newMap, ev.zid)
 				} else {
-					delete(curMap, ev.id)
-					srv.notifyChange(false, ev.id)
+					delete(curMap, ev.zid)
+					srv.notifyChange(false, ev.zid)
 				}
 			}
 		case cmd, ok := <-srv.cmds:
@@ -146,15 +146,15 @@ func (cmd *cmdGetEntries) run(m dirMap) {
 }
 
 type cmdGetEntry struct {
-	id     domain.ZettelID
+	zid    domain.ZettelID
 	result chan<- resGetEntry
 }
 type resGetEntry = Entry
 
 func (cmd *cmdGetEntry) run(m dirMap) {
-	entry := m[cmd.id]
+	entry := m[cmd.zid]
 	if entry == nil {
-		cmd.result <- Entry{ID: domain.InvalidZettelID}
+		cmd.result <- Entry{Zid: domain.InvalidZettelID}
 	} else {
 		cmd.result <- *entry
 	}
@@ -166,18 +166,18 @@ type cmdNewEntry struct {
 type resNewEntry = Entry
 
 func (cmd *cmdNewEntry) run(m dirMap) {
-	id := domain.NewZettelID(false)
-	if _, ok := m[id]; !ok {
-		entry := &Entry{ID: id, MetaSpec: MetaSpecUnknown}
-		m[id] = entry
+	zid := domain.NewZettelID(false)
+	if _, ok := m[zid]; !ok {
+		entry := &Entry{Zid: zid, MetaSpec: MetaSpecUnknown}
+		m[zid] = entry
 		cmd.result <- *entry
 		return
 	}
 	for {
-		id = domain.NewZettelID(true)
-		if _, ok := m[id]; !ok {
-			entry := &Entry{ID: id, MetaSpec: MetaSpecUnknown}
-			m[id] = entry
+		zid = domain.NewZettelID(true)
+		if _, ok := m[zid]; !ok {
+			entry := &Entry{Zid: zid, MetaSpec: MetaSpecUnknown}
+			m[zid] = entry
 			cmd.result <- *entry
 			return
 		}
@@ -193,7 +193,7 @@ type cmdUpdateEntry struct {
 
 func (cmd *cmdUpdateEntry) run(m dirMap) {
 	entry := *cmd.entry
-	m[entry.ID] = &entry
+	m[entry.Zid] = &entry
 	cmd.result <- struct{}{}
 }
 
@@ -207,22 +207,22 @@ type resRenameEntry = error
 
 func (cmd *cmdRenameEntry) run(m dirMap) {
 	newEntry := *cmd.newEntry
-	newID := newEntry.ID
-	if _, found := m[newID]; found {
-		cmd.result <- &store.ErrInvalidID{ID: newID}
+	newZid := newEntry.Zid
+	if _, found := m[newZid]; found {
+		cmd.result <- &store.ErrInvalidID{Zid: newZid}
 		return
 	}
-	delete(m, cmd.curEntry.ID)
-	m[newID] = &newEntry
+	delete(m, cmd.curEntry.Zid)
+	m[newZid] = &newEntry
 	cmd.result <- nil
 }
 
 type cmdDeleteEntry struct {
-	id     domain.ZettelID
+	zid    domain.ZettelID
 	result chan<- struct{}
 }
 
 func (cmd *cmdDeleteEntry) run(m dirMap) {
-	delete(m, cmd.id)
+	delete(m, cmd.zid)
 	cmd.result <- struct{}{}
 }

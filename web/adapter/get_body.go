@@ -39,16 +39,16 @@ func MakeGetBodyHandler(
 	getZettel usecase.GetZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
 
 		ctx := r.Context()
-		zettel, err := getZettel.Run(ctx, id)
+		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", id), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
@@ -68,7 +68,7 @@ func MakeGetBodyHandler(
 		)
 		if err != nil {
 			if err == errNoSuchFormat {
-				http.Error(w, fmt.Sprintf("Zettel %q not available in format %q", id, format), http.StatusNotFound)
+				http.Error(w, fmt.Sprintf("Zettel %q not available in format %q", zid, format), http.StatusNotFound)
 				log.Println(err, format)
 				return
 			}

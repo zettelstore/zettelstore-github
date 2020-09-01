@@ -33,22 +33,22 @@ import (
 // MakeEditGetZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
 func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
 
 		ctx := r.Context()
-		zettel, err := getZettel.Run(ctx, id)
+		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", id), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
 
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", id, format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid, format), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
@@ -65,12 +65,12 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 // MakeEditSetZettelHandler creates a new HTTP handler to store content of an existing zettel.
 func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
-		zettel, err := parseZettelForm(r, id)
+		zettel, err := parseZettelForm(r, zid)
 		if err != nil {
 			http.Error(w, "Unable to read zettel form", http.StatusInternalServerError)
 			log.Println(err)
@@ -78,10 +78,10 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 		}
 
 		if err := updateZettel.Run(r.Context(), zettel); err != nil {
-			http.Error(w, fmt.Sprintf("Unable to update zettel %q", id), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to update zettel %q", zid), http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, urlForZettel('h', id), http.StatusFound)
+		http.Redirect(w, r, urlForZettel('h', zid), http.StatusFound)
 	}
 }

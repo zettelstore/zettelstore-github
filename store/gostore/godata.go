@@ -127,7 +127,7 @@ var goData = goStore{
 				`{{define "content"}}
 <h1>{{.Title}}</h1>
 <ul>
-{{range .Metas}}<li><a href="{{urlZettel $.Key .Meta.ID}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetListOrNil %q}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
+{{range .Metas}}<li><a href="{{urlZettel $.Key .Meta.Zid}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetListOrNil %q}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
 </ul>
 <p>Items: {{len .Metas}}</p>
 {{end}}`,
@@ -148,14 +148,14 @@ var goData = goStore{
 <header>
 <h1>{{.HTMLTitle}}</h1>
 <div class="zs-meta">
-{{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.ID}}">Edit</a> &#183;
-{{ .Meta.ID.Format}} &#183;{{end}}
-<a href="{{urlZettel 'i' .Meta.ID}}">Info</a> &#183;
+{{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
+{{ .Meta.Zid.Format}} &#183;{{end}}
+<a href="{{urlZettel 'i' .Meta.Zid}}">Info</a> &#183;
 {{- with .Meta.GetDefault "role" "*"}} (<a href="{{urlList $.Key}}?role={{.}}">{{.}}</a>){{end}}
 {{- with .Meta.GetListOrNil %q}}
 {{- if .}}:{{range .}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
 {{- end}}
-{{if not config.IsReadOnly}}&#183; <a href="{{urlZettel 'n' .Meta.ID}}">Clone</a>{{end}}
+{{if not config.IsReadOnly}}&#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{end}}
 {{with .Meta.GetDefault "url" ""}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}
 </div>
 </header>
@@ -175,16 +175,16 @@ var goData = goStore{
 				`{{define "content"}}
 <article>
 <header>
-<h1>Information for Zettel {{.Meta.ID.Format}}</h1>
+<h1>Information for Zettel {{.Meta.Zid.Format}}</h1>
 <div class="zs-meta">
-<a href="{{urlZettel 'h' $.Meta.ID}}">Web</a>{{range $f := .Formats}} &#183; <a href="{{urlZettel 'z' $.Meta.ID}}?_format={{$f}}">{{$f}}</a>{{end}}
+<a href="{{urlZettel 'h' $.Meta.Zid}}">Web</a>{{range $f := .Formats}} &#183; <a href="{{urlZettel 'z' $.Meta.Zid}}?_format={{$f}}">{{$f}}</a>{{end}}
 </div>
-{{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.ID}}">Edit</a> &#183;
-<a href="{{urlZettel 'n' .Meta.ID}}">Clone</a> &#183;{{end}}
-<a href="{{urlZettel 'm' .Meta.ID}}">Meta</a> &#183;
-<a href="{{urlZettel 'c' .Meta.ID}}">Content</a> {{if not config.IsReadOnly}}&#183;
-<a href="{{urlZettel 'r' .Meta.ID}}">Rename</a> &#183;
-<a href="{{urlZettel 'd' .Meta.ID}}">Delete</a>{{end}}
+{{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
+<a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a> &#183;{{end}}
+<a href="{{urlZettel 'm' .Meta.Zid}}">Meta</a> &#183;
+<a href="{{urlZettel 'c' .Meta.Zid}}">Content</a> {{if not config.IsReadOnly}}&#183;
+<a href="{{urlZettel 'r' .Meta.Zid}}">Rename</a> &#183;
+<a href="{{urlZettel 'd' .Meta.Zid}}">Delete</a>{{end}}
 </header>
 <h2>Interpreted Meta Data</h2>
 <table>
@@ -197,7 +197,7 @@ var goData = goStore{
 {{if .IntLinks}}
 <h3>Internal</h3>
 <ul>
-{{range .IntLinks}}<li>{{if .Found}}<a href="{{urlZettel 'h' .ID}}">{{.Title}}</a>{{else}}{{.ID}}{{end}}</li>{{end}}
+{{range .IntLinks}}<li>{{if .Found}}<a href="{{urlZettel 'h' .Zid}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
 </ul>
 {{end}}
 {{if .ExtLinks}}
@@ -268,15 +268,15 @@ var goData = goStore{
 			`{{define "content"}}
 <article>
 <header>
-<h1>Rename Zettel {{.Meta.ID.Format}}</h1>
+<h1>Rename Zettel {{.Meta.Zid.Format}}</h1>
 </header>
 <p>Do you really want to rename this zettel?</p>
 <form method="POST">
 <div>
-<label for="newid">New ID</label>
-<input class="zs-input" type="text" id="newid" name="newid" placeholder="ID.." value="{{.Meta.ID.Format}}">
+<label for="newid">New zettel id</label>
+<input class="zs-input" type="text" id="newzid" name="newzid" placeholder="ZID.." value="{{.Meta.Zid.Format}}">
 </div>
-<input type="hidden" id="curid" name="curid" value="{{.Meta.ID.Format}}">
+<input type="hidden" id="curzid" name="curzid" value="{{.Meta.Zid.Format}}">
 <input class="zs-button" type="submit" value="Rename">
 </form>
 <dl>
@@ -297,7 +297,7 @@ var goData = goStore{
 			`{{define "content"}}
 <article>
 <header>
-<h1>Delete Zettel {{.Meta.ID.Format}}</h1>
+<h1>Delete Zettel {{.Meta.Zid.Format}}</h1>
 </header>
 <p>Do you really want to delete this zettel?</p>
 <dl>

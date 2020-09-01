@@ -92,9 +92,9 @@ func ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, *domain.Meta
 		syntax, _ = meta.Get(domain.MetaKeySyntax)
 	}
 	title, _ := meta.Get(domain.MetaKeyTitle)
-	id := meta.ID
+	zid := meta.Zid
 	z := &ast.Zettel{
-		ID:      id,
+		Zid:     zid,
 		Meta:    zettel.Meta,
 		Content: zettel.Content,
 		Title:   ParseTitle(title),

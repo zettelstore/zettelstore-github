@@ -33,22 +33,22 @@ import (
 // MakeGetRenameZettelHandler creates a new HTTP handler to display the HTML rename view of a zettel.
 func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
 
 		ctx := r.Context()
-		meta, err := getMeta.Run(ctx, id)
+		meta, err := getMeta.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", id), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
 
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Rename zettel %q not possible in format %q", id, format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Rename zettel %q not possible in format %q", zid, format), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
@@ -58,7 +58,7 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 			Meta  *domain.Meta
 			Lang  string
 		}{
-			Title: "Rename Zettel " + id.Format(),
+			Title: "Rename Zettel " + zid.Format(),
 			Meta:  meta,
 			Lang:  config.Config.GetLang(meta),
 		})
@@ -68,7 +68,7 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 // MakePostRenameZettelHandler creates a new HTTP handler to rename an existing zettel.
 func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		curID, err := domain.ParseZettelID(r.URL.Path[1:])
+		curZid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -78,21 +78,21 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 			log.Println(err)
 			return
 		}
-		if formCurID, err := domain.ParseZettelID(r.PostFormValue("curid")); err != nil || formCurID != curID {
-			http.Error(w, "Invalid value for current ID in form", http.StatusBadRequest)
+		if formCurZid, err := domain.ParseZettelID(r.PostFormValue("curzid")); err != nil || formCurZid != curZid {
+			http.Error(w, "Invalid value for current zettel id in form", http.StatusBadRequest)
 			return
 		}
-		newID, err := domain.ParseZettelID(r.PostFormValue("newid"))
+		newZid, err := domain.ParseZettelID(r.PostFormValue("newzid"))
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid new ID %q", newID.Format()), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Invalid new zettel id %q", newZid.Format()), http.StatusBadRequest)
 			return
 		}
 
-		if err := renameZettel.Run(r.Context(), curID, newID); err != nil {
-			http.Error(w, fmt.Sprintf("Unable to rename zettel %q to %q", curID.Format(), newID.Format()), http.StatusBadRequest)
+		if err := renameZettel.Run(r.Context(), curZid, newZid); err != nil {
+			http.Error(w, fmt.Sprintf("Unable to rename zettel %q to %q", curZid.Format(), newZid.Format()), http.StatusBadRequest)
 			log.Println(err)
 			return
 		}
-		http.Redirect(w, r, urlForZettel('h', newID), http.StatusFound)
+		http.Redirect(w, r, urlForZettel('h', newZid), http.StatusFound)
 	}
 }

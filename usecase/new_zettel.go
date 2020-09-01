@@ -46,7 +46,7 @@ func NewNewZettel(port NewZettelPort) NewZettel {
 // Run executes the use case.
 func (uc NewZettel) Run(ctx context.Context, zettel domain.Zettel) error {
 	meta := zettel.Meta
-	if meta.ID.IsValid() {
+	if meta.Zid.IsValid() {
 		return nil // TODO: new error: already exists
 	}
 

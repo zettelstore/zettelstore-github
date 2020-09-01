@@ -33,15 +33,15 @@ import (
 
 // Meta contains all meta-data of a zettel.
 type Meta struct {
-	ID      ZettelID
+	Zid     ZettelID
 	pairs   map[string]string
 	frozen  bool
 	YamlSep bool
 }
 
 // NewMeta creates a new chunk for storing meta-data
-func NewMeta(id ZettelID) *Meta {
-	return &Meta{ID: id, pairs: make(map[string]string, 3)}
+func NewMeta(zid ZettelID) *Meta {
+	return &Meta{Zid: zid, pairs: make(map[string]string, 3)}
 }
 
 // Clone returns a new copy of the same meta data that is not frozen.
@@ -51,7 +51,7 @@ func (m *Meta) Clone() *Meta {
 		pairs[k] = v
 	}
 	return &Meta{
-		ID:      m.ID,
+		Zid:     m.Zid,
 		pairs:   pairs,
 		frozen:  false,
 		YamlSep: m.YamlSep,
@@ -205,7 +205,7 @@ func (m *Meta) Freeze() {
 // whether there was a value stored or not.
 func (m *Meta) Get(key string) (string, bool) {
 	if key == MetaKeyID {
-		return m.ID.Format(), true
+		return m.Zid.Format(), true
 	}
 	value, ok := m.pairs[key]
 	return value, ok
@@ -344,7 +344,7 @@ func (m *Meta) Equal(o *Meta) bool {
 	if m == nil && o == nil {
 		return true
 	}
-	if m == nil || o == nil || m.ID != o.ID || len(m.pairs) != len(o.pairs) {
+	if m == nil || o == nil || m.Zid != o.Zid || len(m.pairs) != len(o.pairs) {
 		return false
 	}
 	for k, v := range m.pairs {
@@ -356,12 +356,12 @@ func (m *Meta) Equal(o *Meta) bool {
 }
 
 // NewMetaFromInput parses the meta data of a zettel.
-func NewMetaFromInput(id ZettelID, inp *input.Input) *Meta {
+func NewMetaFromInput(zid ZettelID, inp *input.Input) *Meta {
 	if inp.Ch == '-' && inp.PeekN(0) == '-' && inp.PeekN(1) == '-' {
 		skipToEOL(inp)
 		inp.EatEOL()
 	}
-	meta := NewMeta(id)
+	meta := NewMeta(zid)
 	for {
 		skipSpace(inp)
 		switch inp.Ch {

@@ -38,10 +38,10 @@ import (
 
 type templateStore interface {
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, id domain.ZettelID) (*domain.Meta, error)
+	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
 }
 
 // TemplateEngine is the way to render HTML templates.
@@ -61,25 +61,25 @@ func NewTemplateEngine(s store.Store) *TemplateEngine {
 	return te
 }
 
-func (te *TemplateEngine) observe(all bool, id domain.ZettelID) {
+func (te *TemplateEngine) observe(all bool, zid domain.ZettelID) {
 	te.mxCache.Lock()
-	if all || id == domain.BaseTemplateID {
+	if all || zid == domain.BaseTemplateID {
 		te.templateCache = make(map[domain.ZettelID]*template.Template, len(te.templateCache))
 	} else {
-		delete(te.templateCache, id)
+		delete(te.templateCache, zid)
 	}
 	te.mxCache.Unlock()
 }
 
-func (te *TemplateEngine) cacheSetTemplate(id domain.ZettelID, t *template.Template) {
+func (te *TemplateEngine) cacheSetTemplate(zid domain.ZettelID, t *template.Template) {
 	te.mxCache.Lock()
-	te.templateCache[id] = t
+	te.templateCache[zid] = t
 	te.mxCache.Unlock()
 }
 
-func (te *TemplateEngine) cacheGetTemplate(id domain.ZettelID) (*template.Template, bool) {
+func (te *TemplateEngine) cacheGetTemplate(zid domain.ZettelID) (*template.Template, bool) {
 	te.mxCache.RLock()
-	t, ok := te.templateCache[id]
+	t, ok := te.templateCache[zid]
 	te.mxCache.RUnlock()
 	return t, ok
 }
@@ -92,13 +92,13 @@ func urlForList(key byte) string {
 	return prefix + string(rune(key))
 }
 
-func urlForZettel(key byte, id domain.ZettelID) string {
+func urlForZettel(key byte, zid domain.ZettelID) string {
 	var sb strings.Builder
 
 	sb.WriteString(config.Config.GetURLPrefix())
 	sb.WriteByte(key)
 	sb.WriteByte('/')
-	sb.WriteString(id.Format())
+	sb.WriteString(zid.Format())
 	return sb.String()
 }
 

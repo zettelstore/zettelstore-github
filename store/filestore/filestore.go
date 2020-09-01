@@ -152,7 +152,7 @@ func (fs *fileStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain
 
 	entry := fs.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
-		return domain.Zettel{}, &store.ErrUnknownID{ID: zid}
+		return domain.Zettel{}, &store.ErrUnknownID{Zid: zid}
 	}
 
 	rc := make(chan resGetMetaContent)
@@ -180,7 +180,7 @@ func (fs *fileStore) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.
 	}
 	entry := fs.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
-		return nil, &store.ErrUnknownID{ID: zid}
+		return nil, &store.ErrUnknownID{Zid: zid}
 	}
 
 	rc := make(chan resGetMeta)
@@ -208,9 +208,9 @@ func (fs *fileStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.S
 	rc := make(chan resGetMeta)
 	res = make([]*domain.Meta, 0, len(entries))
 	for _, entry := range entries {
-		meta, ok := fs.cacheGetMeta(entry.ID)
+		meta, ok := fs.cacheGetMeta(entry.Zid)
 		if !ok {
-			fs.getFileChan(entry.ID) <- &fileGetMeta{&entry, rc}
+			fs.getFileChan(entry.Zid) <- &fileGetMeta{&entry, rc}
 
 			// Response processing could be done by separate goroutine, so that
 			// requests can be executed concurrently.
@@ -241,25 +241,25 @@ func (fs *fileStore) SetZettel(ctx context.Context, zettel domain.Zettel) error 
 	var entry directory.Entry
 	newEntry := false
 	meta := zettel.Meta
-	if meta.ID.IsValid() {
-		// Update existing zettel or create a new one with given ID.
-		entry = fs.dirSrv.GetEntry(meta.ID)
+	if meta.Zid.IsValid() {
+		// Update existing zettel or create a new one with given id.
+		entry = fs.dirSrv.GetEntry(meta.Zid)
 		if !entry.IsValid() {
 			// Existing zettel, but new in this store.
-			entry.ID = meta.ID
+			entry.Zid = meta.Zid
 			fs.updateEntryFromMeta(&entry, meta)
 		}
-		fs.notifyChanged(false, meta.ID)
+		fs.notifyChanged(false, meta.Zid)
 	} else {
-		// Calculate a new ID, because of new zettel.
+		// Calculate a new id, because of new zettel.
 		entry = fs.dirSrv.GetNew()
-		meta.ID = entry.ID
+		meta.Zid = entry.Zid
 		fs.updateEntryFromMeta(&entry, meta)
 		newEntry = true
 	}
 
 	rc := make(chan resSetZettel)
-	fs.getFileChan(meta.ID) <- &fileSetZettel{&entry, zettel, rc}
+	fs.getFileChan(meta.Zid) <- &fileSetZettel{&entry, zettel, rc}
 	err := <-rc
 	close(rc)
 	if newEntry && err == nil {
@@ -273,7 +273,7 @@ func (fs *fileStore) SetZettel(ctx context.Context, zettel domain.Zettel) error 
 
 func (fs *fileStore) updateEntryFromMeta(entry *directory.Entry, meta *domain.Meta) {
 	entry.MetaSpec, entry.ContentExt = calcSpecExt(meta)
-	basePath := filepath.Join(fs.dir, entry.ID.Format())
+	basePath := filepath.Join(fs.dir, entry.Zid.Format())
 	if entry.MetaSpec == directory.MetaSpecFile {
 		entry.MetaPath = basePath + ".meta"
 	}
@@ -298,32 +298,32 @@ func calcSpecExt(meta *domain.Meta) (directory.MetaSpec, string) {
 	return directory.MetaSpecFile, syntax
 }
 
-// Rename changes the current ID to a new ID.
-func (fs *fileStore) RenameZettel(ctx context.Context, curID, newID domain.ZettelID) error {
+// Rename changes the current id to a new id.
+func (fs *fileStore) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
 	if fs.isStopped() {
 		return store.ErrStopped
 	}
-	curEntry := fs.dirSrv.GetEntry(curID)
+	curEntry := fs.dirSrv.GetEntry(curZid)
 	if !curEntry.IsValid() {
-		return &store.ErrUnknownID{ID: curID}
+		return &store.ErrUnknownID{Zid: curZid}
 	}
-	if curID == newID {
+	if curZid == newZid {
 		return nil
 	}
 	newEntry := directory.Entry{
-		ID:          newID,
+		Zid:         newZid,
 		MetaSpec:    curEntry.MetaSpec,
-		MetaPath:    renamePath(curEntry.MetaPath, curID, newID),
-		ContentPath: renamePath(curEntry.ContentPath, curID, newID),
+		MetaPath:    renamePath(curEntry.MetaPath, curZid, newZid),
+		ContentPath: renamePath(curEntry.ContentPath, curZid, newZid),
 		ContentExt:  curEntry.ContentExt,
 	}
-	fs.notifyChanged(false, curID)
+	fs.notifyChanged(false, curZid)
 	if err := fs.dirSrv.RenameEntry(&curEntry, &newEntry); err != nil {
 		return err
 	}
 
 	rc := make(chan resRenameZettel)
-	fs.getFileChan(newID) <- &fileRenameZettel{&curEntry, &newEntry, rc}
+	fs.getFileChan(newZid) <- &fileRenameZettel{&curEntry, &newEntry, rc}
 	err := <-rc
 	close(rc)
 	return err
@@ -396,7 +396,7 @@ func (fs *fileStore) cacheChange(all bool, zid domain.ZettelID) {
 func (fs *fileStore) cacheSetMeta(meta *domain.Meta) {
 	fs.mxCache.Lock()
 	meta.Freeze()
-	fs.metaCache[meta.ID] = meta
+	fs.metaCache[meta.Zid] = meta
 	fs.mxCache.Unlock()
 }
 

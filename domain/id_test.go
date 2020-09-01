@@ -50,14 +50,14 @@ func TestIsValid(t *testing.T) {
 		"20200310195100",
 	}
 
-	for i, id := range validIDs {
-		zid, err := domain.ParseZettelID(id)
+	for i, sid := range validIDs {
+		zid, err := domain.ParseZettelID(sid)
 		if err != nil {
-			t.Errorf("i=%d: id=%q is not valid, but should be. err=%v", i, id, err)
+			t.Errorf("i=%d: sid=%q is not valid, but should be. err=%v", i, sid, err)
 		}
 		s := zid.Format()
-		if s != id {
-			t.Errorf("i=%d: zid=%v does not format to %q, but to %q", i, zid, id, s)
+		if s != sid {
+			t.Errorf("i=%d: zid=%v does not format to %q, but to %q", i, sid, zid, s)
 		}
 	}
 
@@ -69,9 +69,9 @@ func TestIsValid(t *testing.T) {
 		"20200310T195100",
 	}
 
-	for i, id := range invalidIDs {
-		if _, err := domain.ParseZettelID(id); err == nil {
-			t.Errorf("i=%d: id=%q is valid, but should not be", i, id)
+	for i, zid := range invalidIDs {
+		if _, err := domain.ParseZettelID(zid); err == nil {
+			t.Errorf("i=%d: zid=%q is valid, but should not be", i, zid)
 		}
 	}
 }

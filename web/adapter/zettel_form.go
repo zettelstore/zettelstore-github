@@ -35,7 +35,7 @@ type formZettelData struct {
 	Content string
 }
 
-func parseZettelForm(r *http.Request, id domain.ZettelID) (domain.Zettel, error) {
+func parseZettelForm(r *http.Request, zid domain.ZettelID) (domain.Zettel, error) {
 	err := r.ParseForm()
 	if err != nil {
 		return domain.Zettel{}, err
@@ -43,9 +43,9 @@ func parseZettelForm(r *http.Request, id domain.ZettelID) (domain.Zettel, error)
 
 	var meta *domain.Meta
 	if postMeta := strings.TrimSpace(r.PostFormValue("meta")); postMeta == "" {
-		meta = domain.NewMeta(id)
+		meta = domain.NewMeta(zid)
 	} else {
-		meta = domain.NewMetaFromInput(id, input.NewInput(postMeta))
+		meta = domain.NewMetaFromInput(zid, input.NewInput(postMeta))
 	}
 	if postTitle := strings.TrimSpace(r.PostFormValue("title")); postTitle != "" {
 		meta.Set(domain.MetaKeyTitle, postTitle)

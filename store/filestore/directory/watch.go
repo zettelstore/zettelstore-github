@@ -52,7 +52,7 @@ const (
 type fileEvent struct {
 	status fileStatus
 	path   string // Full file path
-	id     domain.ZettelID
+	zid    domain.ZettelID
 	ext    string // File extension
 	err    error  // Error if Status == fileStatusError
 }
@@ -92,14 +92,14 @@ func watchDirectory(directory string, events chan<- *fileEvent, done <-chan stru
 	}
 
 	sendFileEvent := func(status fileStatus, path string, match []string) sendResult {
-		id, err := domain.ParseZettelID(match[1])
+		zid, err := domain.ParseZettelID(match[1])
 		if err != nil {
 			return sendDone
 		}
 		event := &fileEvent{
 			status: status,
 			path:   path,
-			id:     id,
+			zid:    zid,
 			ext:    match[3],
 		}
 		return sendEvent(event)

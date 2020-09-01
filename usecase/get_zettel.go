@@ -29,7 +29,7 @@ import (
 // GetZettelPort is the interface used by this use case.
 type GetZettelPort interface {
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, id domain.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 }
 
 // GetZettel is the data for this use case.
@@ -43,6 +43,6 @@ func NewGetZettel(port GetZettelPort) GetZettel {
 }
 
 // Run executes the use case.
-func (uc GetZettel) Run(ctx context.Context, id domain.ZettelID) (domain.Zettel, error) {
-	return uc.store.GetZettel(ctx, id)
+func (uc GetZettel) Run(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+	return uc.store.GetZettel(ctx, zid)
 }

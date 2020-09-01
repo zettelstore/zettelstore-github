@@ -130,11 +130,11 @@ func (cs *chStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Z
 		if err == nil {
 			return zettel, nil
 		}
-		if e, ok := err.(*store.ErrUnknownID); !ok || e.ID != zid {
+		if e, ok := err.(*store.ErrUnknownID); !ok || e.Zid != zid {
 			return domain.Zettel{}, err
 		}
 	}
-	return domain.Zettel{}, &store.ErrUnknownID{ID: zid}
+	return domain.Zettel{}, &store.ErrUnknownID{Zid: zid}
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
@@ -149,11 +149,11 @@ func (cs *chStore) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Me
 		if err == nil {
 			return meta, nil
 		}
-		if e, ok := err.(*store.ErrUnknownID); !ok || e.ID != zid {
+		if e, ok := err.(*store.ErrUnknownID); !ok || e.Zid != zid {
 			return nil, err
 		}
 	}
-	return nil, &store.ErrUnknownID{ID: zid}
+	return nil, &store.ErrUnknownID{Zid: zid}
 }
 
 // SelectMeta returns all zettel meta data that match the selection
@@ -170,7 +170,7 @@ func (cs *chStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.Sor
 	// Basically, this is a map step
 	for i := 0; i < nStores; i++ {
 		// No filtering, because of overlay zettel.
-		// Sub-stores must order by ID, descending. The merge process relies on this.
+		// Sub-stores must order by id, descending. The merge process relies on this.
 		metas, err1 := cs.stores[i].SelectMeta(ctx, nil, nil)
 		if err1 == nil {
 			sMetas = append(sMetas, metas)
@@ -189,7 +189,7 @@ func (cs *chStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.Sor
 		maxID := int64(-1)
 		for i, pos := range sPos {
 			if pos < len(sMetas[i]) {
-				if zid := int64(sMetas[i][pos].ID); zid > maxID {
+				if zid := int64(sMetas[i][pos].Zid); zid > maxID {
 					maxID = zid
 					maxI = i
 				} else if zid == maxID {
@@ -215,13 +215,13 @@ func (cs *chStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
 	return errEmpty
 }
 
-// Rename changes the current ID to a new ID.
-func (cs *chStore) RenameZettel(ctx context.Context, curID, newID domain.ZettelID) error {
+// Rename changes the current zid to a new zid.
+func (cs *chStore) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
 	if len(cs.stores) == 0 {
 		return errEmpty
 	}
 	for i, s := range cs.stores {
-		if err := s.RenameZettel(ctx, curID, newID); err != nil {
+		if err := s.RenameZettel(ctx, curZid, newZid); err != nil {
 			if i > 0 {
 				return nil
 			}

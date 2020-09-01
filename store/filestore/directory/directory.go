@@ -76,12 +76,12 @@ func (srv *Service) Subscribe(changeFunc store.ObserverFunc) {
 	srv.mxFuncs.Unlock()
 }
 
-func (srv *Service) notifyChange(all bool, id domain.ZettelID) {
+func (srv *Service) notifyChange(all bool, zid domain.ZettelID) {
 	srv.mxFuncs.RLock()
 	changeFuncs := srv.changeFuncs
 	srv.mxFuncs.RUnlock()
 	for _, changeF := range changeFuncs {
-		changeF(all, id)
+		changeF(all, zid)
 	}
 }
 
@@ -98,7 +98,7 @@ const (
 
 // Entry stores everything for a directory entry.
 type Entry struct {
-	ID          domain.ZettelID
+	Zid         domain.ZettelID
 	MetaSpec    MetaSpec // location of meta information
 	MetaPath    string   // file path of meta information
 	ContentPath string   // file path of zettel content
@@ -108,7 +108,7 @@ type Entry struct {
 
 // IsValid checks whether the entry is valid.
 func (e *Entry) IsValid() bool {
-	return e.ID.IsValid()
+	return e.Zid.IsValid()
 }
 
 // GetEntries returns an unsorted list of all current directory entries.
@@ -118,15 +118,15 @@ func (srv *Service) GetEntries() []Entry {
 	return <-resChan
 }
 
-// GetEntry returns the entry with the specified zettel ID. If there is no such
-// zettel ID, an empty entry is returned.
-func (srv *Service) GetEntry(id domain.ZettelID) Entry {
+// GetEntry returns the entry with the specified zettel id. If there is no such
+// zettel id, an empty entry is returned.
+func (srv *Service) GetEntry(zid domain.ZettelID) Entry {
 	resChan := make(chan resGetEntry)
-	srv.cmds <- &cmdGetEntry{id, resChan}
+	srv.cmds <- &cmdGetEntry{zid, resChan}
 	return <-resChan
 }
 
-// GetNew returns an entry with a new zettel ID.
+// GetNew returns an entry with a new zettel id.
 func (srv *Service) GetNew() Entry {
 	resChan := make(chan resNewEntry)
 	srv.cmds <- &cmdNewEntry{resChan}
@@ -147,9 +147,9 @@ func (srv *Service) RenameEntry(curEntry, newEntry *Entry) error {
 	return <-resChan
 }
 
-// DeleteEntry removes a zettel ID from the directory of entries.
-func (srv *Service) DeleteEntry(id domain.ZettelID) {
+// DeleteEntry removes a zettel id from the directory of entries.
+func (srv *Service) DeleteEntry(zid domain.ZettelID) {
 	resChan := make(chan struct{})
-	srv.cmds <- &cmdDeleteEntry{id, resChan}
+	srv.cmds <- &cmdDeleteEntry{zid, resChan}
 	<-resChan
 }
