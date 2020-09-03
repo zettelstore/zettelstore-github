@@ -21,7 +21,11 @@
 package config
 
 import (
+	"encoding/hex"
 	"fmt"
+	"hash/fnv"
+	"os"
+	"runtime"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
@@ -30,8 +34,12 @@ import (
 
 // Version describes all elements of a software version.
 type Version struct {
-	Prog  string // Name of the software
-	Build string // Representation of build process
+	Prog      string // Name of the software
+	Build     string // Representation of build process
+	Hostname  string // Host name a reported by the kernel
+	GoVersion string // Version of go
+	Os        string // GOOS
+	Arch      string // GOARCH
 	// More to come
 }
 
@@ -45,11 +53,14 @@ func SetupVersion(progName, buildVersion string) {
 	} else {
 		version.Build = buildVersion
 	}
-}
-
-// GetVersion returns the current software version data.
-func (c Type) GetVersion() Version {
-	return version
+	if hn, err := os.Hostname(); err == nil {
+		version.Hostname = hn
+	} else {
+		version.Hostname = "*unknown host*"
+	}
+	version.GoVersion = runtime.Version()
+	version.Os = runtime.GOOS
+	version.Arch = runtime.GOARCH
 }
 
 var startupConfig *domain.Meta
@@ -61,6 +72,23 @@ func SetupStartup(cfg *domain.Meta) {
 	}
 	cfg.Freeze()
 	startupConfig = cfg
+}
+
+// GetSecret returns the interal application secret. It is typically used to
+// encrypt session values.
+func GetSecret() string {
+	if secret, ok := startupConfig.Get("secret"); ok {
+		return secret
+	}
+	h := fnv.New128()
+	h.Write([]byte(version.Prog))
+	h.Write([]byte(version.Build))
+	h.Write([]byte(version.Hostname))
+	h.Write([]byte(version.GoVersion))
+	h.Write([]byte(version.Os))
+	h.Write([]byte(version.Arch))
+	sum := h.Sum(nil)
+	return hex.EncodeToString(sum)
 }
 
 // SetupConfiguration enables the configuration data.
@@ -89,6 +117,9 @@ func getConfigurationMeta() *domain.Meta {
 	}
 	return configStock.GetMeta(domain.ConfigurationID)
 }
+
+// GetVersion returns the current software version data.
+func (c Type) GetVersion() Version { return version }
 
 // IsReadOnly returns whether the system is in read-only mode or not.
 func (c Type) IsReadOnly() bool { return startupConfig.GetBool("readonly") }

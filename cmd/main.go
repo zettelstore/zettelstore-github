@@ -49,7 +49,9 @@ func init() {
 		Name: "version",
 		Func: func(cfg *domain.Meta) (int, error) {
 			version := config.Config.GetVersion()
-			fmt.Printf("%v, build %v\n", version.Prog, version.Build)
+			fmt.Printf("%v (%v/%v) running on %v (%v/%v)\n",
+				version.Prog, version.Build, version.GoVersion,
+				version.Hostname, version.Os, version.Arch)
 			return 0, nil
 		},
 	})
