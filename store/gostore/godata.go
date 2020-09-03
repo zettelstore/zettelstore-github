@@ -75,6 +75,7 @@ var goData = goStore{
 </div>
 {{- if not config.IsReadOnly}}
 <a href="{{urlZettel 'n' %d}}">New</a>
+{{- end}}
 {{- if config.GetOwner.IsValid}}
 <div class="zs-dropdown">
 <button>User</button>
@@ -83,7 +84,6 @@ var goData = goStore{
 <a href="{{urlList 'c'}}">Reload</a>
 </nav>
 </div>
-{{- end}}
 {{- end}}
 {{- block "menu" .}}{{end -}}
 <form action="{{urlList 's'}}">
