@@ -71,6 +71,10 @@ func init() {
 			fs.String("t", "html", "target output format")
 		},
 	})
+	RegisterCommand(Command{
+		Name: "password",
+		Func: cmdPassword,
+	})
 }
 
 func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
