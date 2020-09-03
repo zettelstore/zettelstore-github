@@ -211,7 +211,7 @@ func (c Type) GetZettelFileSyntax() []string {
 // GetOwner returns the zid of the zettelkasten's owner.
 // If there is no owner defined, the value ZettelID(0) is returned.
 func (c Type) GetOwner() domain.ZettelID {
-	if configStock != nil && !c.IsReadOnly() {
+	if !c.IsReadOnly() {
 		if config := getConfigurationMeta(); config != nil {
 			if owner, ok := config.Get(domain.MetaKeyOwner); ok {
 				if zid, err := domain.ParseZettelID(owner); err == nil {

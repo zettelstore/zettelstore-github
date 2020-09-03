@@ -75,7 +75,7 @@ var goData = goStore{
 </div>
 {{- if not config.IsReadOnly}}
 <a href="{{urlZettel 'n' %d}}">New</a>
-{{- if config.GetOwner}}
+{{- if config.GetOwner.IsValid}}
 <div class="zs-dropdown">
 <button>User</button>
 <nav class="zs-dropdown-content">
