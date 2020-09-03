@@ -17,45 +17,31 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-package cmd
+// Package auth provides some function for authentication.
+package auth
 
 import (
-	"fmt"
-	"os"
-
-	"golang.org/x/crypto/ssh/terminal"
-
-	"zettelstore.de/z/auth"
-	"zettelstore.de/z/domain"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// ---------- Subcommand: password -------------------------------------------
-
-func cmdPassword(cfg *domain.Meta) (int, error) {
-	password, err := getPassword("Password")
+// HashCredential returns a hashed vesion of the given credential
+func HashCredential(credential string) (string, error) {
+	res, err := bcrypt.GenerateFromPassword([]byte(credential), bcrypt.DefaultCost)
 	if err != nil {
-		return 2, err
+		return "", err
 	}
-	passwordAgain, err := getPassword("   Again")
-	if err != nil {
-		return 2, err
-	}
-	if string(password) != string(passwordAgain) {
-		fmt.Fprintln(os.Stderr, "Passwords differ!")
-		return 2, nil
-	}
-
-	hashedPassword, err := auth.HashCredential(password)
-	if err != nil {
-		return 2, err
-	}
-	fmt.Printf("%s\n", hashedPassword)
-	return 0, nil
+	return string(res), nil
 }
 
-func getPassword(prompt string) (string, error) {
-	fmt.Fprintf(os.Stderr, "%s: ", prompt)
-	password, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Fprintln(os.Stderr)
-	return string(password), err
+// CompareHashAndCredential checks, whether the hashedCredential is a possible
+// value when hashing the credential.
+func CompareHashAndCredential(hashedCredential string, credential string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedCredential), []byte(credential))
+	if err == nil {
+		return true, nil
+	}
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return false, nil
+	}
+	return false, err
 }

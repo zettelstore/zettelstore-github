@@ -22,10 +22,15 @@ package usecase
 
 import (
 	"context"
+
+	"zettelstore.de/z/auth"
+	"zettelstore.de/z/domain"
+	"zettelstore.de/z/store"
 )
 
 // AuthenticatePort is the interface used by this use case.
 type AuthenticatePort interface {
+	SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error)
 }
 
 // Authenticate is the data for this use case.
@@ -39,15 +44,29 @@ func NewAuthenticate(port AuthenticatePort) Authenticate {
 }
 
 // Run executes the use case.
-func (uc Authenticate) Run(ctx context.Context, ident string, credential string) (bool, error) {
-	// Too simple authentication.
-	// TODO: more realisitic alogrithm
-
-	if len(ident) == 0 || ident[0] == 'x' {
-		return false, nil
+func (uc Authenticate) Run(ctx context.Context, ident string, credential string) (*domain.Meta, error) {
+	filter := store.Filter{
+		Expr: map[string][]string{
+			"ident": []string{ident},
+		},
 	}
-	if ident[0] == 'q' && ident != credential {
-		return false, nil
+	metaList, err := uc.store.SelectMeta(ctx, &filter, nil)
+	if err != nil {
+		return nil, err
 	}
-	return true, nil
+	if len(metaList) < 1 {
+		return nil, nil
+	}
+	identMeta := metaList[len(metaList)-1]
+	if cred, ok := identMeta.Get(domain.MetaKeyCred); ok {
+		ok, err := auth.CompareHashAndCredential(cred, credential)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			return identMeta, nil
+		}
+		return nil, nil
+	}
+	return nil, nil
 }

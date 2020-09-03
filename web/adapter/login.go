@@ -62,25 +62,22 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 
 		ident := r.PostFormValue("username")
 		cred := r.PostFormValue("password")
-		ok, err := auth.Run(r.Context(), ident, cred)
+		user, err := auth.Run(r.Context(), ident, cred)
 		if err != nil {
 			http.Error(w, "Unable to check login data", http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
-		if ok {
-			successfulLogin(w, r, ident)
-		} else {
+		if user == nil {
 			failedLogin(w, r)
+			return
 		}
-	}
-}
 
-func successfulLogin(w http.ResponseWriter, r *http.Request, ident string) {
-	switch format := getFormat(r, "html"); format {
-	case "html":
-		http.Redirect(w, r, urlForList('/'), http.StatusFound)
-	default:
+		switch format := getFormat(r, "html"); format {
+		case "html":
+			http.Redirect(w, r, urlForList('/'), http.StatusFound)
+		default:
+		}
 	}
 }
 

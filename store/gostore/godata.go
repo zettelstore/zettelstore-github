@@ -71,10 +71,20 @@ var goData = goStore{
 <a href="{{urlList 'h'}}">List Zettel</a>
 <a href="{{urlList 'r'}}">List Roles</a>
 <a href="{{urlList 't'}}">List Tags</a>
+</nav>
+</div>
+{{- if not config.IsReadOnly}}
+<a href="{{urlZettel 'n' %d}}">New</a>
+{{- if config.GetOwner}}
+<div class="zs-dropdown">
+<button>User</button>
+<nav class="zs-dropdown-content">
+<a href="{{urlList 'a'}}">Login</a>
 <a href="{{urlList 'c'}}">Reload</a>
 </nav>
 </div>
-{{if not config.IsReadOnly}}<a href="{{urlZettel 'n' %d}}">New</a>{{end}}
+{{- end}}
+{{- end}}
 {{- block "menu" .}}{{end -}}
 <form action="{{urlList 's'}}">
 <input type="text" placeholder="Search.." name="s">
