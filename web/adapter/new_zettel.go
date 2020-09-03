@@ -52,7 +52,7 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
 			Meta:    zettel.Meta,
-			Lang:    config.Config.GetLang(zettel.Meta),
+			Lang:    config.GetLang(zettel.Meta),
 			Title:   "New Zettel",
 			Content: zettel.Content.AsString(),
 		})

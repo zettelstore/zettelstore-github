@@ -60,7 +60,7 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 		}{
 			Title: "Rename Zettel " + zid.Format(),
 			Meta:  meta,
-			Lang:  config.Config.GetLang(meta),
+			Lang:  config.GetLang(meta),
 		})
 	}
 }

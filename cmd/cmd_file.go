@@ -44,11 +44,11 @@ func cmdFile(cfg *domain.Meta) (int, error) {
 			Meta:    meta,
 			Content: domain.NewContent(inp.Src[inp.Pos:]),
 		},
-		config.Config.GetSyntax(meta),
+		config.GetSyntax(meta),
 	)
 	enc := encoder.Create(
 		format,
-		&encoder.StringOption{Key: "lang", Value: config.Config.GetLang(meta)},
+		&encoder.StringOption{Key: "lang", Value: config.GetLang(meta)},
 	)
 	if enc == nil {
 		fmt.Fprintf(os.Stderr, "Unknown format %q\n", format)

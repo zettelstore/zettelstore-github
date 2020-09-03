@@ -63,6 +63,11 @@ func SetupVersion(progName, buildVersion string) {
 	version.Arch = runtime.GOARCH
 }
 
+// GetVersion returns the current software version data.
+func GetVersion() Version { return version }
+
+// --- Startup config --------------------------------------------------------
+
 var startupConfig *domain.Meta
 
 // SetupStartup initializes the startup data.
@@ -72,6 +77,15 @@ func SetupStartup(cfg *domain.Meta) {
 	}
 	cfg.Freeze()
 	startupConfig = cfg
+}
+
+// IsReadOnly returns whether the system is in read-only mode or not.
+func IsReadOnly() bool { return startupConfig.GetBool("readonly") }
+
+// GetURLPrefix returns the configured prefix to be used when providing URL to
+// the service.
+func GetURLPrefix() string {
+	return startupConfig.GetDefault("url-prefix", "/")
 }
 
 // GetSecret returns the interal application secret. It is typically used to
@@ -91,6 +105,10 @@ func GetSecret() string {
 	return hex.EncodeToString(sum)
 }
 
+// --- Configuration zettel --------------------------------------------------
+
+var configStock stock.Stock
+
 // SetupConfiguration enables the configuration data.
 func SetupConfiguration(store store.Store) {
 	if configStock != nil {
@@ -102,14 +120,6 @@ func SetupConfiguration(store store.Store) {
 	}
 }
 
-var configStock stock.Stock
-
-// Type is the type for the config variable.
-type Type struct{}
-
-// Config is the global configuration object.
-var Config Type
-
 // getConfigurationMeta returns the meta data of the configuration zettel.
 func getConfigurationMeta() *domain.Meta {
 	if configStock == nil {
@@ -118,19 +128,8 @@ func getConfigurationMeta() *domain.Meta {
 	return configStock.GetMeta(domain.ConfigurationID)
 }
 
-// GetVersion returns the current software version data.
-func (c Type) GetVersion() Version { return version }
-
-// IsReadOnly returns whether the system is in read-only mode or not.
-func (c Type) IsReadOnly() bool { return startupConfig.GetBool("readonly") }
-
-// GetURLPrefix returns the configured prefix to be used when providing URL to the service.
-func (c Type) GetURLPrefix() string {
-	return startupConfig.GetDefault("url-prefix", "/")
-}
-
 // GetDefaultTitle returns the current value of the "default-title" key.
-func (c Type) GetDefaultTitle() string {
+func GetDefaultTitle() string {
 	if config := getConfigurationMeta(); config != nil {
 		if title, ok := config.Get(domain.MetaKeyDefaultTitle); ok {
 			return title
@@ -140,7 +139,7 @@ func (c Type) GetDefaultTitle() string {
 }
 
 // GetDefaultSyntax returns the current value of the "default-syntax" key.
-func (c Type) GetDefaultSyntax() string {
+func GetDefaultSyntax() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
 			if syntax, ok := config.Get(domain.MetaKeyDefaultSyntax); ok {
@@ -152,7 +151,7 @@ func (c Type) GetDefaultSyntax() string {
 }
 
 // GetDefaultRole returns the current value of the "default-role" key.
-func (c Type) GetDefaultRole() string {
+func GetDefaultRole() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
 			if role, ok := config.Get(domain.MetaKeyDefaultRole); ok {
@@ -164,7 +163,7 @@ func (c Type) GetDefaultRole() string {
 }
 
 // GetDefaultLang returns the current value of the "default-lang" key.
-func (c Type) GetDefaultLang() string {
+func GetDefaultLang() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
 			if lang, ok := config.Get(domain.MetaKeyDefaultLang); ok {
@@ -176,7 +175,7 @@ func (c Type) GetDefaultLang() string {
 }
 
 // GetDefaultCopyright returns the current value of the "default-copyright" key.
-func (c Type) GetDefaultCopyright() string {
+func GetDefaultCopyright() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
 			if copyright, ok := config.Get(domain.MetaKeyDefaultCopyright); ok {
@@ -189,7 +188,7 @@ func (c Type) GetDefaultCopyright() string {
 }
 
 // GetDefaultLicense returns the current value of the "default-license" key.
-func (c Type) GetDefaultLicense() string {
+func GetDefaultLicense() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
 			if license, ok := config.Get(domain.MetaKeyDefaultLicense); ok {
@@ -200,21 +199,8 @@ func (c Type) GetDefaultLicense() string {
 	return ""
 }
 
-// GetIconMaterial returns the current value of the "icon-material" key.
-func (c Type) GetIconMaterial() string {
-	if config := getConfigurationMeta(); config != nil {
-		if html, ok := config.Get(domain.MetaKeyIconMaterial); ok {
-			return html
-		}
-	}
-	return fmt.Sprintf(
-		"<img class=\"zs-text-icon\" src=\"%vc/%v\">",
-		c.GetURLPrefix(),
-		domain.MaterialIconID.Format())
-}
-
 // GetSiteName returns the current value of the "site-name" key.
-func (c Type) GetSiteName() string {
+func GetSiteName() string {
 	if config := getConfigurationMeta(); config != nil {
 		if name, ok := config.Get(domain.MetaKeySiteName); ok {
 			return name
@@ -224,7 +210,7 @@ func (c Type) GetSiteName() string {
 }
 
 // GetYAMLHeader returns the current value of the "yaml-header" key.
-func (c Type) GetYAMLHeader() bool {
+func GetYAMLHeader() bool {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetBool(domain.MetaKeyYAMLHeader)
 	}
@@ -232,16 +218,29 @@ func (c Type) GetYAMLHeader() bool {
 }
 
 // GetZettelFileSyntax returns the current value of the "zettel-file-syntax" key.
-func (c Type) GetZettelFileSyntax() []string {
+func GetZettelFileSyntax() []string {
 	if config := getConfigurationMeta(); config != nil {
 		return config.GetListOrNil(domain.MetaKeyZettelFileSyntax)
 	}
 	return nil
 }
 
+// GetIconMaterial returns the current value of the "icon-material" key.
+func GetIconMaterial() string {
+	if config := getConfigurationMeta(); config != nil {
+		if html, ok := config.Get(domain.MetaKeyIconMaterial); ok {
+			return html
+		}
+	}
+	return fmt.Sprintf(
+		"<img class=\"zs-text-icon\" src=\"%vc/%v\">",
+		GetURLPrefix(),
+		domain.MaterialIconID.Format())
+}
+
 // GetOwner returns the zid of the zettelkasten's owner.
 // If there is no owner defined, the value ZettelID(0) is returned.
-func (c Type) GetOwner() domain.ZettelID {
+func GetOwner() domain.ZettelID {
 	if config := getConfigurationMeta(); config != nil {
 		if owner, ok := config.Get(domain.MetaKeyOwner); ok {
 			if zid, err := domain.ParseZettelID(owner); err == nil {
@@ -252,24 +251,24 @@ func (c Type) GetOwner() domain.ZettelID {
 	return domain.ZettelID(0)
 }
 
-var mapDefaultKeys = map[string]func(Type) string{
-	domain.MetaKeyCopyright: Type.GetDefaultCopyright,
-	domain.MetaKeyLang:      Type.GetDefaultLang,
-	domain.MetaKeyLicense:   Type.GetDefaultLicense,
-	domain.MetaKeyRole:      Type.GetDefaultRole,
-	domain.MetaKeySyntax:    Type.GetDefaultSyntax,
-	domain.MetaKeyTitle:     Type.GetDefaultTitle,
+var mapDefaultKeys = map[string]func() string{
+	domain.MetaKeyCopyright: GetDefaultCopyright,
+	domain.MetaKeyLang:      GetDefaultLang,
+	domain.MetaKeyLicense:   GetDefaultLicense,
+	domain.MetaKeyRole:      GetDefaultRole,
+	domain.MetaKeySyntax:    GetDefaultSyntax,
+	domain.MetaKeyTitle:     GetDefaultTitle,
 }
 
 // AddDefaultValues enriches the given meta data with its default values.
-func (c Type) AddDefaultValues(meta *domain.Meta) *domain.Meta {
+func AddDefaultValues(meta *domain.Meta) *domain.Meta {
 	result := meta
 	for k, f := range mapDefaultKeys {
 		if _, ok := result.Get(k); !ok {
 			if result == meta {
 				result = meta.Clone()
 			}
-			if val := f(c); len(val) > 0 || meta.Type(k) == domain.MetaTypeEmpty {
+			if val := f(); len(val) > 0 || meta.Type(k) == domain.MetaTypeEmpty {
 				result.Set(k, val)
 			}
 		}
@@ -282,18 +281,18 @@ func (c Type) AddDefaultValues(meta *domain.Meta) *domain.Meta {
 
 // GetSyntax returns the value of the "syntax" key of the given meta. If there
 // is no such value, GetDefaultLang is returned.
-func (c Type) GetSyntax(meta *domain.Meta) string {
+func GetSyntax(meta *domain.Meta) string {
 	if syntax, ok := meta.Get(domain.MetaKeySyntax); ok && len(syntax) > 0 {
 		return syntax
 	}
-	return c.GetDefaultSyntax()
+	return GetDefaultSyntax()
 }
 
 // GetLang returns the value of the "lang" key of the given meta. If there is
 // no such value, GetDefaultLang is returned.
-func (c Type) GetLang(meta *domain.Meta) string {
+func GetLang(meta *domain.Meta) string {
 	if lang, ok := meta.Get(domain.MetaKeyLang); ok && len(lang) > 0 {
 		return lang
 	}
-	return c.GetDefaultLang()
+	return GetDefaultLang()
 }

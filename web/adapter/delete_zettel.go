@@ -59,7 +59,7 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		}{
 			Meta:  zettel.Meta,
 			Title: "Delete Zettel " + zettel.Meta.Zid.Format(),
-			Lang:  config.Config.GetLang(zettel.Meta),
+			Lang:  config.GetLang(zettel.Meta),
 		})
 	}
 }

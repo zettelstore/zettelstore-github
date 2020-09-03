@@ -62,7 +62,7 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 	buf := encoder.NewBufWriter(w)
 
 	buf.WriteString("<html lang=\"")
-	buf.WriteString(config.Config.GetDefaultLang())
+	buf.WriteString(config.GetDefaultLang())
 	buf.WriteString("\">\n<body>\n<ul>\n")
 	for _, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")

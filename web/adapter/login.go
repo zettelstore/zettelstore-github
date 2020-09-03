@@ -43,13 +43,13 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 			return
 		}
 
-		if !config.Config.GetOwner().IsValid() {
+		if !config.GetOwner().IsValid() {
 			http.Error(w, "Login not available", http.StatusBadRequest)
 			return
 		}
 
 		te.renderTemplate(r.Context(), w, domain.LoginTemplateID, loginData{
-			Lang:  config.Config.GetDefaultLang(),
+			Lang:  config.GetDefaultLang(),
 			Title: "Login",
 		})
 	}
@@ -59,7 +59,7 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		format := getFormat(r, "html")
-		if !config.Config.GetOwner().IsValid() {
+		if !config.GetOwner().IsValid() {
 			http.Error(w, "Authentication not available", http.StatusBadRequest)
 			return
 		}

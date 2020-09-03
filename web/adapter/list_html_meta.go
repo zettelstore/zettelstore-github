@@ -53,8 +53,8 @@ func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.List
 			Metas []metaInfo
 		}{
 			Key:   key,
-			Lang:  config.Config.GetDefaultLang(),
-			Title: config.Config.GetSiteName(),
+			Lang:  config.GetDefaultLang(),
+			Title: config.GetSiteName(),
 			Metas: metas,
 		})
 

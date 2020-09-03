@@ -46,7 +46,7 @@ func NewAuthenticate(port AuthenticatePort) Authenticate {
 
 // Run executes the use case.
 func (uc Authenticate) Run(ctx context.Context, ident string, credential string) (*domain.Meta, error) {
-	if !config.Config.GetOwner().IsValid() {
+	if !config.GetOwner().IsValid() {
 		return nil, nil
 	}
 	filter := store.Filter{

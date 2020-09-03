@@ -85,7 +85,7 @@ func (te *TemplateEngine) cacheGetTemplate(zid domain.ZettelID) (*template.Templ
 }
 
 func urlForList(key byte) string {
-	prefix := config.Config.GetURLPrefix()
+	prefix := config.GetURLPrefix()
 	if key == '/' {
 		return prefix
 	}
@@ -95,7 +95,7 @@ func urlForList(key byte) string {
 func urlForZettel(key byte, zid domain.ZettelID) string {
 	var sb strings.Builder
 
-	sb.WriteString(config.Config.GetURLPrefix())
+	sb.WriteString(config.GetURLPrefix())
 	sb.WriteByte(key)
 	sb.WriteByte('/')
 	sb.WriteString(zid.Format())
@@ -164,9 +164,27 @@ func writeLink(b *strings.Builder, key, value string) {
 	b.WriteString("</a>")
 }
 
-func configObj() config.Type {
-	return config.Config
+func configObj() configType {
+	return configVar
 }
+
+type configType struct{}
+
+// Config is the global configuration object.
+var configVar configType
+
+// GetVersion returns the current software version data.
+func (c configType) GetVersion() config.Version { return config.GetVersion() }
+
+// IsReadOnly returns whether the system is in read-only mode or not.
+func (c configType) IsReadOnly() bool { return config.IsReadOnly() }
+
+// GetIconMaterial returns the current value of the "icon-material" key.
+func (c configType) GetIconMaterial() string { return config.GetIconMaterial() }
+
+// GetOwner returns the zid of the zettelkasten's owner.
+// If there is no owner defined, the value ZettelID(0) is returned.
+func (c configType) GetOwner() domain.ZettelID { return config.GetOwner() }
 
 func htmlify(s string) template.HTML {
 	return template.HTML(s)

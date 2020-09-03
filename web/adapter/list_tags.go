@@ -89,8 +89,8 @@ func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.Han
 			Tags   []tagInfo
 			Counts []int
 		}{
-			Lang:   config.Config.GetDefaultLang(),
-			Title:  config.Config.GetSiteName(),
+			Lang:   config.GetDefaultLang(),
+			Title:  config.GetSiteName(),
 			Tags:   tagsList,
 			Counts: countList,
 		})

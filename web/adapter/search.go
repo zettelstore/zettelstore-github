@@ -102,8 +102,8 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			Metas []metaInfo
 			Key   byte
 		}{
-			Lang:  config.Config.GetDefaultLang(),
-			Title: config.Config.GetSiteName(),
+			Lang:  config.GetDefaultLang(),
+			Title: config.GetSiteName(),
 			Metas: metas,
 			Key:   'h',
 		})

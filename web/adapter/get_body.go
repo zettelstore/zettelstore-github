@@ -55,14 +55,14 @@ func MakeGetBodyHandler(
 		syntax := r.URL.Query().Get("syntax")
 		z, meta := parser.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.Config.GetLang(meta)}
+		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
 		format := getFormat(r, "html")
 		w.Header().Set("Content-Type", formatContentType(format))
 		err = writeBlocks(w,
 			z.Ast,
 			format,
 			langOption,
-			&encoder.StringOption{Key: "material", Value: config.Config.GetIconMaterial()},
+			&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
 			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 		)

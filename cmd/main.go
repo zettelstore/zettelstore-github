@@ -48,7 +48,7 @@ func init() {
 	RegisterCommand(Command{
 		Name: "version",
 		Func: func(cfg *domain.Meta) (int, error) {
-			version := config.Config.GetVersion()
+			version := config.GetVersion()
 			fmt.Printf("%v (%v/%v) running on %v (%v/%v)\n",
 				version.Prog, version.Build, version.GoVersion,
 				version.Hostname, version.Os, version.Arch)

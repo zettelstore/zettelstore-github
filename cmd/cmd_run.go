@@ -48,7 +48,7 @@ func runFunc(cfg *domain.Meta) (int, error) {
 	router := setupRouting(cs, readonly)
 
 	listenAddr, _ := cfg.Get("listen-addr")
-	v := config.Config.GetVersion()
+	v := config.GetVersion()
 	log.Printf("%v %v", v.Prog, v.Build)
 	if cfg.GetBool("verbose") {
 		log.Println("Configuration")

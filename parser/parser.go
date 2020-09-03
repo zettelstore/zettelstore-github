@@ -87,7 +87,7 @@ func ParseTitle(title string) ast.InlineSlice {
 
 // ParseZettel parses the zettel based on the syntax.
 func ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, *domain.Meta) {
-	meta := config.Config.AddDefaultValues(zettel.Meta)
+	meta := config.AddDefaultValues(zettel.Meta)
 	if len(syntax) == 0 {
 		syntax, _ = meta.Get(domain.MetaKeySyntax)
 	}
