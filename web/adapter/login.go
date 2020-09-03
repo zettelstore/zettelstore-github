@@ -43,6 +43,11 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 			return
 		}
 
+		if !config.Config.GetOwner().IsValid() {
+			http.Error(w, "Login not available", http.StatusBadRequest)
+			return
+		}
+
 		te.renderTemplate(r.Context(), w, domain.LoginTemplateID, loginData{
 			Lang:  config.Config.GetDefaultLang(),
 			Title: "Login",
@@ -53,6 +58,11 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
 func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		format := getFormat(r, "html")
+		if !config.Config.GetOwner().IsValid() {
+			http.Error(w, "Authentication not available", http.StatusBadRequest)
+			return
+		}
 		err := r.ParseForm()
 		if err != nil {
 			http.Error(w, "Unable to read login form", http.StatusBadRequest)
@@ -69,24 +79,20 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 			return
 		}
 		if user == nil {
-			failedLogin(w, r)
+			switch format {
+			case "html":
+				http.Redirect(w, r, urlForList('a'), http.StatusFound)
+			default:
+				http.Error(w, "Authentication failed", http.StatusUnauthorized)
+				w.Header().Set("WWW-Authenticate", `Bearer realm="Default"`)
+			}
 			return
 		}
 
-		switch format := getFormat(r, "html"); format {
+		switch format {
 		case "html":
 			http.Redirect(w, r, urlForList('/'), http.StatusFound)
 		default:
 		}
-	}
-}
-
-func failedLogin(w http.ResponseWriter, r *http.Request) {
-	switch format := getFormat(r, "html"); format {
-	case "html":
-		http.Redirect(w, r, urlForList('a'), http.StatusFound)
-	default:
-		http.Error(w, "Authentication failed", http.StatusUnauthorized)
-		w.Header().Set("WWW-Authenticate", `Bearer realm="Default"`)
 	}
 }

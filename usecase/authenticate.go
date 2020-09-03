@@ -24,6 +24,7 @@ import (
 	"context"
 
 	"zettelstore.de/z/auth"
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 )
@@ -45,6 +46,9 @@ func NewAuthenticate(port AuthenticatePort) Authenticate {
 
 // Run executes the use case.
 func (uc Authenticate) Run(ctx context.Context, ident string, credential string) (*domain.Meta, error) {
+	if !config.Config.GetOwner().IsValid() {
+		return nil, nil
+	}
 	filter := store.Filter{
 		Expr: map[string][]string{
 			"ident": []string{ident},
@@ -58,6 +62,9 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string)
 		return nil, nil
 	}
 	identMeta := metaList[len(metaList)-1]
+	if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != "user" {
+		return nil, nil
+	}
 	if cred, ok := identMeta.Get(domain.MetaKeyCred); ok {
 		ok, err := auth.CompareHashAndCredential(cred, credential)
 		if err != nil {
