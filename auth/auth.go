@@ -21,7 +21,16 @@
 package auth
 
 import (
+	"encoding/json"
+	"errors"
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/pascaldekloe/jwt"
+
+	"zettelstore.de/z/config"
+	"zettelstore.de/z/domain"
 )
 
 // HashCredential returns a hashed vesion of the given credential
@@ -44,4 +53,29 @@ func CompareHashAndCredential(hashedCredential string, credential string) (bool,
 		return false, nil
 	}
 	return false, err
+}
+
+// ErrNoIdent signals that the meta data has no value for key 'ident'.
+var ErrNoIdent = errors.New("auth: missing ident in meta")
+
+var typHeader = json.RawMessage(`{"typ":"JWT"}`)
+
+// GetToken returns a token to be used for authentification
+func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
+	subject, ok := ident.Get(domain.MetaKeyIdent)
+	if !ok || len(subject) == 0 {
+		return nil, ErrNoIdent
+	}
+
+	var claims jwt.Claims
+	claims.Subject = subject
+	now := time.Now().Round(time.Second)
+	claims.Expires = jwt.NewNumericTime(now.Add(d))
+	claims.Issued = jwt.NewNumericTime(now)
+	claims.ID = ident.Zid.Format()
+	token, err := claims.HMACSign(jwt.HS512, config.GetSecret(), typHeader)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
 }

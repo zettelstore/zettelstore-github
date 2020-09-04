@@ -22,6 +22,7 @@ package usecase
 
 import (
 	"context"
+	"time"
 
 	"zettelstore.de/z/auth"
 	"zettelstore.de/z/config"
@@ -46,7 +47,7 @@ func NewAuthenticate(port AuthenticatePort) Authenticate {
 }
 
 // Run executes the use case.
-func (uc Authenticate) Run(ctx context.Context, ident string, credential string) (*domain.Meta, error) {
+func (uc Authenticate) Run(ctx context.Context, ident string, credential string, d time.Duration) ([]byte, error) {
 	owner := config.GetOwner()
 	if !owner.IsValid() {
 		return nil, nil
@@ -83,7 +84,11 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string)
 			return nil, err
 		}
 		if ok {
-			return identMeta, nil
+			token, err := auth.GetToken(identMeta, d)
+			if err != nil {
+				return nil, err
+			}
+			return token, nil
 		}
 		return nil, nil
 	}

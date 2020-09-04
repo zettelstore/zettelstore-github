@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
@@ -72,13 +73,14 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 
 		ident := r.PostFormValue("username")
 		cred := r.PostFormValue("password")
-		user, err := auth.Run(r.Context(), ident, cred)
+		d := time.Second * 600 // TODO: longer for HTML, configurable, ...
+		token, err := auth.Run(r.Context(), ident, cred, d)
 		if err != nil {
 			http.Error(w, "Unable to check login data", http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
-		if user == nil {
+		if token == nil {
 			switch format {
 			case "html":
 				http.Redirect(w, r, urlForList('a'), http.StatusFound)
@@ -91,6 +93,14 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 
 		switch format {
 		case "html":
+			cookie := http.Cookie{
+				Name:     "Session",
+				Value:    string(token),
+				Secure:   true,
+				HttpOnly: true,
+				SameSite: http.SameSiteStrictMode,
+			}
+			http.SetCookie(w, &cookie)
 			http.Redirect(w, r, urlForList('/'), http.StatusFound)
 		default:
 		}

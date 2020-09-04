@@ -21,7 +21,6 @@
 package config
 
 import (
-	"encoding/hex"
 	"fmt"
 	"hash/fnv"
 	"os"
@@ -90,19 +89,18 @@ func GetURLPrefix() string {
 
 // GetSecret returns the interal application secret. It is typically used to
 // encrypt session values.
-func GetSecret() string {
-	if secret, ok := startupConfig.Get("secret"); ok {
-		return secret
-	}
+func GetSecret() []byte {
 	h := fnv.New128()
+	if secret, ok := startupConfig.Get("secret"); ok {
+		h.Write([]byte(secret))
+	}
 	h.Write([]byte(version.Prog))
 	h.Write([]byte(version.Build))
 	h.Write([]byte(version.Hostname))
 	h.Write([]byte(version.GoVersion))
 	h.Write([]byte(version.Os))
 	h.Write([]byte(version.Arch))
-	sum := h.Sum(nil)
-	return hex.EncodeToString(sum)
+	return h.Sum(nil)
 }
 
 // --- Configuration zettel --------------------------------------------------
