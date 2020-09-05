@@ -21,7 +21,6 @@
 package auth
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -55,25 +54,36 @@ func CompareHashAndCredential(hashedCredential string, credential string) (bool,
 	return false, err
 }
 
+const reqHash = jwt.HS512
+
+// ErrNoUser signals that the meta data has no role value 'user'.
+var ErrNoUser = errors.New("auth: meta is no user")
+
 // ErrNoIdent signals that the meta data has no value for key 'ident'.
 var ErrNoIdent = errors.New("auth: missing ident in meta")
 
-var typHeader = json.RawMessage(`{"typ":"JWT"}`)
-
 // GetToken returns a token to be used for authentification
 func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
+	if role, ok := ident.Get(domain.MetaKeyRole); !ok || role != "user" {
+		return nil, ErrNoUser
+	}
 	subject, ok := ident.Get(domain.MetaKeyIdent)
 	if !ok || len(subject) == 0 {
 		return nil, ErrNoIdent
 	}
 
-	var claims jwt.Claims
-	claims.Subject = subject
 	now := time.Now().Round(time.Second)
-	claims.Expires = jwt.NewNumericTime(now.Add(d))
-	claims.Issued = jwt.NewNumericTime(now)
-	claims.ID = ident.Zid.Format()
-	token, err := claims.HMACSign(jwt.HS512, config.GetSecret(), typHeader)
+	claims := jwt.Claims{
+		Registered: jwt.Registered{
+			Subject: subject,
+			Expires: jwt.NewNumericTime(now.Add(d)),
+			Issued:  jwt.NewNumericTime(now),
+		},
+		Set: map[string]interface{}{
+			"zid": ident.Zid.Format(),
+		},
+	}
+	token, err := claims.HMACSign(reqHash, config.GetSecret())
 	if err != nil {
 		return nil, err
 	}
