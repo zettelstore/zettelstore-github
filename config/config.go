@@ -87,6 +87,17 @@ func GetURLPrefix() string {
 	return startupConfig.GetDefault("url-prefix", "/")
 }
 
+// GetOwner returns the zid of the zettelkasten's owner.
+// If there is no owner defined, the value ZettelID(0) is returned.
+func GetOwner() domain.ZettelID {
+	if owner, ok := startupConfig.Get("owner"); ok {
+		if zid, err := domain.ParseZettelID(owner); err == nil {
+			return zid
+		}
+	}
+	return domain.ZettelID(0)
+}
+
 // GetSecret returns the interal application secret. It is typically used to
 // encrypt session values.
 func GetSecret() []byte {
@@ -234,19 +245,6 @@ func GetIconMaterial() string {
 		"<img class=\"zs-text-icon\" src=\"%vc/%v\">",
 		GetURLPrefix(),
 		domain.MaterialIconID.Format())
-}
-
-// GetOwner returns the zid of the zettelkasten's owner.
-// If there is no owner defined, the value ZettelID(0) is returned.
-func GetOwner() domain.ZettelID {
-	if config := getConfigurationMeta(); config != nil {
-		if owner, ok := config.Get(domain.MetaKeyOwner); ok {
-			if zid, err := domain.ParseZettelID(owner); err == nil {
-				return zid
-			}
-		}
-	}
-	return domain.ZettelID(0)
 }
 
 var mapDefaultKeys = map[string]func() string{

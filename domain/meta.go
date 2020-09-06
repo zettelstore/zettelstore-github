@@ -84,7 +84,6 @@ const (
 	MetaKeyIdent            = "ident"
 	MetaKeyLang             = "lang"
 	MetaKeyLicense          = "license"
-	MetaKeyOwner            = "owner"
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
 	MetaKeyURL              = "url"
@@ -123,7 +122,6 @@ var keyTypeMap = map[string]byte{
 	MetaKeyIdent:            MetaTypeWord,
 	MetaKeyLang:             MetaTypeWord,
 	MetaKeyLicense:          MetaTypeEmpty,
-	MetaKeyOwner:            MetaTypeID,
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
 	MetaKeyURL:              MetaTypeURL,
