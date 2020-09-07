@@ -57,12 +57,16 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 	// could give herself the same ''ident''. Second, in most cases the owner
 	// will authenticate.
 	identMeta, err := uc.store.GetMeta(ctx, owner)
-
-	if err != nil || identMeta.GetDefault(domain.MetaKeyIdent, "") != ident {
+	if err == nil && identMeta.GetDefault(domain.MetaKeyIdent, "") == ident {
+		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != "user" {
+			return nil, nil
+		}
+	} else {
 		// Owner was not found or has another ident. Try via list search.
 		filter := store.Filter{
 			Expr: map[string][]string{
-				"ident": []string{ident},
+				domain.MetaKeyIdent: []string{ident},
+				domain.MetaKeyRole:  []string{"user"},
 			},
 		}
 		metaList, err := uc.store.SelectMeta(ctx, &filter, nil)
@@ -75,9 +79,6 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 		identMeta = metaList[len(metaList)-1]
 	}
 
-	if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != "user" {
-		return nil, nil
-	}
 	if cred, ok := identMeta.Get(domain.MetaKeyCred); ok {
 		ok, err := auth.CompareHashAndCredential(cred, credential)
 		if err != nil {
