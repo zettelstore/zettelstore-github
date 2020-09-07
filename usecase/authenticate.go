@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"zettelstore.de/z/auth"
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 )
@@ -38,45 +37,23 @@ type AuthenticatePort interface {
 
 // Authenticate is the data for this use case.
 type Authenticate struct {
-	store AuthenticatePort
+	store     AuthenticatePort
+	ucGetUser GetUser
 }
 
 // NewAuthenticate creates a new use case.
 func NewAuthenticate(port AuthenticatePort) Authenticate {
-	return Authenticate{store: port}
+	return Authenticate{
+		store:     port,
+		ucGetUser: NewGetUser(port),
+	}
 }
 
 // Run executes the use case.
 func (uc Authenticate) Run(ctx context.Context, ident string, credential string, d time.Duration) ([]byte, error) {
-	owner := config.GetOwner()
-	if !owner.IsValid() {
-		return nil, nil
-	}
-
-	// It is important to try first with the owner. First, because another user
-	// could give herself the same ''ident''. Second, in most cases the owner
-	// will authenticate.
-	identMeta, err := uc.store.GetMeta(ctx, owner)
-	if err == nil && identMeta.GetDefault(domain.MetaKeyIdent, "") == ident {
-		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != "user" {
-			return nil, nil
-		}
-	} else {
-		// Owner was not found or has another ident. Try via list search.
-		filter := store.Filter{
-			Expr: map[string][]string{
-				domain.MetaKeyIdent: []string{ident},
-				domain.MetaKeyRole:  []string{"user"},
-			},
-		}
-		metaList, err := uc.store.SelectMeta(ctx, &filter, nil)
-		if err != nil {
-			return nil, err
-		}
-		if len(metaList) < 1 {
-			return nil, nil
-		}
-		identMeta = metaList[len(metaList)-1]
+	identMeta, err := uc.ucGetUser.Run(ctx, ident)
+	if identMeta == nil || err != nil {
+		return nil, err
 	}
 
 	if cred, ok := identMeta.Get(domain.MetaKeyCred); ok {
