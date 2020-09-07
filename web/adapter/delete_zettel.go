@@ -55,9 +55,9 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		te.renderTemplate(ctx, w, domain.DeleteTemplateID, struct {
 			Lang  string
 			Title string
-			Meta  *domain.Meta
+			Meta  metaWrapper
 		}{
-			Meta:  zettel.Meta,
+			Meta:  makeWrapper(zettel.Meta),
 			Title: "Delete Zettel " + zettel.Meta.Zid.Format(),
 			Lang:  config.GetLang(zettel.Meta),
 		})

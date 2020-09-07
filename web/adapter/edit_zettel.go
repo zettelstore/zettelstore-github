@@ -54,7 +54,7 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 		}
 
 		te.renderTemplate(ctx, w, domain.FormTemplateID, formZettelData{
-			Meta:    zettel.Meta,
+			Meta:    makeWrapper(zettel.Meta),
 			Lang:    config.GetLang(zettel.Meta),
 			Title:   "Edit Zettel",
 			Content: zettel.Content.AsString(),

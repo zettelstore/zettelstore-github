@@ -133,15 +133,14 @@ var goData = goStore{
 				domain.MetaKeySyntax: syntaxTemplate,
 				domain.MetaKeyRole:   roleConfiguration,
 			},
-			domain.NewContent(fmt.Sprintf(
+			domain.NewContent(
 				`{{define "content"}}
 <h1>{{.Title}}</h1>
 <ul>
-{{range .Metas}}<li><a href="{{urlZettel $.Key .Meta.Zid}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetListOrNil %q}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
+{{range .Metas}}<li><a href="{{urlZettel $.Key .Meta.Zid}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetTags}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
 </ul>
 <p>Items: {{len .Metas}}</p>
-{{end}}`,
-				domain.MetaKeyTags))},
+{{end}}`)},
 
 		domain.DetailTemplateID: goZettel{
 			goHeader{
@@ -149,7 +148,7 @@ var goData = goStore{
 				domain.MetaKeySyntax: syntaxTemplate,
 				domain.MetaKeyRole:   roleConfiguration,
 			},
-			domain.NewContent(fmt.Sprintf(
+			domain.NewContent(
 				`{{define "meta-header"}}
 {{- .MetaHeader}}
 {{- end}}
@@ -161,19 +160,17 @@ var goData = goStore{
 {{if not config.IsReadOnly}}<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
 {{ .Meta.Zid.Format}} &#183;{{end}}
 <a href="{{urlZettel 'i' .Meta.Zid}}">Info</a> &#183;
-{{- with .Meta.GetDefault "role" "*"}} (<a href="{{urlList $.Key}}?role={{.}}">{{.}}</a>){{end}}
-{{- with .Meta.GetListOrNil %q}}
+{{- with .Meta.GetRole "*"}} (<a href="{{urlList $.Key}}?role={{.}}">{{.}}</a>){{end}}
+{{- with .Meta.GetTags}}
 {{- if .}}:{{range .}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
 {{- end}}
 {{if not config.IsReadOnly}}&#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{end}}
-{{with .Meta.GetDefault "url" ""}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}
+{{with .Meta.GetURL}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}
 </div>
 </header>
 {{- .Content -}}
 </article>
-{{- end}}`,
-				domain.MetaKeyTags)),
-		},
+{{- end}}`)},
 
 		domain.InfoTemplateID: goZettel{
 			goHeader{
@@ -235,19 +232,19 @@ var goData = goStore{
 <form method="POST">
 <div>
 <label for="title">Title</label>
-<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.Meta.GetDefault "title" ""}}">
+<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.Meta.GetTitle ""}}">
 </div>
 <div>
 <label for="tags">Tags</label>
-<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{.Meta.GetDefault "tags" ""}}">
+<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{join .Meta.GetTags}}">
 </div>
 <div>
 <label for="role">Role</label>
-<input class="zs-input" type="text" id="role" name="role" placeholder="role.." value="{{.Meta.GetDefault "role" ""}}">
+<input class="zs-input" type="text" id="role" name="role" placeholder="role.." value="{{.Meta.GetRole ""}}">
 </div>
 <div>
 <label for="syntax">Syntax</label>
-<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{.Meta.GetDefault "syntax" ""}}">
+<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{.Meta.GetSyntax ""}}">
 </div>
 <div>
 <label for="meta">Meta</label>

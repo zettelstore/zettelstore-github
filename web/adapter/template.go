@@ -102,7 +102,8 @@ func urlForZettel(key byte, zid domain.ZettelID) string {
 	return sb.String()
 }
 
-func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
+func htmlMetaValue(metaW metaWrapper, key string) template.HTML {
+	meta := metaW.original
 	switch meta.Type(key) {
 	case domain.MetaTypeBool:
 		var b strings.Builder
@@ -190,12 +191,17 @@ func htmlify(s string) template.HTML {
 	return template.HTML(s)
 }
 
+func join(sl []string) string {
+	return strings.Join(sl, " ")
+}
+
 var funcMap = template.FuncMap{
 	"urlList":       urlForList,
 	"urlZettel":     urlForZettel,
 	"htmlMetaValue": htmlMetaValue,
 	"config":        configObj,
 	"HTML":          htmlify,
+	"join":          join,
 }
 
 func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.ZettelID) (*template.Template, error) {

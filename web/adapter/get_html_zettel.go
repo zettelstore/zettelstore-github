@@ -101,7 +101,7 @@ func MakeGetHTMLZettelHandler(
 		}
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
 			Key        byte
-			Meta       *domain.Meta
+			Meta       metaWrapper
 			MetaHeader template.HTML
 			Lang       string
 			Title      string
@@ -109,7 +109,7 @@ func MakeGetHTMLZettelHandler(
 			Content    template.HTML
 		}{
 			Key:        key,
-			Meta:       z.Meta,
+			Meta:       makeWrapper(z.Meta),
 			MetaHeader: template.HTML(metaHeader),
 			Lang:       langOption.Value,
 			Title:      textTitle, // TODO: merge with site-title?

@@ -29,7 +29,7 @@ import (
 )
 
 type formZettelData struct {
-	Meta    *domain.Meta
+	Meta    metaWrapper
 	Lang    string
 	Title   string
 	Content string

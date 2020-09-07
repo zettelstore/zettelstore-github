@@ -55,11 +55,11 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 
 		te.renderTemplate(ctx, w, domain.RenameTemplateID, struct {
 			Title string
-			Meta  *domain.Meta
+			Meta  metaWrapper
 			Lang  string
 		}{
 			Title: "Rename Zettel " + zid.Format(),
-			Meta:  meta,
+			Meta:  makeWrapper(meta),
 			Lang:  config.GetLang(meta),
 		})
 	}

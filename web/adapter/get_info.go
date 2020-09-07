@@ -90,14 +90,14 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}
 
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
-			Meta     *domain.Meta
+			Meta     metaWrapper
 			Lang     string
 			Title    string
 			IntLinks []internalReference
 			ExtLinks []string
 			Formats  []string
 		}{
-			Meta:     z.Meta,
+			Meta:     makeWrapper(z.Meta),
 			Lang:     langOption.Value,
 			Title:    textTitle, // TODO: merge with site-title?
 			IntLinks: intLinks,

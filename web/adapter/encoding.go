@@ -151,7 +151,7 @@ func makeImageAdapter() func(*ast.ImageNode) *ast.ImageNode {
 }
 
 type metaInfo struct {
-	Meta  *domain.Meta
+	Meta  metaWrapper
 	Title template.HTML
 }
 
@@ -171,7 +171,7 @@ func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		metas = append(metas, metaInfo{meta, template.HTML(htmlTitle)})
+		metas = append(metas, metaInfo{makeWrapper(meta), template.HTML(htmlTitle)})
 	}
 	return metas, nil
 }

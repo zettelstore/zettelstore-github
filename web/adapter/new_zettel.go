@@ -51,7 +51,7 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 		zettel := &domain.Zettel{Meta: oldZettel.Meta.Clone(), Content: oldZettel.Content}
 
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
-			Meta:    zettel.Meta,
+			Meta:    makeWrapper(zettel.Meta),
 			Lang:    config.GetLang(zettel.Meta),
 			Title:   "New Zettel",
 			Content: zettel.Content.AsString(),
