@@ -25,6 +25,7 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/auth"
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 )
@@ -36,11 +37,18 @@ func SetToken(w http.ResponseWriter, token []byte) {
 	cookie := http.Cookie{
 		Name:     sessionName,
 		Value:    string(token),
+		Path:     config.GetURLPrefix(),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, &cookie)
+}
+
+// ClearToken invalidates the session cookie by sending an empty one.
+func ClearToken(ctx context.Context, w http.ResponseWriter) context.Context {
+	SetToken(w, nil)
+	return updateContext(ctx, nil)
 }
 
 // Handler enriches the request context with optional user information.
@@ -61,6 +69,19 @@ type contextUser struct{}
 
 var contextKey contextUser
 
+// GetUser returns the user meta data from the context, if there is one. Else return nil.
+func GetUser(ctx context.Context) *domain.Meta {
+	user, ok := ctx.Value(contextKey).(*domain.Meta)
+	if ok {
+		return user
+	}
+	return nil
+}
+
+func updateContext(ctx context.Context, user *domain.Meta) context.Context {
+	return context.WithValue(ctx, contextKey, user)
+}
+
 // ServeHTTP processes one HTTP request.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(sessionName)
@@ -80,14 +101,5 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.next.ServeHTTP(w, r)
 		return
 	}
-	h.next.ServeHTTP(w, r.WithContext(context.WithValue(ctx, contextKey, user)))
-}
-
-// GetUser returns the user meta data from the context, if there is one. Else return nil.
-func GetUser(ctx context.Context) *domain.Meta {
-	user, ok := ctx.Value(contextKey).(*domain.Meta)
-	if ok {
-		return user
-	}
-	return nil
+	h.next.ServeHTTP(w, r.WithContext(updateContext(ctx, user)))
 }

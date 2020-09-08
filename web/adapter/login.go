@@ -92,7 +92,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 		if token == nil {
 			switch format {
 			case "html":
-				renderLoginForm(ctx, w, te, true)
+				renderLoginForm(session.ClearToken(ctx, w), w, te, true)
 			default:
 				http.Error(w, "Authentication failed", http.StatusUnauthorized)
 				w.Header().Set("WWW-Authenticate", `Bearer realm="Default"`)
@@ -106,5 +106,18 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 			http.Redirect(w, r, urlForList('/'), http.StatusFound)
 		default:
 		}
+	}
+}
+
+// MakeGetLogoutHandler creates a new HTTP handler to log out the current user
+func MakeGetLogoutHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if format := getFormat(r, "html"); format != "html" {
+			http.Error(w, fmt.Sprintf("Logout not possible in format %q", format), http.StatusNotFound)
+			return
+		}
+
+		session.ClearToken(r.Context(), w)
+		http.Redirect(w, r, urlForList('/'), http.StatusFound)
 	}
 }
