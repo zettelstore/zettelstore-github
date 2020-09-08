@@ -29,6 +29,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 type loginData struct {
@@ -93,14 +94,7 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 
 		switch format {
 		case "html":
-			cookie := http.Cookie{
-				Name:     "Session",
-				Value:    string(token),
-				Secure:   true,
-				HttpOnly: true,
-				SameSite: http.SameSiteStrictMode,
-			}
-			http.SetCookie(w, &cookie)
+			session.SetToken(w, token)
 			http.Redirect(w, r, urlForList('/'), http.StatusFound)
 		default:
 		}

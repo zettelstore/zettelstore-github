@@ -35,6 +35,7 @@ import (
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/router"
+	"zettelstore.de/z/web/session"
 )
 
 // ---------- Subcommand: run ------------------------------------------------
@@ -98,7 +99,7 @@ func setupStores(cfg *domain.Meta) (store.Store, int, error) {
 	return cs, 0, nil
 }
 
-func setupRouting(s store.Store, readonly bool) *router.Router {
+func setupRouting(s store.Store, readonly bool) http.Handler {
 	te := adapter.NewTemplateEngine(s)
 
 	ucGetMeta := usecase.NewGetMeta(s)
@@ -140,5 +141,5 @@ func setupRouting(s store.Store, readonly bool) *router.Router {
 	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, usecase.NewSearch(s)))
 	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler('z', te, usecase.NewListMeta(s)))
 	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler('z', te, ucGetZettel, ucGetMeta))
-	return router
+	return session.NewHandler(router, usecase.NewGetUserByZid(s))
 }

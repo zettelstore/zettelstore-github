@@ -59,8 +59,11 @@ const reqHash = jwt.HS512
 // ErrNoUser signals that the meta data has no role value 'user'.
 var ErrNoUser = errors.New("auth: meta is no user")
 
-// ErrNoIdent signals that the meta data has no value for key 'ident'.
-var ErrNoIdent = errors.New("auth: missing ident in meta")
+// ErrNoIdent signals that the 'ident' key is missing.
+var ErrNoIdent = errors.New("auth: missing ident")
+
+// ErrNoZid signals that the 'zid' key is missing.
+var ErrNoZid = errors.New("auth: missing zettel id")
 
 // GetToken returns a token to be used for authentification
 func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
@@ -88,4 +91,29 @@ func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
 		return nil, err
 	}
 	return token, nil
+}
+
+// ErrTokenExpired signals an exired token
+var ErrTokenExpired = errors.New("auth: token expired")
+
+// CheckToken checks the validity of the token and returns relevant data.
+func CheckToken(token []byte) (string, domain.ZettelID, error) {
+	claims, err := jwt.HMACCheck(token, config.GetSecret())
+	if err != nil {
+		return "", domain.InvalidZettelID, err
+	}
+	now := time.Now().Round(time.Second)
+	if claims.Expires.Time().Before(now) {
+		return "", domain.InvalidZettelID, ErrTokenExpired
+	}
+	ident := claims.Subject
+	if len(ident) == 0 {
+		return "", domain.InvalidZettelID, ErrNoIdent
+	}
+	if zidS, ok := claims.Set["zid"].(string); ok {
+		if zid, err := domain.ParseZettelID(zidS); err == nil {
+			return ident, zid, nil
+		}
+	}
+	return "", domain.InvalidZettelID, ErrNoZid
 }
