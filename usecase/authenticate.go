@@ -53,6 +53,7 @@ func NewAuthenticate(port AuthenticatePort) Authenticate {
 func (uc Authenticate) Run(ctx context.Context, ident string, credential string, d time.Duration) ([]byte, error) {
 	identMeta, err := uc.ucGetUser.Run(ctx, ident)
 	if identMeta == nil || err != nil {
+		wait()
 		return nil, err
 	}
 
@@ -70,5 +71,11 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 		}
 		return nil, nil
 	}
+	wait()
 	return nil, nil
+}
+
+// wait for same time as if password was checked, to avoid timing hints.
+func wait() {
+	auth.CompareHashAndCredential("$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze", "")
 }

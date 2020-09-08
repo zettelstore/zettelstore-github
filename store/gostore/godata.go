@@ -118,6 +118,9 @@ var goData = goStore{
 <header>
 <h1>{{.Title}}</h1>
 </header>
+{{- if .Retry}}
+<div class="zs-indication zs-error">Wrong user name / password. Try again.</div>
+{{- end}}
 <form method="POST">
 <div>
 <label for="username">User name</label>
@@ -598,7 +601,12 @@ span.zs-indication {
   padding: .1rem .2rem;
   font-size: 95%;
 }
-.zs-example { border-style: dotted }
+.zs-example { border-style: dotted !important }
+.zs-error {
+  background-color: lightpink;
+  border-style: none !important;
+  font-weight: bold;
+}
 kbd {
   background: hsl(210, 5%, 100%);
   border: 1px solid hsl(210, 5%, 70%);

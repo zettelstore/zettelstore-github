@@ -21,6 +21,7 @@
 package adapter
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -45,21 +46,26 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 			return
 		}
 
-		ctx := r.Context()
-		te.renderTemplate(ctx, w, domain.LoginTemplateID, struct {
-			Lang  string
-			Title string
-			User  userWrapper
-		}{
-			Lang:  config.GetDefaultLang(),
-			Title: "Login",
-			User:  wrapUser(session.GetUser(ctx)),
-		})
+		renderLoginForm(r.Context(), w, te, false)
 	}
 }
 
+func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEngine, retry bool) {
+	te.renderTemplate(ctx, w, domain.LoginTemplateID, struct {
+		Lang  string
+		Title string
+		User  userWrapper
+		Retry bool
+	}{
+		Lang:  config.GetDefaultLang(),
+		Title: "Login",
+		User:  wrapUser(session.GetUser(ctx)),
+		Retry: retry,
+	})
+}
+
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
-func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
+func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		format := getFormat(r, "html")
 		if !config.GetOwner().IsValid() {
@@ -76,7 +82,8 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 		ident := r.PostFormValue("username")
 		cred := r.PostFormValue("password")
 		d := time.Second * 600 // TODO: longer for HTML, configurable, ...
-		token, err := auth.Run(r.Context(), ident, cred, d)
+		ctx := r.Context()
+		token, err := auth.Run(ctx, ident, cred, d)
 		if err != nil {
 			http.Error(w, "Unable to check login data", http.StatusInternalServerError)
 			log.Println(err)
@@ -85,7 +92,7 @@ func MakePostLoginHandler(auth usecase.Authenticate) http.HandlerFunc {
 		if token == nil {
 			switch format {
 			case "html":
-				http.Redirect(w, r, urlForList('a'), http.StatusFound)
+				renderLoginForm(ctx, w, te, true)
 			default:
 				http.Error(w, "Authentication failed", http.StatusUnauthorized)
 				w.Header().Set("WWW-Authenticate", `Bearer realm="Default"`)

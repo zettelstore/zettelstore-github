@@ -113,7 +113,7 @@ func setupRouting(s store.Store, readonly bool) http.Handler {
 	router.Handle("/", adapter.MakeGetRootHandler(s, listHTMLMetaHandler, getHTMLZettelHandler))
 	if !readonly {
 		router.AddListRoute('a', http.MethodGet, adapter.MakeGetLoginHandler(te))
-		router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(usecase.NewAuthenticate(s)))
+		router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(te, usecase.NewAuthenticate(s)))
 	}
 	router.AddZettelRoute('b', http.MethodGet, adapter.MakeGetBodyHandler('b', te, ucGetZettel, ucGetMeta))
 	router.AddListRoute('c', http.MethodGet, adapter.MakeReloadHandler(usecase.NewReload(s)))
