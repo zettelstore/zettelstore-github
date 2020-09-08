@@ -29,6 +29,7 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/encoder/jsonenc"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 // MakeListRoleHandler creates a new HTTP handler for the use case "list some zettel".
@@ -42,6 +43,7 @@ func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.Han
 			return
 		}
 
+		user := session.GetUser(ctx)
 		if format := getFormat(r, "html"); format != "html" {
 			w.Header().Set("Content-Type", formatContentType(format))
 			switch format {
@@ -54,10 +56,12 @@ func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.Han
 		te.renderTemplate(ctx, w, domain.RolesTemplateID, struct {
 			Lang  string
 			Title string
+			User  userWrapper
 			Roles []string
 		}{
 			Lang:  config.GetDefaultLang(),
 			Title: config.GetSiteName(),
+			User:  wrapUser(user),
 			Roles: roleList,
 		})
 	}

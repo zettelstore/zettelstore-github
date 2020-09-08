@@ -80,8 +80,14 @@ var goData = goStore{
 <div class="zs-dropdown">
 <button>User</button>
 <nav class="zs-dropdown-content">
-<a href="{{urlList 'a'}}">Login</a>
+{{- if .User.IsValid}}
+<a href="{{urlZettel 'h' .User.Zid}}">Profile {{.User.GetIdent}}</a>
+{{- if .User.IsOwner}}
 <a href="{{urlList 'c'}}">Reload</a>
+{{- end}}
+{{- else}}
+<a href="{{urlList 'a'}}">Login</a>
+{{- end}}
 </nav>
 </div>
 {{- end}}

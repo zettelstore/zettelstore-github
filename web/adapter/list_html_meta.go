@@ -27,19 +27,22 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 // MakeListHTMLMetaHandler creates a HTTP handler for rendering the list of zettel as HTML.
 func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		filter, sorter := getFilterSorter(r)
-		metaList, err := listMeta.Run(r.Context(), filter, sorter)
+		metaList, err := listMeta.Run(ctx, filter, sorter)
 		if err != nil {
 			http.Error(w, "Zettel store not operational", http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
 
+		user := session.GetUser(ctx)
 		metas, err := buildHTMLMetaList(metaList)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -50,11 +53,13 @@ func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.List
 			Key   byte
 			Lang  string
 			Title string
+			User  userWrapper
 			Metas []metaInfo
 		}{
 			Key:   key,
 			Lang:  config.GetDefaultLang(),
 			Title: config.GetSiteName(),
+			User:  wrapUser(user),
 			Metas: metas,
 		})
 

@@ -32,11 +32,6 @@ import (
 	"zettelstore.de/z/web/session"
 )
 
-type loginData struct {
-	Lang  string
-	Title string
-}
-
 // MakeGetLoginHandler creates a new HTTP handler to display the HTML login view.
 func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -50,9 +45,15 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 			return
 		}
 
-		te.renderTemplate(r.Context(), w, domain.LoginTemplateID, loginData{
+		ctx := r.Context()
+		te.renderTemplate(ctx, w, domain.LoginTemplateID, struct {
+			Lang  string
+			Title string
+			User  userWrapper
+		}{
 			Lang:  config.GetDefaultLang(),
 			Title: "Login",
+			User:  wrapUser(session.GetUser(ctx)),
 		})
 	}
 }

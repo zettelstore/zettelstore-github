@@ -31,6 +31,7 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/encoder/jsonenc"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 type tagInfo struct {
@@ -53,6 +54,7 @@ func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.Han
 			return
 		}
 
+		user := session.GetUser(ctx)
 		if format := getFormat(r, "html"); format != "html" {
 			w.Header().Set("Content-Type", formatContentType(format))
 			switch format {
@@ -86,11 +88,13 @@ func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.Han
 		te.renderTemplate(ctx, w, domain.TagsTemplateID, struct {
 			Lang   string
 			Title  string
+			User   userWrapper
 			Tags   []tagInfo
 			Counts []int
 		}{
 			Lang:   config.GetDefaultLang(),
 			Title:  config.GetSiteName(),
+			User:   wrapUser(user),
 			Tags:   tagsList,
 			Counts: countList,
 		})
