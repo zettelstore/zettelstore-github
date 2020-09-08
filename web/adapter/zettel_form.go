@@ -29,9 +29,10 @@ import (
 )
 
 type formZettelData struct {
-	Meta    metaWrapper
 	Lang    string
 	Title   string
+	User    userWrapper
+	Meta    metaWrapper
 	Content string
 }
 

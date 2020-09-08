@@ -171,7 +171,7 @@ func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		metas = append(metas, metaInfo{makeWrapper(meta), template.HTML(htmlTitle)})
+		metas = append(metas, metaInfo{wrapMeta(meta), template.HTML(htmlTitle)})
 	}
 	return metas, nil
 }

@@ -31,6 +31,7 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 // MakeGetHTMLZettelHandler creates a new HTTP handler for the use case "get zettel".
@@ -101,19 +102,21 @@ func MakeGetHTMLZettelHandler(
 		}
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
 			Key        byte
-			Meta       metaWrapper
-			MetaHeader template.HTML
 			Lang       string
 			Title      string
 			HTMLTitle  template.HTML
+			User       userWrapper
+			Meta       metaWrapper
+			MetaHeader template.HTML
 			Content    template.HTML
 		}{
 			Key:        key,
-			Meta:       makeWrapper(z.Meta),
-			MetaHeader: template.HTML(metaHeader),
 			Lang:       langOption.Value,
 			Title:      textTitle, // TODO: merge with site-title?
 			HTMLTitle:  template.HTML(htmlTitle),
+			User:       wrapUser(session.GetUser(ctx)),
+			Meta:       wrapMeta(z.Meta),
+			MetaHeader: template.HTML(metaHeader),
 			Content:    template.HTML(htmlContent),
 		})
 	}

@@ -21,6 +21,7 @@
 package adapter
 
 import (
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 )
 
@@ -30,7 +31,7 @@ type metaWrapper struct {
 	Zid      domain.ZettelID
 }
 
-func makeWrapper(original *domain.Meta) metaWrapper {
+func wrapMeta(original *domain.Meta) metaWrapper {
 	return metaWrapper{original, original.Zid}
 }
 
@@ -73,4 +74,40 @@ func (m metaWrapper) Pairs() []domain.MetaPair {
 // PairsRest return a list of all key/value paris except the four basic ones.
 func (m metaWrapper) PairsRest() []domain.MetaPair {
 	return m.original.PairsRest()
+}
+
+// userWrapper is a wrapper around a user meta object.
+type userWrapper struct {
+	original *domain.Meta
+	Zid      domain.ZettelID
+}
+
+func wrapUser(original *domain.Meta) userWrapper {
+	if original != nil {
+		return userWrapper{original, original.Zid}
+	}
+	return userWrapper{nil, domain.InvalidZettelID}
+}
+
+// IsValid returns true, if user is a valid user
+func (u userWrapper) IsValid() bool {
+	return u.original != nil && u.Zid.IsValid()
+}
+
+// GetIdent returns the identifier (aka user name) of the user.
+func (u userWrapper) GetIdent() string {
+	return u.original.GetDefault(domain.MetaKeyIdent, "")
+}
+
+// GetTitle returns the real name of the user.
+func (u userWrapper) GetTitle() string {
+	if title, ok := u.original.Get(domain.MetaKeyTitle); ok && len(title) > 0 {
+		return title
+	}
+	return config.GetDefaultTitle()
+}
+
+// IsOwner returns true, if the user is the owner of the zettelstore.
+func (u userWrapper) IsOwner() bool {
+	return u.IsValid() && u.Zid == config.GetOwner()
 }

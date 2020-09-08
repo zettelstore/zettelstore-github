@@ -28,6 +28,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 // MakeGetDeleteZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
@@ -55,11 +56,13 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		te.renderTemplate(ctx, w, domain.DeleteTemplateID, struct {
 			Lang  string
 			Title string
+			User  userWrapper
 			Meta  metaWrapper
 		}{
-			Meta:  makeWrapper(zettel.Meta),
 			Title: "Delete Zettel " + zettel.Meta.Zid.Format(),
 			Lang:  config.GetLang(zettel.Meta),
+			User:  wrapUser(session.GetUser(ctx)),
+			Meta:  wrapMeta(zettel.Meta),
 		})
 	}
 }

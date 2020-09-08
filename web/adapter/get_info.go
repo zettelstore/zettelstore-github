@@ -33,6 +33,7 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 type internalReference struct {
@@ -90,16 +91,18 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}
 
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
-			Meta     metaWrapper
 			Lang     string
 			Title    string
+			User     userWrapper
+			Meta     metaWrapper
 			IntLinks []internalReference
 			ExtLinks []string
 			Formats  []string
 		}{
-			Meta:     makeWrapper(z.Meta),
 			Lang:     langOption.Value,
 			Title:    textTitle, // TODO: merge with site-title?
+			User:     wrapUser(session.GetUser(ctx)),
+			Meta:     wrapMeta(z.Meta),
 			IntLinks: intLinks,
 			ExtLinks: extLinks,
 			Formats:  encoder.GetFormats(),

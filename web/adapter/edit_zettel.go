@@ -28,6 +28,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 // MakeEditGetZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
@@ -54,9 +55,10 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 		}
 
 		te.renderTemplate(ctx, w, domain.FormTemplateID, formZettelData{
-			Meta:    makeWrapper(zettel.Meta),
 			Lang:    config.GetLang(zettel.Meta),
 			Title:   "Edit Zettel",
+			User:    wrapUser(session.GetUser(ctx)),
+			Meta:    wrapMeta(zettel.Meta),
 			Content: zettel.Content.AsString(),
 		})
 	}

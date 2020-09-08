@@ -28,6 +28,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 // MakeGetRenameZettelHandler creates a new HTTP handler to display the HTML rename view of a zettel.
@@ -55,12 +56,14 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 
 		te.renderTemplate(ctx, w, domain.RenameTemplateID, struct {
 			Title string
-			Meta  metaWrapper
 			Lang  string
+			User  userWrapper
+			Meta  metaWrapper
 		}{
 			Title: "Rename Zettel " + zid.Format(),
-			Meta:  makeWrapper(meta),
 			Lang:  config.GetLang(meta),
+			User:  wrapUser(session.GetUser(ctx)),
+			Meta:  wrapMeta(meta),
 		})
 	}
 }
