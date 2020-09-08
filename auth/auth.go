@@ -98,7 +98,11 @@ var ErrTokenExpired = errors.New("auth: token expired")
 
 // CheckToken checks the validity of the token and returns relevant data.
 func CheckToken(token []byte) (string, domain.ZettelID, error) {
-	claims, err := jwt.HMACCheck(token, config.GetSecret())
+	h, err := jwt.NewHMAC(reqHash, config.GetSecret())
+	if err != nil {
+		return "", domain.InvalidZettelID, err
+	}
+	claims, err := h.Check(token)
 	if err != nil {
 		return "", domain.InvalidZettelID, err
 	}
