@@ -28,11 +28,15 @@ import (
 // meta is a wrapper around `domain.Meta` that will be shown on HTML templates.
 type metaWrapper struct {
 	original *domain.Meta
-	Zid      domain.ZettelID
 }
 
 func wrapMeta(original *domain.Meta) metaWrapper {
-	return metaWrapper{original, original.Zid}
+	return metaWrapper{original}
+}
+
+// Zid returns the zettel ID of the wrapped user.
+func (m metaWrapper) Zid() domain.ZettelID {
+	return m.original.Zid
 }
 
 // GetTitle returns the title value or the given default value.
@@ -79,19 +83,23 @@ func (m metaWrapper) PairsRest() []domain.MetaPair {
 // userWrapper is a wrapper around a user meta object.
 type userWrapper struct {
 	original *domain.Meta
-	Zid      domain.ZettelID
 }
 
 func wrapUser(original *domain.Meta) userWrapper {
-	if original != nil {
-		return userWrapper{original, original.Zid}
-	}
-	return userWrapper{nil, domain.InvalidZettelID}
+	return userWrapper{original}
 }
 
 // IsValid returns true, if user is a valid user
 func (u userWrapper) IsValid() bool {
-	return u.original != nil && u.Zid.IsValid()
+	return u.original != nil
+}
+
+// Zid returns the zettel ID of the wrapped user.
+func (u userWrapper) Zid() domain.ZettelID {
+	if orig := u.original; orig != nil {
+		return orig.Zid
+	}
+	return domain.InvalidZettelID
 }
 
 // GetIdent returns the identifier (aka user name) of the user.
@@ -109,5 +117,5 @@ func (u userWrapper) GetTitle() string {
 
 // IsOwner returns true, if the user is the owner of the zettelstore.
 func (u userWrapper) IsOwner() bool {
-	return u.IsValid() && u.Zid == config.GetOwner()
+	return u.IsValid() && u.Zid() == config.GetOwner()
 }
