@@ -183,9 +183,8 @@ func (c configType) IsReadOnly() bool { return config.IsReadOnly() }
 // GetIconMaterial returns the current value of the "icon-material" key.
 func (c configType) GetIconMaterial() string { return config.GetIconMaterial() }
 
-// GetOwner returns the zid of the zettelkasten's owner.
-// If there is no owner defined, the value ZettelID(0) is returned.
-func (c configType) GetOwner() domain.ZettelID { return config.GetOwner() }
+// WithAuth returns true if user authentication is enabled.
+func (c configType) WithAuth() bool { return config.GetOwner().IsValid() }
 
 func htmlify(s string) template.HTML {
 	return template.HTML(s)

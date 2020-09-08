@@ -102,17 +102,9 @@ func (u userWrapper) Zid() domain.ZettelID {
 	return domain.InvalidZettelID
 }
 
-// GetIdent returns the identifier (aka user name) of the user.
-func (u userWrapper) GetIdent() string {
+// Ident returns the identifier (aka user name) of the user.
+func (u userWrapper) Ident() string {
 	return u.original.GetDefault(domain.MetaKeyIdent, "")
-}
-
-// GetTitle returns the real name of the user.
-func (u userWrapper) GetTitle() string {
-	if title, ok := u.original.Get(domain.MetaKeyTitle); ok && len(title) > 0 {
-		return title
-	}
-	return config.GetDefaultTitle()
 }
 
 // IsOwner returns true, if the user is the owner of the zettelstore.

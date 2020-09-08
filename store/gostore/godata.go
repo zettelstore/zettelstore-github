@@ -76,12 +76,12 @@ var goData = goStore{
 {{- if not config.IsReadOnly}}
 <a href="{{urlZettel 'n' %d}}">New</a>
 {{- end}}
-{{- if config.GetOwner.IsValid}}
+{{- if config.WithAuth}}
 <div class="zs-dropdown">
 <button>User</button>
 <nav class="zs-dropdown-content">
 {{- if .User.IsValid}}
-<a href="{{urlZettel 'h' .User.Zid}}">Profile {{.User.GetIdent}}</a>
+<a href="{{urlZettel 'h' .User.Zid}}">Profile {{.User.Ident}}</a>
 {{- if .User.IsOwner}}
 <a href="{{urlList 'c'}}">Reload</a>
 {{- end}}
