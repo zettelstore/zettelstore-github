@@ -29,6 +29,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/session"
 )
 
 // MakeSearchHandler creates a new HTTP handler for the use case "search".
@@ -81,6 +82,8 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			return
 		}
 
+		ctx := r.Context()
+		user := session.GetUser(ctx)
 		if format := getFormat(r, "html"); format != "html" {
 			w.Header().Set("Content-Type", formatContentType(format))
 			switch format {
@@ -96,14 +99,16 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			log.Println(err)
 			return
 		}
-		te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
+		te.renderTemplate(ctx, w, domain.ListTemplateID, struct {
 			Lang  string
 			Title string
+			User  userWrapper
 			Metas []metaInfo
 			Key   byte
 		}{
 			Lang:  config.GetDefaultLang(),
 			Title: config.GetSiteName(),
+			User:  wrapUser(user),
 			Metas: metas,
 			Key:   'h',
 		})
