@@ -21,6 +21,7 @@
 package auth
 
 import (
+	"bytes"
 	"errors"
 	"time"
 
@@ -33,8 +34,9 @@ import (
 )
 
 // HashCredential returns a hashed vesion of the given credential
-func HashCredential(credential string) (string, error) {
-	res, err := bcrypt.GenerateFromPassword([]byte(credential), bcrypt.DefaultCost)
+func HashCredential(zid domain.ZettelID, ident string, credential string) (string, error) {
+	res, err := bcrypt.GenerateFromPassword(
+		createFullCredential(zid, ident, credential), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
@@ -43,8 +45,10 @@ func HashCredential(credential string) (string, error) {
 
 // CompareHashAndCredential checks, whether the hashedCredential is a possible
 // value when hashing the credential.
-func CompareHashAndCredential(hashedCredential string, credential string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedCredential), []byte(credential))
+func CompareHashAndCredential(
+	hashedCredential string, zid domain.ZettelID, ident string, credential string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(
+		[]byte(hashedCredential), createFullCredential(zid, ident, credential))
 	if err == nil {
 		return true, nil
 	}
@@ -52,6 +56,16 @@ func CompareHashAndCredential(hashedCredential string, credential string) (bool,
 		return false, nil
 	}
 	return false, err
+}
+
+func createFullCredential(zid domain.ZettelID, ident string, credential string) []byte {
+	var buf bytes.Buffer
+	buf.WriteString(zid.Format())
+	buf.WriteByte(' ')
+	buf.WriteString(ident)
+	buf.WriteByte(' ')
+	buf.WriteString(credential)
+	return buf.Bytes()
 }
 
 const reqHash = jwt.HS512

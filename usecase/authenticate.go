@@ -58,7 +58,7 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 	}
 
 	if cred, ok := identMeta.Get(domain.MetaKeyCred); ok {
-		ok, err := auth.CompareHashAndCredential(cred, credential)
+		ok, err := auth.CompareHashAndCredential(cred, identMeta.Zid, ident, credential)
 		if err != nil {
 			return nil, err
 		}
@@ -77,5 +77,6 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 
 // wait for same time as if password was checked, to avoid timing hints.
 func wait() {
-	auth.CompareHashAndCredential("$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze", "")
+	auth.CompareHashAndCredential(
+		"$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze", domain.InvalidZettelID, "", "")
 }

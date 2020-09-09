@@ -32,6 +32,22 @@ import (
 // ---------- Subcommand: password -------------------------------------------
 
 func cmdPassword(cfg *domain.Meta) (int, error) {
+	ident, ok := cfg.Get("arg-1")
+	if !ok {
+		fmt.Fprintln(os.Stderr, "User name missing")
+		return 2, nil
+	}
+	sid, ok := cfg.Get("arg-2")
+	if !ok {
+		fmt.Fprintln(os.Stderr, "Zettel identification missing")
+		return 2, nil
+	}
+	zid, err := domain.ParseZettelID(sid)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Given zettel identification is not valid: %q\n", sid)
+		return 2, err
+	}
+
 	password, err := getPassword("Password")
 	if err != nil {
 		return 2, err
@@ -45,7 +61,7 @@ func cmdPassword(cfg *domain.Meta) (int, error) {
 		return 2, nil
 	}
 
-	hashedPassword, err := auth.HashCredential(password)
+	hashedPassword, err := auth.HashCredential(zid, ident, password)
 	if err != nil {
 		return 2, err
 	}
