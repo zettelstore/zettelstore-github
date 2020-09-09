@@ -50,7 +50,7 @@ func MakeGetHTMLZettelHandler(
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
 			log.Println(err)
 			return
 		}

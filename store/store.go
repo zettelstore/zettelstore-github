@@ -78,6 +78,9 @@ type Store interface {
 	Reload(ctx context.Context) error
 }
 
+// ErrNotAuthorized is returned if the caller has no authorization to perform the operation.
+var ErrNotAuthorized = errors.New("No authorization for operation")
+
 // ErrStopped is returned if calling methods on a store that was not started.
 var ErrStopped = errors.New("Store is stopped")
 

@@ -48,7 +48,7 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
@@ -77,7 +77,7 @@ func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.Handler
 		}
 
 		if err := deleteZettel.Run(r.Context(), zid); err != nil {
-			http.Error(w, fmt.Sprintf("Unable to delete zettel %q", zid), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to delete zettel %q", zid.Format()), http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}

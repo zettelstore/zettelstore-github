@@ -26,12 +26,14 @@ import (
 	"os"
 
 	"net/http"
+	"zettelstore.de/z/auth/policy"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 	"zettelstore.de/z/store/chainstore"
 	"zettelstore.de/z/store/filestore"
 	"zettelstore.de/z/store/gostore"
+	"zettelstore.de/z/store/policystore"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/router"
@@ -99,46 +101,49 @@ func setupStores(cfg *domain.Meta) (store.Store, int, error) {
 	return cs, 0, nil
 }
 
-func setupRouting(s store.Store, readonly bool) http.Handler {
-	te := adapter.NewTemplateEngine(s)
+func setupRouting(us store.Store, readonly bool) http.Handler {
+	te := adapter.NewTemplateEngine(us)
 
-	ucGetMeta := usecase.NewGetMeta(s)
-	ucGetZettel := usecase.NewGetZettel(s)
-	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler('h', te, usecase.NewListMeta(s))
+	ps := us
+	if config.WithAuth() {
+		ps = policystore.NewStore(us, policy.NewPolicy())
+	}
+
+	ucGetMeta := usecase.NewGetMeta(ps)
+	ucGetZettel := usecase.NewGetZettel(ps)
+	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler('h', te, usecase.NewListMeta(ps))
 	getHTMLZettelHandler := adapter.MakeGetHTMLZettelHandler('h', te, ucGetZettel, ucGetMeta)
-	getNewZettelHandler := adapter.MakeGetNewZettelHandler(te, ucGetZettel)
-	postNewZettelHandler := adapter.MakePostNewZettelHandler(usecase.NewNewZettel(s))
 
 	router := router.NewRouter()
-	router.Handle("/", adapter.MakeGetRootHandler(s, listHTMLMetaHandler, getHTMLZettelHandler))
+	router.Handle("/", adapter.MakeGetRootHandler(ps, listHTMLMetaHandler, getHTMLZettelHandler))
 	router.AddListRoute('a', http.MethodGet, adapter.MakeGetLoginHandler(te))
-	router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(te, usecase.NewAuthenticate(s)))
+	router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(te, usecase.NewAuthenticate(us)))
 	router.AddZettelRoute('a', http.MethodGet, adapter.MakeGetLogoutHandler())
 	router.AddZettelRoute('b', http.MethodGet, adapter.MakeGetBodyHandler('b', te, ucGetZettel, ucGetMeta))
-	router.AddListRoute('c', http.MethodGet, adapter.MakeReloadHandler(usecase.NewReload(s)))
+	router.AddListRoute('c', http.MethodGet, adapter.MakeReloadHandler(usecase.NewReload(ps)))
 	router.AddZettelRoute('c', http.MethodGet, adapter.MakeGetContentHandler(ucGetZettel))
 	if !readonly {
 		router.AddZettelRoute('d', http.MethodGet, adapter.MakeGetDeleteZettelHandler(te, ucGetZettel))
-		router.AddZettelRoute('d', http.MethodPost, adapter.MakePostDeleteZettelHandler(usecase.NewDeleteZettel(s)))
+		router.AddZettelRoute('d', http.MethodPost, adapter.MakePostDeleteZettelHandler(usecase.NewDeleteZettel(ps)))
 		router.AddZettelRoute('e', http.MethodGet, adapter.MakeEditGetZettelHandler(te, ucGetZettel))
-		router.AddZettelRoute('e', http.MethodPost, adapter.MakeEditSetZettelHandler(usecase.NewUpdateZettel(s)))
+		router.AddZettelRoute('e', http.MethodPost, adapter.MakeEditSetZettelHandler(usecase.NewUpdateZettel(ps)))
 	}
 	router.AddListRoute('h', http.MethodGet, listHTMLMetaHandler)
 	router.AddZettelRoute('h', http.MethodGet, getHTMLZettelHandler)
 	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, ucGetZettel, ucGetMeta))
 	router.AddZettelRoute('m', http.MethodGet, adapter.MakeGetMetaHandler(ucGetMeta))
 	if !readonly {
-		router.AddZettelRoute('n', http.MethodGet, getNewZettelHandler)
-		router.AddZettelRoute('n', http.MethodPost, postNewZettelHandler)
+		router.AddZettelRoute('n', http.MethodGet, adapter.MakeGetNewZettelHandler(te, ucGetZettel))
+		router.AddZettelRoute('n', http.MethodPost, adapter.MakePostNewZettelHandler(usecase.NewNewZettel(ps)))
 	}
-	router.AddListRoute('r', http.MethodGet, adapter.MakeListRoleHandler(te, usecase.NewListRole(s)))
+	router.AddListRoute('r', http.MethodGet, adapter.MakeListRoleHandler(te, usecase.NewListRole(ps)))
 	if !readonly {
 		router.AddZettelRoute('r', http.MethodGet, adapter.MakeGetRenameZettelHandler(te, ucGetMeta))
-		router.AddZettelRoute('r', http.MethodPost, adapter.MakePostRenameZettelHandler(usecase.NewRenameZettel(s)))
+		router.AddZettelRoute('r', http.MethodPost, adapter.MakePostRenameZettelHandler(usecase.NewRenameZettel(ps)))
 	}
-	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, usecase.NewListTags(s)))
-	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, usecase.NewSearch(s)))
-	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler('z', te, usecase.NewListMeta(s)))
+	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, usecase.NewListTags(ps)))
+	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, usecase.NewSearch(ps)))
+	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler('z', te, usecase.NewListMeta(ps)))
 	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler('z', te, ucGetZettel, ucGetMeta))
-	return session.NewHandler(router, usecase.NewGetUserByZid(s))
+	return session.NewHandler(router, usecase.NewGetUserByZid(us))
 }
