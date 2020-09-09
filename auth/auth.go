@@ -86,7 +86,7 @@ func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
 			"zid": ident.Zid.Format(),
 		},
 	}
-	token, err := claims.HMACSign(reqHash, config.GetSecret())
+	token, err := claims.HMACSign(reqHash, config.Secret())
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ var ErrTokenExpired = errors.New("auth: token expired")
 
 // CheckToken checks the validity of the token and returns relevant data.
 func CheckToken(token []byte) (string, domain.ZettelID, error) {
-	h, err := jwt.NewHMAC(reqHash, config.GetSecret())
+	h, err := jwt.NewHMAC(reqHash, config.Secret())
 	if err != nil {
 		return "", domain.InvalidZettelID, err
 	}

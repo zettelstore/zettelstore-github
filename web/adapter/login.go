@@ -41,7 +41,7 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 			return
 		}
 
-		if !config.GetOwner().IsValid() {
+		if !config.WithAuth() {
 			http.Error(w, "Login not available", http.StatusBadRequest)
 			return
 		}
@@ -68,7 +68,7 @@ func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEng
 func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		format := getFormat(r, "html")
-		if !config.GetOwner().IsValid() {
+		if !config.WithAuth() {
 			http.Error(w, "Authentication not available", http.StatusBadRequest)
 			return
 		}

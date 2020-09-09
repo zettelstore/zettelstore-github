@@ -49,7 +49,7 @@ func NewGetUser(port GetUserPort) GetUser {
 
 // Run executes the use case.
 func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
-	owner := config.GetOwner()
+	owner := config.Owner()
 	if !owner.IsValid() {
 		return nil, nil
 	}

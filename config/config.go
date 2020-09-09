@@ -67,42 +67,36 @@ func GetVersion() Version { return version }
 
 // --- Startup config --------------------------------------------------------
 
-var startupConfig *domain.Meta
+var startupConfig struct {
+	readonly  bool
+	urlPrefix string
+	secCookie bool
+	owner     domain.ZettelID
+	withAuth  bool
+	secret    []byte
+}
 
 // SetupStartup initializes the startup data.
 func SetupStartup(cfg *domain.Meta) {
-	if startupConfig != nil {
+	if startupConfig.urlPrefix != "" {
 		panic("startupConfig already set")
 	}
-	cfg.Freeze()
-	startupConfig = cfg
-}
-
-// IsReadOnly returns whether the system is in read-only mode or not.
-func IsReadOnly() bool { return startupConfig.GetBool("readonly") }
-
-// GetURLPrefix returns the configured prefix to be used when providing URL to
-// the service.
-func GetURLPrefix() string {
-	return startupConfig.GetDefault("url-prefix", "/")
-}
-
-// GetOwner returns the zid of the zettelkasten's owner.
-// If there is no owner defined, the value ZettelID(0) is returned.
-func GetOwner() domain.ZettelID {
-	if owner, ok := startupConfig.Get("owner"); ok {
+	startupConfig.readonly = cfg.GetBool("readonly")
+	startupConfig.urlPrefix = cfg.GetDefault("url-prefix", "/")
+	startupConfig.secCookie = !cfg.GetBool("insecure-cookie")
+	startupConfig.owner = domain.InvalidZettelID
+	if owner, ok := cfg.Get("owner"); ok {
 		if zid, err := domain.ParseZettelID(owner); err == nil {
-			return zid
+			startupConfig.owner = zid
+			startupConfig.withAuth = true
 		}
 	}
-	return domain.ZettelID(0)
+	startupConfig.secret = calcSecret(cfg)
 }
 
-// GetSecret returns the interal application secret. It is typically used to
-// encrypt session values.
-func GetSecret() []byte {
+func calcSecret(cfg *domain.Meta) []byte {
 	h := fnv.New128()
-	if secret, ok := startupConfig.Get("secret"); ok {
+	if secret, ok := cfg.Get("secret"); ok {
 		h.Write([]byte(secret))
 	}
 	h.Write([]byte(version.Prog))
@@ -113,6 +107,27 @@ func GetSecret() []byte {
 	h.Write([]byte(version.Arch))
 	return h.Sum(nil)
 }
+
+// IsReadOnly returns whether the system is in read-only mode or not.
+func IsReadOnly() bool { return startupConfig.readonly }
+
+// URLPrefix returns the configured prefix to be used when providing URL to
+// the service.
+func URLPrefix() string { return startupConfig.urlPrefix }
+
+// SecureCookie returns whether the web app should set cookies to secure mode.
+func SecureCookie() bool { return startupConfig.secCookie }
+
+// Owner returns the zid of the zettelkasten's owner.
+// If there is no owner defined, the value ZettelID(0) is returned.
+func Owner() domain.ZettelID { return startupConfig.owner }
+
+// WithAuth returns true if user authentication is enabled.
+func WithAuth() bool { return startupConfig.withAuth }
+
+// Secret returns the interal application secret. It is typically used to
+// encrypt session values.
+func Secret() []byte { return startupConfig.secret }
 
 // --- Configuration zettel --------------------------------------------------
 
@@ -243,7 +258,7 @@ func GetIconMaterial() string {
 	}
 	return fmt.Sprintf(
 		"<img class=\"zs-text-icon\" src=\"%vc/%v\">",
-		GetURLPrefix(),
+		URLPrefix(),
 		domain.MaterialIconID.Format())
 }
 

@@ -37,8 +37,8 @@ func SetToken(w http.ResponseWriter, token []byte) {
 	cookie := http.Cookie{
 		Name:     sessionName,
 		Value:    string(token),
-		Path:     config.GetURLPrefix(),
-		Secure:   true,
+		Path:     config.URLPrefix(),
+		Secure:   config.SecureCookie(),
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}

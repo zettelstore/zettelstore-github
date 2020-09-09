@@ -109,5 +109,5 @@ func (u userWrapper) Ident() string {
 
 // IsOwner returns true, if the user is the owner of the zettelstore.
 func (u userWrapper) IsOwner() bool {
-	return u.IsValid() && u.Zid() == config.GetOwner()
+	return u.IsValid() && u.Zid() == config.Owner()
 }

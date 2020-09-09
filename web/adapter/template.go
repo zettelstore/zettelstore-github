@@ -85,7 +85,7 @@ func (te *TemplateEngine) cacheGetTemplate(zid domain.ZettelID) (*template.Templ
 }
 
 func urlForList(key byte) string {
-	prefix := config.GetURLPrefix()
+	prefix := config.URLPrefix()
 	if key == '/' {
 		return prefix
 	}
@@ -95,7 +95,7 @@ func urlForList(key byte) string {
 func urlForZettel(key byte, zid domain.ZettelID) string {
 	var sb strings.Builder
 
-	sb.WriteString(config.GetURLPrefix())
+	sb.WriteString(config.URLPrefix())
 	sb.WriteByte(key)
 	sb.WriteByte('/')
 	sb.WriteString(zid.Format())
@@ -184,7 +184,7 @@ func (c configType) IsReadOnly() bool { return config.IsReadOnly() }
 func (c configType) GetIconMaterial() string { return config.GetIconMaterial() }
 
 // WithAuth returns true if user authentication is enabled.
-func (c configType) WithAuth() bool { return config.GetOwner().IsValid() }
+func (c configType) WithAuth() bool { return config.WithAuth() }
 
 func htmlify(s string) template.HTML {
 	return template.HTML(s)
