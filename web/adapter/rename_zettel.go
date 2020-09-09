@@ -43,13 +43,13 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 		ctx := r.Context()
 		meta, err := getMeta.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
 
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Rename zettel %q not possible in format %q", zid, format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Rename zettel %q not possible in format %q", zid.Format(), format), http.StatusNotFound)
 			log.Println(err)
 			return
 		}

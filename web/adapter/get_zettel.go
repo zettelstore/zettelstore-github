@@ -48,7 +48,7 @@ func MakeGetZettelHandler(
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
@@ -71,7 +71,7 @@ func MakeGetZettelHandler(
 		)
 		if err != nil {
 			if err == errNoSuchFormat {
-				http.Error(w, fmt.Sprintf("Zettel %q not available in format %q", zid, format), http.StatusNotFound)
+				http.Error(w, fmt.Sprintf("Zettel %q not available in format %q", zid.Format(), format), http.StatusNotFound)
 				log.Println(err, format)
 				return
 			}

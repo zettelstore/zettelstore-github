@@ -43,13 +43,13 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
 
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid, format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
@@ -80,7 +80,7 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 		}
 
 		if err := updateZettel.Run(r.Context(), zettel); err != nil {
-			http.Error(w, fmt.Sprintf("Unable to update zettel %q", zid), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Unable to update zettel %q", zid.Format()), http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}

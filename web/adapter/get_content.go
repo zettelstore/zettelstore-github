@@ -41,7 +41,7 @@ func MakeGetContentHandler(getZettel usecase.GetZettel) http.HandlerFunc {
 
 		zettel, err := getZettel.Run(r.Context(), zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
 			log.Println(err)
 			return
 		}
