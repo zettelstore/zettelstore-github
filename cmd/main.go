@@ -56,15 +56,14 @@ func init() {
 		},
 	})
 	RegisterCommand(Command{
-		Name: "run",
-		Func: runFunc,
-		Flags: func(fs *flag.FlagSet) {
-			fs.String("c", defConfigfile, "configuration file")
-			fs.Uint("p", 23123, "port number")
-			fs.String("d", "", "zettel directory")
-			fs.Bool("r", false, "system-wide read-only mode")
-			fs.Bool("v", false, "verbose mode")
-		},
+		Name:  "run",
+		Func:  runFunc,
+		Flags: flgRun,
+	})
+	RegisterCommand(Command{
+		Name:  "config",
+		Func:  cmdConfig,
+		Flags: flgRun,
 	})
 	RegisterCommand(Command{
 		Name: "file",
@@ -77,6 +76,14 @@ func init() {
 		Name: "password",
 		Func: cmdPassword,
 	})
+}
+
+func flgRun(fs *flag.FlagSet) {
+	fs.String("c", defConfigfile, "configuration file")
+	fs.Uint("p", 23123, "port number")
+	fs.String("d", "", "zettel directory")
+	fs.Bool("r", false, "system-wide read-only mode")
+	fs.Bool("v", false, "verbose mode")
 }
 
 func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
