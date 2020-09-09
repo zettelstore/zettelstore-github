@@ -24,7 +24,8 @@ import (
 	"context"
 	"time"
 
-	"zettelstore.de/z/auth"
+	"zettelstore.de/z/auth/cred"
+	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 )
@@ -57,13 +58,13 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 		return nil, err
 	}
 
-	if cred, ok := identMeta.Get(domain.MetaKeyCred); ok {
-		ok, err := auth.CompareHashAndCredential(cred, identMeta.Zid, ident, credential)
+	if hashCred, ok := identMeta.Get(domain.MetaKeyCred); ok {
+		ok, err := cred.CompareHashAndCredential(hashCred, identMeta.Zid, ident, credential)
 		if err != nil {
 			return nil, err
 		}
 		if ok {
-			token, err := auth.GetToken(identMeta, d)
+			token, err := token.GetToken(identMeta, d)
 			if err != nil {
 				return nil, err
 			}
@@ -77,6 +78,6 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 
 // wait for same time as if password was checked, to avoid timing hints.
 func wait() {
-	auth.CompareHashAndCredential(
+	cred.CompareHashAndCredential(
 		"$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze", domain.InvalidZettelID, "", "")
 }

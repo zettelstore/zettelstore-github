@@ -25,7 +25,7 @@ import (
 
 	"golang.org/x/crypto/ssh/terminal"
 
-	"zettelstore.de/z/auth"
+	"zettelstore.de/z/auth/cred"
 	"zettelstore.de/z/domain"
 )
 
@@ -61,7 +61,7 @@ func cmdPassword(cfg *domain.Meta) (int, error) {
 		return 2, nil
 	}
 
-	hashedPassword, err := auth.HashCredential(zid, ident, password)
+	hashedPassword, err := cred.HashCredential(zid, ident, password)
 	if err != nil {
 		return 2, err
 	}

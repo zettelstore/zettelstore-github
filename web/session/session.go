@@ -24,7 +24,7 @@ import (
 	"context"
 	"net/http"
 
-	"zettelstore.de/z/auth"
+	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
@@ -91,8 +91,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.next.ServeHTTP(w, r)
 		return
 	}
-	token := []byte(cookie.Value)
-	ident, zid, err := auth.CheckToken(token)
+	t := []byte(cookie.Value)
+	ident, zid, err := token.CheckToken(t)
 	if err != nil {
 		h.next.ServeHTTP(w, r)
 		return

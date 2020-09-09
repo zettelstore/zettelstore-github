@@ -17,56 +17,18 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package auth provides some function for authentication.
-package auth
+// Package token provides some function for handling auth token.
+package token
 
 import (
-	"bytes"
 	"errors"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/pascaldekloe/jwt"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 )
-
-// HashCredential returns a hashed vesion of the given credential
-func HashCredential(zid domain.ZettelID, ident string, credential string) (string, error) {
-	res, err := bcrypt.GenerateFromPassword(
-		createFullCredential(zid, ident, credential), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(res), nil
-}
-
-// CompareHashAndCredential checks, whether the hashedCredential is a possible
-// value when hashing the credential.
-func CompareHashAndCredential(
-	hashedCredential string, zid domain.ZettelID, ident string, credential string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword(
-		[]byte(hashedCredential), createFullCredential(zid, ident, credential))
-	if err == nil {
-		return true, nil
-	}
-	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return false, nil
-	}
-	return false, err
-}
-
-func createFullCredential(zid domain.ZettelID, ident string, credential string) []byte {
-	var buf bytes.Buffer
-	buf.WriteString(zid.Format())
-	buf.WriteByte(' ')
-	buf.WriteString(ident)
-	buf.WriteByte(' ')
-	buf.WriteString(credential)
-	return buf.Bytes()
-}
 
 const reqHash = jwt.HS512
 

@@ -31,7 +31,7 @@ import (
 	"strings"
 	"sync"
 
-	"zettelstore.de/z/auth"
+	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
@@ -250,9 +250,9 @@ func (te *TemplateEngine) renderTemplate(
 	}
 	if user := session.GetUser(ctx); user != nil {
 		htmlTimeout, _ := config.Timeouts()
-		token, err := auth.GetToken(user, htmlTimeout)
+		t, err := token.GetToken(user, htmlTimeout)
 		if err == nil {
-			session.SetToken(w, token)
+			session.SetToken(w, t)
 		}
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
