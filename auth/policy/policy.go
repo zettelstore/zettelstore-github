@@ -31,7 +31,7 @@ type Policy interface {
 	CanReload(user *domain.Meta) bool
 
 	// User is allowed to create a new zettel.
-	CanCreate(user *domain.Meta) bool
+	CanCreate(user *domain.Meta, newMeta *domain.Meta) bool
 
 	// User is allowed to read zettel
 	CanRead(user *domain.Meta, meta *domain.Meta) bool
@@ -65,11 +65,14 @@ func (o *ownerPolicy) CanReload(user *domain.Meta) bool {
 	return o.base.CanReload(user)
 }
 
-func (o *ownerPolicy) CanCreate(user *domain.Meta) bool {
+func (o *ownerPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
 	if o.canDo(user) {
 		return true
 	}
-	return o.base.CanCreate(user)
+	if newMeta == nil {
+		return false
+	}
+	return o.base.CanCreate(user, newMeta)
 }
 
 func (o *ownerPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
@@ -126,7 +129,7 @@ func (d *defaultPolicy) CanReload(user *domain.Meta) bool {
 	return false
 }
 
-func (d *defaultPolicy) CanCreate(user *domain.Meta) bool {
+func (d *defaultPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
 	return user != nil
 }
 
@@ -153,10 +156,7 @@ func (d *defaultPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
 }
 
 func (d *defaultPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
-	if !d.CanRead(user, oldMeta) {
-		return false
-	}
-	return true
+	return d.CanRead(user, oldMeta) && !d.CanCreate(user, newMeta)
 }
 
 func (d *defaultPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {

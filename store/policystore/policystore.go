@@ -119,7 +119,7 @@ func (ps *polStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
 		}
 	} else {
 		// Create new zettel
-		if ps.policy.CanCreate(session.GetUser(ctx)) {
+		if ps.policy.CanCreate(session.GetUser(ctx), zettel.Meta) {
 			return ps.store.SetZettel(ctx, zettel)
 		}
 	}
