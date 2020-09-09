@@ -25,6 +25,8 @@ import (
 	"hash/fnv"
 	"os"
 	"runtime"
+	"strconv"
+	"time"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
@@ -68,12 +70,14 @@ func GetVersion() Version { return version }
 // --- Startup config --------------------------------------------------------
 
 var startupConfig struct {
-	readonly  bool
-	urlPrefix string
-	secCookie bool
-	owner     domain.ZettelID
-	withAuth  bool
-	secret    []byte
+	readonly    bool
+	urlPrefix   string
+	secCookie   bool
+	owner       domain.ZettelID
+	withAuth    bool
+	secret      []byte
+	htmlTimeout time.Duration
+	apiTimeout  time.Duration
 }
 
 // SetupStartup initializes the startup data.
@@ -91,7 +95,13 @@ func SetupStartup(cfg *domain.Meta) {
 			startupConfig.withAuth = true
 		}
 	}
-	startupConfig.secret = calcSecret(cfg)
+	if startupConfig.withAuth {
+		startupConfig.secret = calcSecret(cfg)
+		startupConfig.htmlTimeout = getDuration(
+			cfg, "token-timeout-html", 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
+		startupConfig.apiTimeout = getDuration(
+			cfg, "token-timeout-api", 10*time.Minute, 0, 1*time.Hour)
+	}
 }
 
 func calcSecret(cfg *domain.Meta) []byte {
@@ -106,6 +116,22 @@ func calcSecret(cfg *domain.Meta) []byte {
 	h.Write([]byte(version.Os))
 	h.Write([]byte(version.Arch))
 	return h.Sum(nil)
+}
+
+func getDuration(cfg *domain.Meta, key string, defDur, minDur, maxDur time.Duration) time.Duration {
+	if s, ok := cfg.Get(key); ok && len(s) > 0 {
+		if d, err := strconv.ParseUint(s, 10, 64); err != nil {
+			secs := time.Duration(d) * time.Minute
+			if secs < minDur {
+				return minDur
+			}
+			if secs > maxDur {
+				return maxDur
+			}
+			return secs
+		}
+	}
+	return defDur
 }
 
 // IsReadOnly returns whether the system is in read-only mode or not.
@@ -128,6 +154,12 @@ func WithAuth() bool { return startupConfig.withAuth }
 // Secret returns the interal application secret. It is typically used to
 // encrypt session values.
 func Secret() []byte { return startupConfig.secret }
+
+// Timeouts return the token timeouts for the web/HTML access and for the API access.
+// If timeout for API access is equal to zero, no API access is possible.
+func Timeouts() (htmlTimeout, apiTimeout time.Duration) {
+	return startupConfig.htmlTimeout, startupConfig.apiTimeout
+}
 
 // --- Configuration zettel --------------------------------------------------
 

@@ -37,7 +37,7 @@ import (
 func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Login not possible in format %q", format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Login not possible in format %q", format), http.StatusBadRequest)
 			return
 		}
 
@@ -46,7 +46,7 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 			return
 		}
 
-		renderLoginForm(r.Context(), w, te, false)
+		renderLoginForm(session.ClearToken(r.Context(), w), w, te, false)
 	}
 }
 
@@ -59,7 +59,7 @@ func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEng
 	}{
 		Lang:  config.GetDefaultLang(),
 		Title: "Login",
-		User:  wrapUser(session.GetUser(ctx)),
+		User:  wrapUser(nil),
 		Retry: retry,
 	})
 }
@@ -67,7 +67,20 @@ func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEng
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
 func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		format := getFormat(r, "html")
+		htmlDur, apiDur := config.Timeouts()
+		var formatDur time.Duration
+		var formatCode int
+		switch format := getFormat(r, "html"); format {
+		case "html":
+			formatCode = 1
+			formatDur = htmlDur
+		case "json":
+			formatCode = 2
+			formatDur = apiDur
+		default:
+			http.Error(w, fmt.Sprintf("Authentication not available in format %q", format), http.StatusBadRequest)
+			return
+		}
 		if !config.WithAuth() {
 			http.Error(w, "Authentication not available", http.StatusBadRequest)
 			return
@@ -81,30 +94,29 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 
 		ident := r.PostFormValue("username")
 		cred := r.PostFormValue("password")
-		d := time.Second * 600 // TODO: longer for HTML, configurable, ...
 		ctx := r.Context()
-		token, err := auth.Run(ctx, ident, cred, d)
+		token, err := auth.Run(ctx, ident, cred, formatDur)
 		if err != nil {
 			http.Error(w, "Unable to check login data", http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
 		if token == nil {
-			switch format {
-			case "html":
+			switch formatCode {
+			case 1:
 				renderLoginForm(session.ClearToken(ctx, w), w, te, true)
-			default:
+			case 2:
 				http.Error(w, "Authentication failed", http.StatusUnauthorized)
 				w.Header().Set("WWW-Authenticate", `Bearer realm="Default"`)
 			}
 			return
 		}
 
-		switch format {
-		case "html":
+		switch formatCode {
+		case 1:
 			session.SetToken(w, token)
 			http.Redirect(w, r, urlForList('/'), http.StatusFound)
-		default:
+		case 2:
 		}
 	}
 }
@@ -113,7 +125,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 func MakeGetLogoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Logout not possible in format %q", format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Logout not possible in format %q", format), http.StatusBadRequest)
 			return
 		}
 

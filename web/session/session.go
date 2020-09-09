@@ -47,7 +47,9 @@ func SetToken(w http.ResponseWriter, token []byte) {
 
 // ClearToken invalidates the session cookie by sending an empty one.
 func ClearToken(ctx context.Context, w http.ResponseWriter) context.Context {
-	SetToken(w, nil)
+	if w != nil {
+		SetToken(w, nil)
+	}
 	return updateContext(ctx, nil)
 }
 
