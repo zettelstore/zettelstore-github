@@ -120,7 +120,7 @@ func calcSecret(cfg *domain.Meta) []byte {
 
 func getDuration(cfg *domain.Meta, key string, defDur, minDur, maxDur time.Duration) time.Duration {
 	if s, ok := cfg.Get(key); ok && len(s) > 0 {
-		if d, err := strconv.ParseUint(s, 10, 64); err != nil {
+		if d, err := strconv.ParseUint(s, 10, 64); err == nil {
 			secs := time.Duration(d) * time.Minute
 			if secs < minDur {
 				return minDur
