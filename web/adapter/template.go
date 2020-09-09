@@ -31,9 +31,11 @@ import (
 	"strings"
 	"sync"
 
+	"zettelstore.de/z/auth"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
+	"zettelstore.de/z/web/session"
 )
 
 type templateStore interface {
@@ -245,6 +247,13 @@ func (te *TemplateEngine) renderTemplate(
 		http.Error(w, fmt.Sprintf("Unable to get template: %v", err), http.StatusInternalServerError)
 		log.Println(err)
 		return
+	}
+	if user := session.GetUser(ctx); user != nil {
+		htmlTimeout, _ := config.Timeouts()
+		token, err := auth.GetToken(user, htmlTimeout)
+		if err == nil {
+			session.SetToken(w, token)
+		}
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = t.Execute(w, data)
