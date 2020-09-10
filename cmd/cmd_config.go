@@ -31,17 +31,18 @@ import (
 func cmdConfig(cfg *domain.Meta) (int, error) {
 
 	fmt.Println("Stores")
-	fmt.Printf("  Read only    : %v\n", config.IsReadOnly())
+	fmt.Printf("  Read only         = %v\n", config.IsReadOnly())
 	fmt.Println("Web")
-	fmt.Printf("  Listen Addr  : %q\n", cfg.GetDefault("listen-addr", "???"))
-	fmt.Printf("  URL prefix   : %q\n", config.URLPrefix())
+	fmt.Printf("  Listen Addr       = %q\n", cfg.GetDefault("listen-addr", "???"))
+	fmt.Printf("  URL prefix        = %q\n", config.URLPrefix())
 	if config.WithAuth() {
 		fmt.Println("Auth")
-		fmt.Printf("  Owner        : %v\n", config.Owner().Format())
-		fmt.Printf("  Secure cookie: %v\n", config.SecureCookie())
+		fmt.Printf("  Owner             = %v\n", config.Owner().Format())
+		fmt.Printf("  Secure cookie     = %v\n", config.SecureCookie())
+		fmt.Printf("  Persistent cookie = %v\n", config.SecureCookie())
 		htmlLifetime, apiLifetime := config.TokenLifetime()
-		fmt.Printf("  HTML lifetime: %v\n", htmlLifetime)
-		fmt.Printf("  API lifetime : %v\n", apiLifetime)
+		fmt.Printf("  HTML lifetime     = %v\n", htmlLifetime)
+		fmt.Printf("  API lifetime      = %v\n", apiLifetime)
 	}
 
 	return 0, nil
