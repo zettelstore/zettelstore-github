@@ -70,10 +70,11 @@ func (ps *polStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.
 	if err != nil {
 		return domain.Zettel{}, err
 	}
-	if ps.policy.CanRead(session.GetUser(ctx), zettel.Meta) {
+	user := session.GetUser(ctx)
+	if ps.policy.CanRead(user, zettel.Meta) {
 		return zettel, nil
 	}
-	return domain.Zettel{}, store.ErrNotAuthorized
+	return domain.Zettel{}, store.NewErrNotAuthorized("GetZettel", user, zid)
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
@@ -82,10 +83,11 @@ func (ps *polStore) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 	if err != nil {
 		return nil, err
 	}
-	if ps.policy.CanRead(session.GetUser(ctx), meta) {
+	user := session.GetUser(ctx)
+	if ps.policy.CanRead(user, meta) {
 		return meta, nil
 	}
-	return nil, store.ErrNotAuthorized
+	return nil, store.NewErrNotAuthorized("GetMeta", user, zid)
 }
 
 // SelectMeta returns all zettel meta data that match the selection
@@ -108,22 +110,24 @@ func (ps *polStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.So
 // SetZettel stores new data for a zettel.
 func (ps *polStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
 	zid := zettel.Meta.Zid
+	user := session.GetUser(ctx)
 	if zid.IsValid() {
 		// Write existing zettel
 		oldMeta, err := ps.store.GetMeta(ctx, zid)
 		if err != nil {
 			return err
 		}
-		if ps.policy.CanWrite(session.GetUser(ctx), oldMeta, zettel.Meta) {
+		if ps.policy.CanWrite(user, oldMeta, zettel.Meta) {
 			return ps.store.SetZettel(ctx, zettel)
 		}
-	} else {
-		// Create new zettel
-		if ps.policy.CanCreate(session.GetUser(ctx), zettel.Meta) {
-			return ps.store.SetZettel(ctx, zettel)
-		}
+		return store.NewErrNotAuthorized("Write", user, zid)
 	}
-	return store.ErrNotAuthorized
+
+	// Create new zettel
+	if ps.policy.CanCreate(user, zettel.Meta) {
+		return ps.store.SetZettel(ctx, zettel)
+	}
+	return store.NewErrNotAuthorized("Create", user, domain.InvalidZettelID)
 }
 
 // Rename changes the current zid to a new zid.
@@ -132,10 +136,11 @@ func (ps *polStore) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 	if err != nil {
 		return err
 	}
-	if ps.policy.CanRename(session.GetUser(ctx), meta) {
+	user := session.GetUser(ctx)
+	if ps.policy.CanRename(user, meta) {
 		return ps.store.RenameZettel(ctx, curZid, newZid)
 	}
-	return store.ErrNotAuthorized
+	return store.NewErrNotAuthorized("Rename", user, curZid)
 }
 
 // DeleteZettel removes the zettel from the store.
@@ -144,17 +149,19 @@ func (ps *polStore) DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 	if err != nil {
 		return err
 	}
-	if ps.policy.CanDelete(session.GetUser(ctx), meta) {
+	user := session.GetUser(ctx)
+	if ps.policy.CanDelete(user, meta) {
 		return ps.store.DeleteZettel(ctx, zid)
 	}
-	return store.ErrNotAuthorized
+	return store.NewErrNotAuthorized("Delete", user, zid)
 }
 
 // Reload clears all caches, reloads all internal data to reflect changes
 // that were possibly undetected.
 func (ps *polStore) Reload(ctx context.Context) error {
-	if ps.policy.CanReload(session.GetUser(ctx)) {
+	user := session.GetUser(ctx)
+	if ps.policy.CanReload(user) {
 		return ps.store.Reload(ctx)
 	}
-	return store.ErrNotAuthorized
+	return store.NewErrNotAuthorized("Reload", user, domain.InvalidZettelID)
 }

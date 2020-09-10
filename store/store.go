@@ -23,6 +23,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"zettelstore.de/z/domain"
 )
@@ -79,7 +80,36 @@ type Store interface {
 }
 
 // ErrNotAuthorized is returned if the caller has no authorization to perform the operation.
-var ErrNotAuthorized = errors.New("No authorization for operation")
+type ErrNotAuthorized struct {
+	op   string
+	user *domain.Meta
+	zid  domain.ZettelID
+}
+
+// NewErrNotAuthorized creates an new authorization error.
+func NewErrNotAuthorized(op string, user *domain.Meta, zid domain.ZettelID) error {
+	return &ErrNotAuthorized{
+		op:   op,
+		user: user,
+		zid:  zid,
+	}
+}
+
+func (err *ErrNotAuthorized) Error() string {
+	if err.zid.IsValid() {
+		return fmt.Sprintf(
+			"Operation %q on zettel %v not allowed for user %v/%v",
+			err.op,
+			err.zid.Format(),
+			err.user.GetDefault(domain.MetaKeyIdent, "?"),
+			err.user.Zid.Format())
+	}
+	return fmt.Sprintf(
+		"Operation %q not allowed for user %v/%v",
+		err.op,
+		err.user.GetDefault(domain.MetaKeyIdent, "?"),
+		err.user.Zid.Format())
+}
 
 // ErrStopped is returned if calling methods on a store that was not started.
 var ErrStopped = errors.New("Store is stopped")
