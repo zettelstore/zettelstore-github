@@ -32,6 +32,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
+	"zettelstore.de/z/store"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
@@ -67,17 +68,20 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		z, meta := parser.ParseZettel(zettel, syntax)
 
 		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
-		getTitle := func(zid domain.ZettelID) (string, bool) {
+		getTitle := func(zid domain.ZettelID) (string, int) {
 			meta, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
-				return "", false
+				if store.IsAuthError(err) {
+					return "", -1
+				}
+				return "", 0
 			}
 			astTitle := parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
 			title, err := formatInlines(astTitle, "html", langOption)
 			if err == nil {
-				return title, true
+				return title, 1
 			}
-			return "", true
+			return "", 1
 		}
 		links, images := collect.References(z)
 		intLinks, extLinks := splitIntExtLinks(getTitle, append(links, images...))
@@ -110,7 +114,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 	}
 }
 
-func splitIntExtLinks(getTitle func(domain.ZettelID) (string, bool), links []*ast.Reference) ([]internalReference, []string) {
+func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast.Reference) ([]internalReference, []string) {
 	if len(links) == 0 {
 		return nil, nil
 	}
@@ -122,11 +126,13 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, bool), links []*as
 			if err != nil {
 				panic(err)
 			}
-			title, ok := getTitle(zid)
-			if len(title) == 0 {
-				title = ref.Value
+			title, found := getTitle(zid)
+			if found >= 0 {
+				if len(title) == 0 {
+					title = ref.Value
+				}
+				intLinks = append(intLinks, internalReference{zid, found == 1, template.HTML(title)})
 			}
-			intLinks = append(intLinks, internalReference{zid, ok, template.HTML(title)})
 		} else {
 			extLinks = append(extLinks, ref.String())
 		}

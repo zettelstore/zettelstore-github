@@ -383,7 +383,17 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	if adapt := v.enc.adaptLink; adapt != nil {
 		ln = adapt(ln)
 	}
-	if ln == nil {
+	if ln.Ref.State == ast.RefStateZettelNoAuth {
+		if ln.Attrs != nil {
+			fn := ast.FormatNode{
+				Code:    ast.FormatSpan,
+				Attrs:   ln.Attrs,
+				Inlines: ln.Inlines,
+			}
+			v.VisitFormat(&fn)
+			return
+		}
+		v.acceptInlineSlice(ln.Inlines)
 		return
 	}
 	v.writeNodeStart("Link")
@@ -401,9 +411,6 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 func (v *visitor) VisitImage(in *ast.ImageNode) {
 	if adapt := v.enc.adaptImage; adapt != nil {
 		in = adapt(in)
-	}
-	if in == nil {
-		return
 	}
 	v.writeNodeStart("Image")
 	v.visitAttributes(in.Attrs)

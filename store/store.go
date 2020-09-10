@@ -111,6 +111,12 @@ func (err *ErrNotAuthorized) Error() string {
 		err.user.Zid.Format())
 }
 
+// IsAuthError return true, if the error is of type ErrNotAuthorized.
+func IsAuthError(err error) bool {
+	_, ok := err.(*ErrNotAuthorized)
+	return ok
+}
+
 // ErrStopped is returned if calling methods on a store that was not started.
 var ErrStopped = errors.New("Store is stopped")
 

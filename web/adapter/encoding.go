@@ -32,6 +32,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
+	"zettelstore.de/z/store"
 	"zettelstore.de/z/usecase"
 )
 
@@ -121,6 +122,10 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta) fun
 			if err == nil {
 				newRef := ast.ParseReference(urlForZettel(key, zid))
 				newRef.State = ast.RefStateZettelFound
+				newLink.Ref = newRef
+			} else if store.IsAuthError(err) {
+				newRef := ast.ParseReference(origRef.Value)
+				newRef.State = ast.RefStateZettelNoAuth
 				newLink.Ref = newRef
 			} else {
 				newRef := ast.ParseReference(origRef.Value)

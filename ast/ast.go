@@ -90,9 +90,10 @@ type RefState int
 // Constants for RefState
 const (
 	RefStateInvalid      RefState = iota // Invalid URL
-	RefStateZettel                       // Valid reference to an internal Zettel
-	RefStateZettelFound                  // Valid reference to an existing internal Zettel
-	RefStateZettelBroken                 // Valid reference to a non-existing internal Zettel.
+	RefStateZettel                       // Valid reference to an internal zettel
+	RefStateZettelFound                  // Valid reference to an existing internal zettel
+	RefStateZettelBroken                 // Valid reference to a non-existing internal zettel
+	RefStateZettelNoAuth                 // Valid reference to a zettel that the user is not allowed to read
 	RefStateMaterial                     // Valid reference to external material
 )
 

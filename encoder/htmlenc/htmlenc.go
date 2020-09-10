@@ -541,6 +541,16 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	switch ln.Ref.State {
 	case ast.RefStateZettelFound:
 		v.writeAHref(ln.Ref, ln.Attrs, ln.Inlines)
+	case ast.RefStateZettelNoAuth:
+		if ln.Attrs == nil {
+			v.acceptInlineSlice(ln.Inlines)
+		} else {
+			v.b.WriteString("<span")
+			v.visitAttributes(ln.Attrs)
+			v.b.WriteByte('>')
+			v.acceptInlineSlice(ln.Inlines)
+			v.b.WriteString("</span>")
+		}
 	case ast.RefStateZettelBroken:
 		attrs := ln.Attrs.Clone()
 		attrs = attrs.Set("class", "zs-broken")
