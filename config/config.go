@@ -360,7 +360,7 @@ const (
 
 var visMap = map[string]Visibility{
 	domain.MetaValueVisibilityPublic: VisibilityPublic,
-	"login":                          VisibilityLogin,
+	domain.MetaValueVisibilityLogin:  VisibilityLogin,
 	domain.MetaValueVisibilityOwner:  VisibilityOwner,
 }
 

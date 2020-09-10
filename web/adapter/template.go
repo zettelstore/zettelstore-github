@@ -31,6 +31,7 @@ import (
 	"strings"
 	"sync"
 
+	"zettelstore.de/z/auth/policy"
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
@@ -51,12 +52,14 @@ type TemplateEngine struct {
 	store         templateStore
 	templateCache map[domain.ZettelID]*template.Template
 	mxCache       sync.RWMutex
+	policy        policy.Policy
 }
 
 // NewTemplateEngine creates a new TemplateEngine.
-func NewTemplateEngine(s store.Store) *TemplateEngine {
+func NewTemplateEngine(s store.Store, p policy.Policy) *TemplateEngine {
 	te := &TemplateEngine{
-		store: s,
+		store:  s,
+		policy: p,
 	}
 	te.observe(true, domain.InvalidZettelID)
 	s.RegisterChangeObserver(te.observe)
@@ -179,9 +182,6 @@ var configVar configType
 // GetVersion returns the current software version data.
 func (c configType) GetVersion() config.Version { return config.GetVersion() }
 
-// IsReadOnly returns whether the system is in read-only mode or not.
-func (c configType) IsReadOnly() bool { return config.IsReadOnly() }
-
 // GetIconMaterial returns the current value of the "icon-material" key.
 func (c configType) GetIconMaterial() string { return config.GetIconMaterial() }
 
@@ -205,6 +205,35 @@ var funcMap = template.FuncMap{
 	"join":          join,
 }
 
+func createPolicyFuncs(p policy.Policy) template.FuncMap {
+	result := template.FuncMap{
+		"CanReload": func(user userWrapper) bool {
+			return p.CanReload(user.original)
+		},
+		"CanCreate": func(user userWrapper) bool {
+			meta := domain.NewMeta(domain.InvalidZettelID)
+			return p.CanCreate(user.original, meta)
+		},
+		"CanRead": func(user userWrapper, meta metaWrapper) bool {
+			return p.CanRead(user.original, meta.original)
+		},
+		"CanWrite": func(user userWrapper, meta metaWrapper) bool {
+			return p.CanWrite(user.original, meta.original, meta.original)
+		},
+		"CanRename": func(user userWrapper, meta metaWrapper) bool {
+			return p.CanRename(user.original, meta.original)
+		},
+		"CanDelete": func(user userWrapper, meta metaWrapper) bool {
+			return p.CanDelete(user.original, meta.original)
+		},
+	}
+
+	for k, v := range funcMap {
+		result[k] = v
+	}
+	return result
+}
+
 func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.ZettelID) (*template.Template, error) {
 	if t, ok := te.cacheGetTemplate(templateID); ok {
 		return t, nil
@@ -215,7 +244,7 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 		if err != nil {
 			return nil, err
 		}
-		baseTemplate, err = template.New("base").Funcs(funcMap).Parse(baseTemplateZettel.Content.AsString())
+		baseTemplate, err = template.New("base").Funcs(createPolicyFuncs(te.policy)).Parse(baseTemplateZettel.Content.AsString())
 		if err != nil {
 			return nil, err
 		}

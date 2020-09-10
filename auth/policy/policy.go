@@ -46,9 +46,49 @@ type Policy interface {
 	CanDelete(user *domain.Meta, meta *domain.Meta) bool
 }
 
+// NewPolicy creates a new policy object to check access autheorization.
+func NewPolicy(name string) Policy {
+	switch name {
+	case "all":
+		return &allPolicy{}
+	}
+	return &ownerPolicy{
+		base:     &defaultPolicy{},
+		owner:    config.Owner(),
+		readonly: config.IsReadOnly(),
+	}
+}
+
+type allPolicy struct{}
+
+func (a *allPolicy) CanReload(user *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
+	return true
+}
+
 type ownerPolicy struct {
-	base  Policy
-	owner domain.ZettelID
+	base     Policy
+	owner    domain.ZettelID
+	readonly bool
 }
 
 func (o *ownerPolicy) canDo(user *domain.Meta) bool {
@@ -66,7 +106,7 @@ func (o *ownerPolicy) CanReload(user *domain.Meta) bool {
 }
 
 func (o *ownerPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
-	if newMeta == nil {
+	if o.readonly || newMeta == nil {
 		return false
 	}
 	if o.canDo(user) {
@@ -86,7 +126,7 @@ func (o *ownerPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
 }
 
 func (o *ownerPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
-	if oldMeta == nil || newMeta == nil || oldMeta.Zid != newMeta.Zid {
+	if o.readonly || oldMeta == nil || newMeta == nil || oldMeta.Zid != newMeta.Zid {
 		return false
 	}
 	if o.canDo(user) {
@@ -96,7 +136,7 @@ func (o *ownerPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta)
 }
 
 func (o *ownerPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
-	if meta == nil {
+	if o.readonly || meta == nil {
 		return false
 	}
 	if o.canDo(user) {
@@ -106,7 +146,7 @@ func (o *ownerPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
 }
 
 func (o *ownerPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
-	if meta == nil {
+	if o.readonly || meta == nil {
 		return false
 	}
 	if o.canDo(user) {
@@ -117,14 +157,6 @@ func (o *ownerPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
 
 type defaultPolicy struct{}
 
-// NewPolicy creates a new policy object to check access autheorization.
-func NewPolicy() Policy {
-	return &ownerPolicy{
-		base:  &defaultPolicy{},
-		owner: config.Owner(),
-	}
-}
-
 func (d *defaultPolicy) CanReload(user *domain.Meta) bool {
 	return false
 }
@@ -133,7 +165,7 @@ func (d *defaultPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool 
 	if user == nil || config.GetUserRole(user) == config.UserRoleReader {
 		return false
 	}
-	if role, ok := newMeta.Get(domain.MetaKeyRole); !ok || role == domain.MetaValueRoleUser {
+	if role, ok := newMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
 		return false
 	}
 	return true

@@ -97,6 +97,7 @@ const (
 const (
 	MetaValueRoleUser         = "user"
 	MetaValueVisibilityOwner  = "owner"
+	MetaValueVisibilityLogin  = "login"
 	MetaValueVisibilityPublic = "public"
 )
 

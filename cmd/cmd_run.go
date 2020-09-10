@@ -102,12 +102,15 @@ func setupStores(cfg *domain.Meta) (store.Store, int, error) {
 }
 
 func setupRouting(us store.Store, readonly bool) http.Handler {
-	te := adapter.NewTemplateEngine(us)
-
 	ps := us
-	if config.WithAuth() {
-		ps = policystore.NewStore(us, policy.NewPolicy())
+	var pol policy.Policy
+	if config.WithAuth() || readonly {
+		pol = policy.NewPolicy("default")
+		ps = policystore.NewStore(us, pol)
+	} else {
+		pol = policy.NewPolicy("all")
 	}
+	te := adapter.NewTemplateEngine(us, pol)
 
 	ucGetMeta := usecase.NewGetMeta(ps)
 	ucGetZettel := usecase.NewGetZettel(ps)
