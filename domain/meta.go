@@ -87,8 +87,8 @@ const (
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
 	MetaKeyURL              = "url"
+	MetaKeyUserRole         = "user-role"
 	MetaKeyVisibility       = "visibility"
-	MetaKeyWriter           = "writer"
 	MetaKeyYAMLHeader       = "yaml-header"
 	MetaKeyZettelFileSyntax = "zettel-file-syntax"
 )
@@ -134,8 +134,8 @@ var keyTypeMap = map[string]byte{
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
 	MetaKeyURL:              MetaTypeURL,
+	MetaKeyUserRole:         MetaTypeWord,
 	MetaKeyVisibility:       MetaTypeWord,
-	MetaKeyWriter:           MetaTypeBool,
 	MetaKeyYAMLHeader:       MetaTypeBool,
 	MetaKeyZettelFileSyntax: MetaTypeWordSet,
 }

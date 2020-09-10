@@ -373,3 +373,28 @@ func GetVisibility(meta *domain.Meta) Visibility {
 	}
 	return VisibilityLogin
 }
+
+// UserRole enumerates the supported values of meta key 'user-role'.
+type UserRole int
+
+// Supported values for user roles.
+const (
+	_ UserRole = iota
+	UserRoleReader
+	UserRoleWriter
+)
+
+var urMap = map[string]UserRole{
+	"reader": UserRoleReader,
+	"writer": UserRoleWriter,
+}
+
+// GetUserRole role returns the user role of the given user zettel.
+func GetUserRole(user *domain.Meta) UserRole {
+	if val, ok := user.Get(domain.MetaKeyUserRole); ok {
+		if ur, ok := urMap[val]; ok {
+			return ur
+		}
+	}
+	return UserRoleReader
+}

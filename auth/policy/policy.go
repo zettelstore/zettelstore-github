@@ -130,7 +130,7 @@ func (d *defaultPolicy) CanReload(user *domain.Meta) bool {
 }
 
 func (d *defaultPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
-	if user == nil || !user.GetBool(domain.MetaKeyWriter) {
+	if user == nil || config.GetUserRole(user) == config.UserRoleReader {
 		return false
 	}
 	if role, ok := newMeta.Get(domain.MetaKeyRole); !ok || role == domain.MetaValueRoleUser {
@@ -163,8 +163,8 @@ func (d *defaultPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
 var noChangeUser = []string{
 	domain.MetaKeyID,
 	domain.MetaKeyIdent,
-	domain.MetaKeyWriter,
 	domain.MetaKeyRole,
+	domain.MetaKeyUserRole,
 }
 
 func (d *defaultPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
@@ -185,7 +185,7 @@ func (d *defaultPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Met
 		}
 		return true
 	}
-	if !user.GetBool(domain.MetaKeyWriter) {
+	if config.GetUserRole(user) == config.UserRoleReader {
 		return false
 	}
 	return d.CanCreate(user, newMeta)
