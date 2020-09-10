@@ -95,11 +95,10 @@ const (
 
 // Important values for some keys.
 const (
-	MetaValueRoleUser          = "user"
-	MetaValueRoleConfiguration = "configuration"
-	MetaValueVisibilityLogin   = "login"
-	MetaValueVisibilityPrivate = "private"
-	MetaValueVisibilityPublic  = "public"
+	MetaValueRoleUser         = "user"
+	MetaValueVisibilityLogin  = "login"
+	MetaValueVisibilityOwner  = "owner"
+	MetaValueVisibilityPublic = "public"
 )
 
 // Supported key types.

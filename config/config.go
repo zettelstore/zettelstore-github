@@ -346,3 +346,11 @@ func GetLang(meta *domain.Meta) string {
 	}
 	return GetDefaultLang()
 }
+
+// Visibility returns the visibility value, or "login" if none is given.
+func Visibility(meta *domain.Meta) string {
+	if visibility, ok := meta.Get(domain.MetaKeyVisibility); ok && len(visibility) > 0 {
+		return visibility
+	}
+	return domain.MetaValueVisibilityLogin
+}

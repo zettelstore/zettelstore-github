@@ -27,7 +27,8 @@ import (
 )
 
 const (
-	syntaxTemplate = "go-template-html"
+	syntaxTemplate    = "go-template-html"
+	roleConfiguration = "configuration"
 )
 
 var goData = goStore{
@@ -35,18 +36,20 @@ var goData = goStore{
 	zettel: map[domain.ZettelID]goZettel{
 		domain.ConfigurationID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Configuration",
-				domain.MetaKeySyntax: "meta",
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Configuration",
+				domain.MetaKeySyntax:     "meta",
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			"# Zettelstore Configuration",
 		},
 
 		domain.BaseTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Base HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Base HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			domain.NewContent(fmt.Sprintf(
 				`<!DOCTYPE html>
@@ -108,9 +111,10 @@ var goData = goStore{
 
 		domain.LoginTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Login Form HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Login Form HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			domain.NewContent(
 				`{{define "content"}}
@@ -138,9 +142,10 @@ var goData = goStore{
 
 		domain.ListTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "List Meta HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "List Meta HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			domain.NewContent(
 				`{{define "content"}}
@@ -153,9 +158,10 @@ var goData = goStore{
 
 		domain.DetailTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Detail HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Detail HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			domain.NewContent(
 				`{{define "meta-header"}}
@@ -183,9 +189,10 @@ var goData = goStore{
 
 		domain.InfoTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Info HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Info HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			domain.NewContent(
 				`{{define "content"}}
@@ -229,9 +236,10 @@ var goData = goStore{
 
 		domain.FormTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Form HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Form HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			`{{define "content"}}
 <article>
@@ -277,9 +285,10 @@ var goData = goStore{
 
 		domain.RenameTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Rename Form HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Rename Form HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			`{{define "content"}}
 <article>
@@ -306,9 +315,10 @@ var goData = goStore{
 
 		domain.DeleteTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Delete HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Delete HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			`{{define "content"}}
 <article>
@@ -330,9 +340,10 @@ var goData = goStore{
 
 		domain.RolesTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "List Roles HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "List Roles HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			`{{define "content"}}
 <h1>Currently used roles</h1>
@@ -344,9 +355,10 @@ var goData = goStore{
 
 		domain.TagsTemplateID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "List Tags HTML Template",
-				domain.MetaKeySyntax: syntaxTemplate,
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "List Tags HTML Template",
+				domain.MetaKeySyntax:     syntaxTemplate,
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			},
 			`{{define "content"}}
 <h1>Currently used tags</h1>
@@ -359,9 +371,10 @@ var goData = goStore{
 
 		domain.BaseCSSID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Base CSS",
-				domain.MetaKeySyntax: "css",
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
+				domain.MetaKeyTitle:      "Base CSS",
+				domain.MetaKeySyntax:     "css",
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityPublic,
 			},
 			`/* Default CSS */
 *,*::before,*::after {
@@ -638,10 +651,11 @@ h1+.zs-meta {
 
 		domain.MaterialIconID: goZettel{
 			goHeader{
-				domain.MetaKeyTitle:  "Text icon for external material",
-				domain.MetaKeySyntax: "svg",
-				domain.MetaKeyRole:   domain.MetaValueRoleConfiguration,
-				domain.MetaKeyURL:    "https://icons8.com/icon/43738/external-link",
+				domain.MetaKeyTitle:      "Text icon for external material",
+				domain.MetaKeySyntax:     "svg",
+				domain.MetaKeyRole:       roleConfiguration,
+				domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+				domain.MetaKeyURL:        "https://icons8.com/icon/43738/external-link",
 			},
 			`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M 9 2 L 9 3 L 12.292969 3 L 6.023438 9.273438 L 6.726563 9.976563 L 13 3.707031 L 13 7 L 14 7 L 14 2 Z M 4 4 C 2.894531 4 2 4.894531 2 6 L 2 12 C 2 13.105469 2.894531 14 4 14 L 10 14 C 11.105469 14 12 13.105469 12 12 L 12 7 L 11 8 L 11 12 C 11 12.550781 10.550781 13 10 13 L 4 13 C 3.449219 13 3 12.550781 3 12 L 3 6 C 3 5.449219 3.449219 5 4 5 L 8 5 L 9 4 Z"/></svg>`,
 		},
