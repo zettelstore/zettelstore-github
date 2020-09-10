@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"zettelstore.de/z/config"
@@ -92,7 +93,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 			return
 		}
 
-		ident := r.PostFormValue("username")
+		ident := strings.TrimSpace(r.PostFormValue("username"))
 		cred := r.PostFormValue("password")
 		ctx := r.Context()
 		token, err := auth.Run(ctx, ident, cred, formatDur)
