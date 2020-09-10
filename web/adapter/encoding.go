@@ -110,47 +110,50 @@ func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder
 	return err
 }
 
-func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta) func(*ast.LinkNode) *ast.LinkNode {
-	return func(origLink *ast.LinkNode) *ast.LinkNode {
-		if origRef := origLink.Ref; origRef.IsZettel() {
-			zid, err := domain.ParseZettelID(origRef.Value)
-			if err != nil {
-				panic(err)
-			}
-			_, err = getMeta.Run(ctx, zid)
-			newLink := *origLink
-			if err == nil {
-				newRef := ast.ParseReference(urlForZettel(key, zid))
-				newRef.State = ast.RefStateZettelFound
-				newLink.Ref = newRef
-			} else if store.IsAuthError(err) {
-				newRef := ast.ParseReference(origRef.Value)
-				newRef.State = ast.RefStateZettelNoAuth
-				newLink.Ref = newRef
-			} else {
-				newRef := ast.ParseReference(origRef.Value)
-				newRef.State = ast.RefStateZettelBroken
-				newLink.Ref = newRef
-			}
+func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta) func(*ast.LinkNode) ast.InlineNode {
+	return func(origLink *ast.LinkNode) ast.InlineNode {
+		origRef := origLink.Ref
+		if origRef == nil || origRef.State != ast.RefStateZettel {
+			return origLink
+		}
+		zid, err := domain.ParseZettelID(origRef.Value)
+		if err != nil {
+			panic(err)
+		}
+		_, err = getMeta.Run(ctx, zid)
+		newLink := *origLink
+		if err == nil {
+			newRef := ast.ParseReference(urlForZettel(key, zid))
+			newRef.State = ast.RefStateZettelFound
+			newLink.Ref = newRef
 			return &newLink
 		}
-		return origLink
+		if store.IsAuthError(err) {
+			return &ast.FormatNode{
+				Code:    ast.FormatSpan,
+				Attrs:   origLink.Attrs,
+				Inlines: origLink.Inlines,
+			}
+		}
+		newRef := ast.ParseReference(origRef.Value)
+		newRef.State = ast.RefStateZettelBroken
+		newLink.Ref = newRef
+		return &newLink
 	}
 }
 
-func makeImageAdapter() func(*ast.ImageNode) *ast.ImageNode {
-	return func(origImage *ast.ImageNode) *ast.ImageNode {
-		if origImage.Ref == nil {
+func makeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
+	return func(origImage *ast.ImageNode) ast.InlineNode {
+		if origImage.Ref == nil || origImage.Ref.State != ast.RefStateZettel {
 			return origImage
 		}
 		newImage := *origImage
-		if newImage.Ref.IsZettel() {
-			zid, err := domain.ParseZettelID(newImage.Ref.Value)
-			if err != nil {
-				panic(err)
-			}
-			newImage.Ref = ast.ParseReference(urlForZettel('c', zid))
+		zid, err := domain.ParseZettelID(newImage.Ref.Value)
+		if err != nil {
+			panic(err)
 		}
+		newImage.Ref = ast.ParseReference(urlForZettel('c', zid))
+		newImage.Ref.State = ast.RefStateZettelFound
 		return &newImage
 	}
 }

@@ -38,14 +38,21 @@ func createEncoder() encoder.Encoder {
 	return &zmkEncoder{}
 }
 
-type zmkEncoder struct{}
+type zmkEncoder struct {
+	adaptLink func(*ast.LinkNode) ast.InlineNode
+}
 
 // SetOption sets an option for this encoder.
-func (ze *zmkEncoder) SetOption(option encoder.Option) {}
+func (ze *zmkEncoder) SetOption(option encoder.Option) {
+	switch opt := option.(type) {
+	case *encoder.AdaptLinkOption:
+		ze.adaptLink = opt.Adapter
+	}
+}
 
 // WriteZettel writes the encoded zettel to the writer.
 func (ze *zmkEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
-	v := newVisitor(w)
+	v := newVisitor(w, ze)
 	zettel.Meta.WriteAsHeader(&v.b)
 	v.acceptBlockSlice(zettel.Ast)
 	length, err := v.b.Flush()
@@ -59,7 +66,7 @@ func (ze *zmkEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 
 // WriteBlocks writes the content of a block slice to the writer.
 func (ze *zmkEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
-	v := newVisitor(w)
+	v := newVisitor(w, ze)
 	v.acceptBlockSlice(bs)
 	length, err := v.b.Flush()
 	return length, err
@@ -67,7 +74,7 @@ func (ze *zmkEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 
 // WriteInlines writes an inline slice to the writer
 func (ze *zmkEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
-	v := newVisitor(w)
+	v := newVisitor(w, ze)
 	v.acceptInlineSlice(is)
 	length, err := v.b.Flush()
 	return length, err
@@ -77,10 +84,14 @@ func (ze *zmkEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error)
 type visitor struct {
 	b      encoder.BufWriter
 	prefix []byte
+	enc    *zmkEncoder
 }
 
-func newVisitor(w io.Writer) *visitor {
-	return &visitor{b: encoder.NewBufWriter(w)}
+func newVisitor(w io.Writer, enc *zmkEncoder) *visitor {
+	return &visitor{
+		b:   encoder.NewBufWriter(w),
+		enc: enc,
+	}
 }
 
 // VisitPara emits HTML code for a paragraph: <p>...</p>
@@ -293,6 +304,13 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 
 // VisitLink writes HTML code for links.
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
+	if adapt := v.enc.adaptLink; adapt != nil {
+		n := adapt(ln)
+		if n != ln {
+			n.Accept(v)
+			return
+		}
+	}
 	v.b.WriteString("[[")
 	v.acceptInlineSlice(ln.Inlines)
 	v.b.WriteByte('|')

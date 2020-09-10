@@ -41,8 +41,8 @@ func createEncoder() encoder.Encoder {
 }
 
 type jsonEncoder struct {
-	adaptLink  func(*ast.LinkNode) *ast.LinkNode
-	adaptImage func(*ast.ImageNode) *ast.ImageNode
+	adaptLink  func(*ast.LinkNode) ast.InlineNode
+	adaptImage func(*ast.ImageNode) ast.InlineNode
 	meta       *domain.Meta
 }
 
@@ -381,20 +381,11 @@ var mapRefState = map[ast.RefState]string{
 // VisitLink writes JSON code for links.
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	if adapt := v.enc.adaptLink; adapt != nil {
-		ln = adapt(ln)
-	}
-	if ln.Ref.State == ast.RefStateZettelNoAuth {
-		if ln.Attrs != nil {
-			fn := ast.FormatNode{
-				Code:    ast.FormatSpan,
-				Attrs:   ln.Attrs,
-				Inlines: ln.Inlines,
-			}
-			v.VisitFormat(&fn)
+		n := adapt(ln)
+		if n != ln {
+			n.Accept(v)
 			return
 		}
-		v.acceptInlineSlice(ln.Inlines)
-		return
 	}
 	v.writeNodeStart("Link")
 	v.visitAttributes(ln.Attrs)
@@ -410,7 +401,11 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 // VisitImage writes JSON code for images.
 func (v *visitor) VisitImage(in *ast.ImageNode) {
 	if adapt := v.enc.adaptImage; adapt != nil {
-		in = adapt(in)
+		n := adapt(in)
+		if n != in {
+			n.Accept(v)
+			return
+		}
 	}
 	v.writeNodeStart("Image")
 	v.visitAttributes(in.Attrs)

@@ -63,7 +63,7 @@ func (so *StringsOption) Name() string { return so.Key }
 
 // AdaptLinkOption specifies a link adapter.
 type AdaptLinkOption struct {
-	Adapter func(*ast.LinkNode) *ast.LinkNode
+	Adapter func(*ast.LinkNode) ast.InlineNode
 }
 
 // Name returns the visible name of this option.
@@ -71,7 +71,7 @@ func (al *AdaptLinkOption) Name() string { return "AdaptLinkOption" }
 
 // AdaptImageOption specifies an image adapter.
 type AdaptImageOption struct {
-	Adapter func(*ast.ImageNode) *ast.ImageNode
+	Adapter func(*ast.ImageNode) ast.InlineNode
 }
 
 // Name returns the visible name of this option.
@@ -79,7 +79,7 @@ func (al *AdaptImageOption) Name() string { return "AdaptImageOption" }
 
 // AdaptCiteOption specifies a citation adapter.
 type AdaptCiteOption struct {
-	Adapter func(*ast.CiteNode) (cn *ast.CiteNode, url string)
+	Adapter func(*ast.CiteNode) ast.InlineNode
 }
 
 // Name returns the visible name of this option.

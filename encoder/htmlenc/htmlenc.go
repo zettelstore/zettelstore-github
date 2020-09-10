@@ -41,9 +41,9 @@ type htmlEncoder struct {
 	xhtml      bool   // use XHTML syntax instead of HTML syntax
 	material   string // Symbol after link to (external) material.
 	newWindow  bool   // open link in new window
-	adaptLink  func(*ast.LinkNode) *ast.LinkNode
-	adaptImage func(*ast.ImageNode) *ast.ImageNode
-	adaptCite  func(*ast.CiteNode) (cn *ast.CiteNode, url string)
+	adaptLink  func(*ast.LinkNode) ast.InlineNode
+	adaptImage func(*ast.ImageNode) ast.InlineNode
+	adaptCite  func(*ast.CiteNode) ast.InlineNode
 	meta       *domain.Meta
 	ignoreMeta map[string]bool
 
@@ -533,24 +533,15 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 // VisitLink writes HTML code for links.
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	if adapt := v.enc.adaptLink; adapt != nil {
-		ln = adapt(ln)
-	}
-	if ln == nil {
-		return
+		n := adapt(ln)
+		if n != ln {
+			n.Accept(v)
+			return
+		}
 	}
 	switch ln.Ref.State {
 	case ast.RefStateZettelFound:
 		v.writeAHref(ln.Ref, ln.Attrs, ln.Inlines)
-	case ast.RefStateZettelNoAuth:
-		if ln.Attrs == nil {
-			v.acceptInlineSlice(ln.Inlines)
-		} else {
-			v.b.WriteString("<span")
-			v.visitAttributes(ln.Attrs)
-			v.b.WriteByte('>')
-			v.acceptInlineSlice(ln.Inlines)
-			v.b.WriteString("</span>")
-		}
 	case ast.RefStateZettelBroken:
 		attrs := ln.Attrs.Clone()
 		attrs = attrs.Set("class", "zs-broken")
@@ -588,10 +579,11 @@ func (v *visitor) writeAHref(ref *ast.Reference, attrs *ast.Attributes, ins ast.
 // VisitImage writes HTML code for images.
 func (v *visitor) VisitImage(in *ast.ImageNode) {
 	if adapt := v.enc.adaptImage; adapt != nil {
-		in = adapt(in)
-	}
-	if in == nil {
-		return
+		n := adapt(in)
+		if n != in {
+			n.Accept(v)
+			return
+		}
 	}
 
 	if in.Ref == nil {
@@ -621,19 +613,15 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 
 // VisitCite writes code for citations.
 func (v *visitor) VisitCite(cn *ast.CiteNode) {
-	var url string
 	if adapt := v.enc.adaptCite; adapt != nil {
-		cn, url = adapt(cn)
+		n := adapt(cn)
+		if n != cn {
+			n.Accept(v)
+			return
+		}
 	}
 	if cn != nil {
-		if url == "" {
-			v.b.WriteString(cn.Key)
-			// TODO: Attrs
-		} else {
-			v.b.WriteStrings("<a href=\"", url, "\"")
-			v.visitAttributes(cn.Attrs)
-			v.b.WriteStrings(">", cn.Key, "</a>")
-		}
+		v.b.WriteString(cn.Key)
 		if len(cn.Inlines) > 0 {
 			v.b.WriteString(", ")
 			v.acceptInlineSlice(cn.Inlines)

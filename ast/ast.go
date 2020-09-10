@@ -93,7 +93,6 @@ const (
 	RefStateZettel                       // Valid reference to an internal zettel
 	RefStateZettelFound                  // Valid reference to an existing internal zettel
 	RefStateZettelBroken                 // Valid reference to a non-existing internal zettel
-	RefStateZettelNoAuth                 // Valid reference to a zettel that the user is not allowed to read
 	RefStateMaterial                     // Valid reference to external material
 )
 
