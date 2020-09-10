@@ -96,7 +96,6 @@ const (
 // Important values for some keys.
 const (
 	MetaValueRoleUser         = "user"
-	MetaValueVisibilityLogin  = "login"
 	MetaValueVisibilityOwner  = "owner"
 	MetaValueVisibilityPublic = "public"
 )

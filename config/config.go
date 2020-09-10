@@ -347,10 +347,29 @@ func GetLang(meta *domain.Meta) string {
 	return GetDefaultLang()
 }
 
-// Visibility returns the visibility value, or "login" if none is given.
-func Visibility(meta *domain.Meta) string {
-	if visibility, ok := meta.Get(domain.MetaKeyVisibility); ok && len(visibility) > 0 {
-		return visibility
+// Visibility enumerates the variations of the 'visibility' meta key.
+type Visibility int
+
+// Supported values for visibility.
+const (
+	_ Visibility = iota
+	VisibilityPublic
+	VisibilityLogin
+	VisibilityOwner
+)
+
+var visMap = map[string]Visibility{
+	domain.MetaValueVisibilityPublic: VisibilityPublic,
+	"login":                          VisibilityLogin,
+	domain.MetaValueVisibilityOwner:  VisibilityOwner,
+}
+
+// GetVisibility returns the visibility value, or "login" if none is given.
+func GetVisibility(meta *domain.Meta) Visibility {
+	if val, ok := meta.Get(domain.MetaKeyVisibility); ok {
+		if vis, ok := visMap[val]; ok {
+			return vis
+		}
 	}
-	return domain.MetaValueVisibilityLogin
+	return VisibilityLogin
 }

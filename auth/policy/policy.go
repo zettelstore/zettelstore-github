@@ -140,10 +140,10 @@ func (d *defaultPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool 
 }
 
 func (d *defaultPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
-	switch visibility := config.Visibility(meta); visibility {
-	case domain.MetaValueVisibilityOwner:
+	switch visibility := config.GetVisibility(meta); visibility {
+	case config.VisibilityOwner:
 		return false
-	case domain.MetaValueVisibilityPublic:
+	case config.VisibilityPublic:
 		return true
 	}
 	if user == nil {
