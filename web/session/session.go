@@ -23,6 +23,7 @@ package session
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
@@ -33,7 +34,7 @@ import (
 const sessionName = "zsession"
 
 // SetToken sets the session cookie for later user identification.
-func SetToken(w http.ResponseWriter, token []byte) {
+func SetToken(w http.ResponseWriter, token []byte, d time.Duration) {
 	cookie := http.Cookie{
 		Name:     sessionName,
 		Value:    string(token),
@@ -42,13 +43,16 @@ func SetToken(w http.ResponseWriter, token []byte) {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
+	if config.PersistentCookie() && d > 0 {
+		cookie.Expires = time.Now().Add(d).Add(30 * time.Second).UTC()
+	}
 	http.SetCookie(w, &cookie)
 }
 
 // ClearToken invalidates the session cookie by sending an empty one.
 func ClearToken(ctx context.Context, w http.ResponseWriter) context.Context {
 	if w != nil {
-		SetToken(w, nil)
+		SetToken(w, nil, 0)
 	}
 	return updateContext(ctx, nil)
 }

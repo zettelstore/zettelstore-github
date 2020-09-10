@@ -114,7 +114,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 
 		switch formatCode {
 		case 1:
-			session.SetToken(w, token)
+			session.SetToken(w, token, formatDur)
 			http.Redirect(w, r, urlForList('/'), http.StatusFound)
 		case 2:
 		}

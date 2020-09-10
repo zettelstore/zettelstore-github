@@ -70,14 +70,15 @@ func GetVersion() Version { return version }
 // --- Startup config --------------------------------------------------------
 
 var startupConfig struct {
-	readonly     bool
-	urlPrefix    string
-	insecCookie  bool
-	owner        domain.ZettelID
-	withAuth     bool
-	secret       []byte
-	htmlLifetime time.Duration
-	apiLifetime  time.Duration
+	readonly      bool
+	urlPrefix     string
+	insecCookie   bool
+	persistCookie bool
+	owner         domain.ZettelID
+	withAuth      bool
+	secret        []byte
+	htmlLifetime  time.Duration
+	apiLifetime   time.Duration
 }
 
 // SetupStartup initializes the startup data.
@@ -96,6 +97,7 @@ func SetupStartup(cfg *domain.Meta) {
 	}
 	if startupConfig.withAuth {
 		startupConfig.insecCookie = cfg.GetBool("insecure-cookie")
+		startupConfig.persistCookie = cfg.GetBool("persistent-cookie")
 		startupConfig.secret = calcSecret(cfg)
 		startupConfig.htmlLifetime = getDuration(
 			cfg, "token-lifetime-html", 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
@@ -143,6 +145,10 @@ func URLPrefix() string { return startupConfig.urlPrefix }
 
 // SecureCookie returns whether the web app should set cookies to secure mode.
 func SecureCookie() bool { return !startupConfig.insecCookie }
+
+// PersistentCookie returns whether the web app should set persistent cookies
+// (instead of temporary).
+func PersistentCookie() bool { return startupConfig.persistCookie }
 
 // Owner returns the zid of the zettelkasten's owner.
 // If there is no owner defined, the value ZettelID(0) is returned.

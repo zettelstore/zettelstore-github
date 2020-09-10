@@ -252,7 +252,7 @@ func (te *TemplateEngine) renderTemplate(
 		htmlLifetime, _ := config.TokenLifetime()
 		t, err := token.GetToken(user, htmlLifetime)
 		if err == nil {
-			session.SetToken(w, t)
+			session.SetToken(w, t, htmlLifetime)
 		}
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
