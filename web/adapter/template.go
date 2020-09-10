@@ -249,8 +249,8 @@ func (te *TemplateEngine) renderTemplate(
 		return
 	}
 	if user := session.GetUser(ctx); user != nil {
-		htmlTimeout, _ := config.Timeouts()
-		t, err := token.GetToken(user, htmlTimeout)
+		htmlLifetime, _ := config.TokenLifetime()
+		t, err := token.GetToken(user, htmlLifetime)
 		if err == nil {
 			session.SetToken(w, t)
 		}

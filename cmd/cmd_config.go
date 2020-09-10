@@ -39,9 +39,9 @@ func cmdConfig(cfg *domain.Meta) (int, error) {
 		fmt.Println("Auth")
 		fmt.Printf("  Owner        : %v\n", config.Owner().Format())
 		fmt.Printf("  Secure cookie: %v\n", config.SecureCookie())
-		htmlTimeout, apiTimeout := config.Timeouts()
-		fmt.Printf("  HTML timeout : %v\n", htmlTimeout)
-		fmt.Printf("  API timeout  : %v\n", apiTimeout)
+		htmlLifetime, apiLifetime := config.TokenLifetime()
+		fmt.Printf("  HTML lifetime: %v\n", htmlLifetime)
+		fmt.Printf("  API lifetime : %v\n", apiLifetime)
 	}
 
 	return 0, nil

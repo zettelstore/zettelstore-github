@@ -67,7 +67,7 @@ func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEng
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
 func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		htmlDur, apiDur := config.Timeouts()
+		htmlDur, apiDur := config.TokenLifetime()
 		var formatDur time.Duration
 		var formatCode int
 		switch format := getFormat(r, "html"); format {

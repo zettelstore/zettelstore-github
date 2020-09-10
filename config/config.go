@@ -70,14 +70,14 @@ func GetVersion() Version { return version }
 // --- Startup config --------------------------------------------------------
 
 var startupConfig struct {
-	readonly    bool
-	urlPrefix   string
-	secCookie   bool
-	owner       domain.ZettelID
-	withAuth    bool
-	secret      []byte
-	htmlTimeout time.Duration
-	apiTimeout  time.Duration
+	readonly     bool
+	urlPrefix    string
+	insecCookie  bool
+	owner        domain.ZettelID
+	withAuth     bool
+	secret       []byte
+	htmlLifetime time.Duration
+	apiLifetime  time.Duration
 }
 
 // SetupStartup initializes the startup data.
@@ -87,7 +87,6 @@ func SetupStartup(cfg *domain.Meta) {
 	}
 	startupConfig.readonly = cfg.GetBool("readonly")
 	startupConfig.urlPrefix = cfg.GetDefault("url-prefix", "/")
-	startupConfig.secCookie = !cfg.GetBool("insecure-cookie")
 	startupConfig.owner = domain.InvalidZettelID
 	if owner, ok := cfg.Get("owner"); ok {
 		if zid, err := domain.ParseZettelID(owner); err == nil {
@@ -96,11 +95,12 @@ func SetupStartup(cfg *domain.Meta) {
 		}
 	}
 	if startupConfig.withAuth {
+		startupConfig.insecCookie = cfg.GetBool("insecure-cookie")
 		startupConfig.secret = calcSecret(cfg)
-		startupConfig.htmlTimeout = getDuration(
-			cfg, "token-timeout-html", 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
-		startupConfig.apiTimeout = getDuration(
-			cfg, "token-timeout-api", 10*time.Minute, 0, 1*time.Hour)
+		startupConfig.htmlLifetime = getDuration(
+			cfg, "token-lifetime-html", 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
+		startupConfig.apiLifetime = getDuration(
+			cfg, "token-lifetime-api", 10*time.Minute, 0, 1*time.Hour)
 	}
 }
 
@@ -142,7 +142,7 @@ func IsReadOnly() bool { return startupConfig.readonly }
 func URLPrefix() string { return startupConfig.urlPrefix }
 
 // SecureCookie returns whether the web app should set cookies to secure mode.
-func SecureCookie() bool { return startupConfig.secCookie }
+func SecureCookie() bool { return !startupConfig.insecCookie }
 
 // Owner returns the zid of the zettelkasten's owner.
 // If there is no owner defined, the value ZettelID(0) is returned.
@@ -155,10 +155,11 @@ func WithAuth() bool { return startupConfig.withAuth }
 // encrypt session values.
 func Secret() []byte { return startupConfig.secret }
 
-// Timeouts return the token timeouts for the web/HTML access and for the API access.
-// If timeout for API access is equal to zero, no API access is possible.
-func Timeouts() (htmlTimeout, apiTimeout time.Duration) {
-	return startupConfig.htmlTimeout, startupConfig.apiTimeout
+// TokenLifetime return the token lifetime for the web/HTML access and for the
+// API access. If lifetime for API access is equal to zero, no API access is
+// possible.
+func TokenLifetime() (htmlLifetime, apiLifetime time.Duration) {
+	return startupConfig.htmlLifetime, startupConfig.apiLifetime
 }
 
 // --- Configuration zettel --------------------------------------------------
