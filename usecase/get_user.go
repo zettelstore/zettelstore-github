@@ -59,7 +59,7 @@ func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
 	// will authenticate.
 	identMeta, err := uc.store.GetMeta(ctx, owner)
 	if err == nil && identMeta.GetDefault(domain.MetaKeyIdent, "") == ident {
-		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != "user" {
+		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
 			return nil, nil
 		}
 		return identMeta, nil
@@ -68,7 +68,7 @@ func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
 	filter := store.Filter{
 		Expr: map[string][]string{
 			domain.MetaKeyIdent: []string{ident},
-			domain.MetaKeyRole:  []string{"user"},
+			domain.MetaKeyRole:  []string{domain.MetaValueRoleUser},
 		},
 	}
 	metaList, err := uc.store.SelectMeta(ctx, &filter, nil)

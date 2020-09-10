@@ -145,10 +145,10 @@ func (d *defaultPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
 		return false
 	}
 	switch role {
-	case "user":
+	case domain.MetaValueRoleUser:
 		// Only the user can read its own zettel
 		return user.Zid == meta.Zid
-	case "configuration":
+	case domain.MetaValueRoleConfiguration:
 		// Nobody is allowed to read configuration
 		return false
 	}

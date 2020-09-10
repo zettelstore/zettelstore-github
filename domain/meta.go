@@ -87,8 +87,19 @@ const (
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
 	MetaKeyURL              = "url"
+	MetaKeyVisibility       = "visibility"
+	MetaKeyWriter           = "writer"
 	MetaKeyYAMLHeader       = "yaml-header"
 	MetaKeyZettelFileSyntax = "zettel-file-syntax"
+)
+
+// Important values for some keys.
+const (
+	MetaValueRoleUser          = "user"
+	MetaValueRoleConfiguration = "configuration"
+	MetaValueVisibilityLogin   = "login"
+	MetaValueVisibilityPrivate = "private"
+	MetaValueVisibilityPublic  = "public"
 )
 
 // Supported key types.
@@ -125,6 +136,8 @@ var keyTypeMap = map[string]byte{
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
 	MetaKeyURL:              MetaTypeURL,
+	MetaKeyVisibility:       MetaTypeWord,
+	MetaKeyWriter:           MetaTypeBool,
 	MetaKeyYAMLHeader:       MetaTypeBool,
 	MetaKeyZettelFileSyntax: MetaTypeWordSet,
 }

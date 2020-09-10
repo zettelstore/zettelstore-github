@@ -43,7 +43,7 @@ var ErrNoZid = errors.New("auth: missing zettel id")
 
 // GetToken returns a token to be used for authentification
 func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
-	if role, ok := ident.Get(domain.MetaKeyRole); !ok || role != "user" {
+	if role, ok := ident.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
 		return nil, ErrNoUser
 	}
 	subject, ok := ident.Get(domain.MetaKeyIdent)
