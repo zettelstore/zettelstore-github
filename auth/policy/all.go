@@ -21,40 +21,31 @@
 package policy
 
 import (
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 )
 
-// Policy is an interface for checking access authorization.
-type Policy interface {
-	// User is allowed to reload a store.
-	CanReload(user *domain.Meta) bool
+type allPolicy struct{}
 
-	// User is allowed to create a new zettel.
-	CanCreate(user *domain.Meta, newMeta *domain.Meta) bool
-
-	// User is allowed to read zettel
-	CanRead(user *domain.Meta, meta *domain.Meta) bool
-
-	// User is allowed to write zettel.
-	CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool
-
-	// User is allowed to rename zettel
-	CanRename(user *domain.Meta, meta *domain.Meta) bool
-
-	// User is allowed to delete zettel
-	CanDelete(user *domain.Meta, meta *domain.Meta) bool
+func (a *allPolicy) CanReload(user *domain.Meta) bool {
+	return true
 }
 
-// NewPolicy creates a new policy object to check access autheorization.
-func NewPolicy(name string) Policy {
-	switch name {
-	case "all":
-		return &allPolicy{}
-	}
-	return &ownerPolicy{
-		base:     &defaultPolicy{},
-		owner:    config.Owner(),
-		readonly: config.IsReadOnly(),
-	}
+func (a *allPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
+	return true
+}
+
+func (a *allPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
+	return true
 }
