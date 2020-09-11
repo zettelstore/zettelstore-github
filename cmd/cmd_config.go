@@ -29,7 +29,7 @@ import (
 // ---------- Subcommand: config ---------------------------------------------
 
 func cmdConfig(cfg *domain.Meta) (int, error) {
-
+	fmtVersion()
 	fmt.Println("Stores")
 	fmt.Printf("  Read only         = %v\n", config.IsReadOnly())
 	fmt.Println("Web")
