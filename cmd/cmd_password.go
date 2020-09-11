@@ -65,7 +65,7 @@ func cmdPassword(cfg *domain.Meta) (int, error) {
 	if err != nil {
 		return 2, err
 	}
-	fmt.Printf("%s\n", hashedPassword)
+	fmt.Printf("ident: %s\ncred: %s\n", ident, hashedPassword)
 	return 0, nil
 }
 
