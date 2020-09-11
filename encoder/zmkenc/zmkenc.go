@@ -306,7 +306,8 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	if adapt := v.enc.adaptLink; adapt != nil {
 		n := adapt(ln)
-		if n != ln {
+		var ok bool
+		if ln, ok = n.(*ast.LinkNode); !ok {
 			n.Accept(v)
 			return
 		}

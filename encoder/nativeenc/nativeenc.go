@@ -402,7 +402,8 @@ var mapRefState = map[ast.RefState]string{
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	if adapt := v.enc.adaptLink; adapt != nil {
 		n := adapt(ln)
-		if n != ln {
+		var ok bool
+		if ln, ok = n.(*ast.LinkNode); !ok {
 			n.Accept(v)
 			return
 		}
@@ -420,7 +421,8 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 func (v *visitor) VisitImage(in *ast.ImageNode) {
 	if adapt := v.enc.adaptImage; adapt != nil {
 		n := adapt(in)
-		if n != in {
+		var ok bool
+		if in, ok = n.(*ast.ImageNode); !ok {
 			n.Accept(v)
 			return
 		}

@@ -534,7 +534,8 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	if adapt := v.enc.adaptLink; adapt != nil {
 		n := adapt(ln)
-		if n != ln {
+		var ok bool
+		if ln, ok = n.(*ast.LinkNode); !ok {
 			n.Accept(v)
 			return
 		}
@@ -580,7 +581,8 @@ func (v *visitor) writeAHref(ref *ast.Reference, attrs *ast.Attributes, ins ast.
 func (v *visitor) VisitImage(in *ast.ImageNode) {
 	if adapt := v.enc.adaptImage; adapt != nil {
 		n := adapt(in)
-		if n != in {
+		var ok bool
+		if in, ok = n.(*ast.ImageNode); !ok {
 			n.Accept(v)
 			return
 		}
