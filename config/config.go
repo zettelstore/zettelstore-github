@@ -156,7 +156,7 @@ func GetIconMaterial() string {
 		}
 	}
 	return fmt.Sprintf(
-		"<img class=\"zs-text-icon\" src=\"%vc/%v\">",
+		"<img class=\"zs-text-icon\" src=\"%vz/%v?_view=content&_format=raw\">",
 		URLPrefix(),
 		domain.MaterialIconID.Format())
 }
