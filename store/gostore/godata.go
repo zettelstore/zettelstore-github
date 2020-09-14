@@ -199,17 +199,9 @@ var goData = goStore{
 <article>
 <header>
 <h1>Information for Zettel {{.Meta.Zid.Format}}</h1>
-<div class="zs-meta">
-<a href="{{urlZettel 'h' $.Meta.Zid}}">Web</a>{{range $f := .Formats}} &#183; <a href="{{urlZettel 'z' $.Meta.Zid}}?_format={{$f}}">{{$f}}</a>{{end}}
-</div>
-{{- if CanWrite .User .Meta}}
-<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
-{{- end}}
-{{- if CanCreate .User}}
-<a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a> &#183;
-{{- end}}
-<a href="{{urlZettel 'm' .Meta.Zid}}">Meta</a> &#183;
-<a href="{{urlZettel 'c' .Meta.Zid}}">Content</a>
+<a href="{{urlZettel 'h' $.Meta.Zid}}">Web</a>
+{{ if CanWrite .User .Meta}} &#183; <a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a>{{ end}}
+{{ if CanCreate .User}} &#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{ end}}
 {{ if CanRename .User .Meta}}&#183; <a href="{{urlZettel 'r' .Meta.Zid}}">Rename</a>{{end}}
 {{ if CanDelete .User .Meta}}&#183; <a href="{{urlZettel 'd' .Meta.Zid}}">Delete</a>{{end}}
 </header>
@@ -234,6 +226,12 @@ var goData = goStore{
 </ul>
 {{end}}
 {{end}}
+<h2>Format and Views</h3>
+<table>
+{{range $v := .Views}}
+<tr><th>{{$v}}</th>{{range $f := $.Formats}}<td><a href="{{urlZettel 'z' $.Meta.Zid}}?_view={{$v}}&_format={{$f}}">{{$f}}</a></td>{{end}}</tr>
+{{end}}
+</table>
 </article>
 {{- end}}`),
 		},
