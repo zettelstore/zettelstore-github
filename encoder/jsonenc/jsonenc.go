@@ -22,59 +22,74 @@ package jsonenc
 
 import (
 	"bytes"
+	"io"
 
+	"zettelstore.de/z/ast"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 )
 
-func acceptMeta(b *encoder.BufWriter, meta *domain.Meta, withTitle bool) {
-	if withTitle {
-		b.WriteString("\"title\":\"")
-		b.Write(Escape(meta.GetDefault(domain.MetaKeyTitle, "")))
-		b.WriteByte('"')
-	}
-	writeMetaList(b, meta, domain.MetaKeyTags, "tags")
-	writeMetaString(b, meta, domain.MetaKeySyntax, "syntax")
-	writeMetaString(b, meta, domain.MetaKeyRole, "role")
-	if pairs := meta.PairsRest(); len(pairs) > 0 {
-		b.WriteString(",\"header\":{\"")
-		first := true
-		for _, p := range pairs {
-			if !first {
-				b.WriteString("\",\"")
-			}
-			b.Write(Escape(p.Key))
-			b.WriteString("\":\"")
-			b.Write(Escape(p.Value))
+func init() {
+	encoder.Register("json", createEncoder)
+}
+
+func createEncoder() encoder.Encoder {
+	return &jsonEncoder{}
+}
+
+type jsonEncoder struct{}
+
+// SetOption sets an option for the encoder
+func (je *jsonEncoder) SetOption(option encoder.Option) {}
+
+// WriteZettel writes the encoded zettel to the writer.
+func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
+	b := encoder.NewBufWriter(w)
+	b.WriteString("{\"meta\":")
+	writeMeta(&b, zettel.Meta)
+	b.WriteString(",\"content\":")
+	writeEscaped(&b, zettel.Content.AsString())
+	b.WriteByte('}')
+	length, err := b.Flush()
+	return length, err
+}
+
+// WriteMeta encodes meta data as HTML5.
+func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+	b := encoder.NewBufWriter(w)
+	writeMeta(&b, meta)
+	length, err := b.Flush()
+	return length, err
+}
+
+// WriteBlocks writes a block slice to the writer
+func (je *jsonEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
+	jde := jsonDetailEncoder{}
+	return jde.WriteBlocks(w, bs)
+}
+
+// WriteInlines writes an inline slice to the writer
+func (je *jsonEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
+	jde := jsonDetailEncoder{}
+	return jde.WriteInlines(w, is)
+}
+
+func writeMeta(b *encoder.BufWriter, meta *domain.Meta) {
+	b.WriteByte('{')
+	first := true
+	for _, p := range meta.Pairs() {
+		if !first {
+			b.WriteString(",\"")
+		} else {
+			b.WriteByte('"')
 			first = false
 		}
-		b.WriteString("\"}")
-	}
-}
-
-func writeMetaString(b *encoder.BufWriter, meta *domain.Meta, key string, native string) {
-	if val, ok := meta.Get(key); ok && len(val) > 0 {
-		b.WriteString(",\"")
-		b.Write(Escape(native))
+		b.Write(Escape(p.Key))
 		b.WriteString("\":\"")
-		b.Write(Escape(val))
+		b.Write(Escape(p.Value))
 		b.WriteByte('"')
 	}
-}
-
-func writeMetaList(b *encoder.BufWriter, meta *domain.Meta, key string, native string) {
-	if vals, ok := meta.GetList(key); ok && len(vals) > 0 {
-		b.WriteString(",\"")
-		b.Write(Escape(native))
-		b.WriteString("\":[\"")
-		for i, val := range vals {
-			if i > 0 {
-				b.WriteString("\",\"")
-			}
-			b.Write(Escape(val))
-		}
-		b.WriteString("\"]")
-	}
+	b.WriteByte('}')
 }
 
 var (

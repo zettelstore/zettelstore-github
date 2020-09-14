@@ -59,14 +59,14 @@ func (je *jsonDetailEncoder) SetOption(option encoder.Option) {
 
 // WriteZettel writes the encoded zettel to the writer.
 func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
-	v := newVisitor(w, je)
+	v := newDetailVisitor(w, je)
 	v.b.WriteByte('{')
 	v.b.WriteString("\"title\":")
 	v.acceptInlineSlice(zettel.Title)
 	if je.meta != nil {
-		acceptMeta(&v.b, je.meta, false)
+		v.acceptMeta(je.meta, false)
 	} else {
-		acceptMeta(&v.b, zettel.Meta, false)
+		v.acceptMeta(zettel.Meta, false)
 	}
 	v.b.WriteString(",\"content\":")
 	v.acceptBlockSlice(zettel.Ast)
@@ -75,11 +75,11 @@ func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, 
 	return length, err
 }
 
-// WriteMeta encodes meta data as HTML5.
+// WriteMeta encodes meta data as JSON.
 func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
-	v := newVisitor(w, je)
+	v := newDetailVisitor(w, je)
 	v.b.WriteByte('{')
-	acceptMeta(&v.b, meta, true)
+	v.acceptMeta(meta, true)
 	v.b.WriteByte('}')
 	length, err := v.b.Flush()
 	return length, err
@@ -87,7 +87,7 @@ func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, err
 
 // WriteBlocks writes a block slice to the writer
 func (je *jsonDetailEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
-	v := newVisitor(w, je)
+	v := newDetailVisitor(w, je)
 	v.acceptBlockSlice(bs)
 	length, err := v.b.Flush()
 	return length, err
@@ -95,7 +95,7 @@ func (je *jsonDetailEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, e
 
 // WriteInlines writes an inline slice to the writer
 func (je *jsonDetailEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
-	v := newVisitor(w, je)
+	v := newDetailVisitor(w, je)
 	v.acceptInlineSlice(is)
 	length, err := v.b.Flush()
 	return length, err
@@ -107,7 +107,7 @@ type detailVisitor struct {
 	enc *jsonDetailEncoder
 }
 
-func newVisitor(w io.Writer, je *jsonDetailEncoder) *detailVisitor {
+func newDetailVisitor(w io.Writer, je *jsonDetailEncoder) *detailVisitor {
 	return &detailVisitor{b: encoder.NewBufWriter(w), enc: je}
 }
 
@@ -558,4 +558,53 @@ func (v *detailVisitor) writeContentStart(code rune) {
 		return
 	}
 	panic("Unknown content code " + strconv.Itoa(int(code)))
+}
+func (v *detailVisitor) acceptMeta(meta *domain.Meta, withTitle bool) {
+	if withTitle {
+		v.b.WriteString("\"title\":\"")
+		v.b.Write(Escape(meta.GetDefault(domain.MetaKeyTitle, "")))
+		v.b.WriteByte('"')
+	}
+	v.writeMetaList(meta, domain.MetaKeyTags, "tags")
+	v.writeMetaString(meta, domain.MetaKeySyntax, "syntax")
+	v.writeMetaString(meta, domain.MetaKeyRole, "role")
+	if pairs := meta.PairsRest(); len(pairs) > 0 {
+		v.b.WriteString(",\"header\":{\"")
+		first := true
+		for _, p := range pairs {
+			if !first {
+				v.b.WriteString("\",\"")
+			}
+			v.b.Write(Escape(p.Key))
+			v.b.WriteString("\":\"")
+			v.b.Write(Escape(p.Value))
+			first = false
+		}
+		v.b.WriteString("\"}")
+	}
+}
+
+func (v *detailVisitor) writeMetaString(meta *domain.Meta, key string, native string) {
+	if val, ok := meta.Get(key); ok && len(val) > 0 {
+		v.b.WriteString(",\"")
+		v.b.Write(Escape(native))
+		v.b.WriteString("\":\"")
+		v.b.Write(Escape(val))
+		v.b.WriteByte('"')
+	}
+}
+
+func (v *detailVisitor) writeMetaList(meta *domain.Meta, key string, native string) {
+	if vals, ok := meta.GetList(key); ok && len(vals) > 0 {
+		v.b.WriteString(",\"")
+		v.b.Write(Escape(native))
+		v.b.WriteString("\":[\"")
+		for i, val := range vals {
+			if i > 0 {
+				v.b.WriteString("\",\"")
+			}
+			v.b.Write(Escape(val))
+		}
+		v.b.WriteString("\"]")
+	}
 }
