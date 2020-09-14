@@ -33,10 +33,10 @@ import (
 )
 
 func init() {
-	encoder.Register("json", createEncoder)
+	encoder.Register("djson", createDetailEncoder)
 }
 
-func createEncoder() encoder.Encoder {
+func createDetailEncoder() encoder.Encoder {
 	return &jsonEncoder{}
 }
 

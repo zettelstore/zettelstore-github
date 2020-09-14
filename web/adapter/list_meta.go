@@ -44,16 +44,21 @@ func MakeListMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta
 			return
 		}
 
-		format := getFormat(r, "html")
+		format := getFormat(r, "json")
 		w.Header().Set("Content-Type", formatContentType(format))
 		switch format {
 		case "html":
 			renderListMetaHTML(w, key, metaList)
 		case "json":
-			renderListMetaJSON(w, metaList)
+			renderListMetaJSON(w, metaList, false)
+		case "djson":
+			renderListMetaJSON(w, metaList, true)
+		case "native", "raw", "text", "zmk":
+			http.Error(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format), http.StatusNotImplemented)
+			log.Println(format)
 		default:
 			http.Error(w, fmt.Sprintf("Zettel list not available in format %q", format), http.StatusNotFound)
-			log.Println(err, format)
+			log.Println(format)
 		}
 	}
 }
@@ -82,17 +87,21 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 	buf.Flush()
 }
 
-func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta) {
+func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, detail bool) {
 	buf := encoder.NewBufWriter(w)
 
+	var jsonTitle string
+	var err error
 	buf.WriteString("{\"list\":[")
 	for i, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		jsonTitle, err := formatInlines(parser.ParseTitle(title), "json")
-		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
-			return
+		if detail {
+			jsonTitle, err = formatInlines(parser.ParseTitle(title), "json")
+			if err != nil {
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+				log.Println(err)
+				return
+			}
 		}
 		if i > 0 {
 			buf.WriteByte(',')
@@ -102,7 +111,13 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta) {
 		buf.WriteString("\",\"url\":\"")
 		buf.WriteString(urlForZettel('z', meta.Zid))
 		buf.WriteString("\",\"meta\":{\"title\":")
-		buf.WriteString(jsonTitle)
+		if detail {
+			buf.WriteString(jsonTitle)
+		} else {
+			buf.WriteByte('"')
+			buf.Write(jsonenc.Escape(title))
+			buf.WriteByte('"')
+		}
 		if syntax, ok := meta.Get(domain.MetaKeySyntax); ok {
 			buf.WriteString(",\"syntax\":\"")
 			buf.Write(jsonenc.Escape(syntax))

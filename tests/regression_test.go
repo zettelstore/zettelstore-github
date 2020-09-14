@@ -45,7 +45,7 @@ import (
 	_ "zettelstore.de/z/parser/zettelmark"
 )
 
-var formats = []string{"html", "json", "native", "text"}
+var formats = []string{"html", "djson", "native", "text"}
 
 func getFileStores(wd string, kind string) (root string, stores []store.Store) {
 	root = filepath.Clean(filepath.Join(wd, "..", "testdata", kind))

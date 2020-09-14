@@ -51,6 +51,7 @@ var formatCT = map[string]string{
 	"html":   "text/html; charset=utf-8",
 	"native": "text/plain; charset=utf-8",
 	"json":   "application/json",
+	"djson":  "application/json",
 	"text":   "text/plain; charset=utf-8",
 	"zmk":    "text/plain; charset=utf-8",
 }

@@ -56,7 +56,7 @@ func MakeGetBodyHandler(
 		z, meta := parser.ParseZettel(zettel, syntax)
 
 		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
-		format := getFormat(r, "html")
+		format := getFormat(r, "json")
 		w.Header().Set("Content-Type", formatContentType(format))
 		err = writeBlocks(w,
 			z.Ast,

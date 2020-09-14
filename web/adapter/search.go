@@ -88,7 +88,10 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			w.Header().Set("Content-Type", formatContentType(format))
 			switch format {
 			case "json":
-				renderListMetaJSON(w, metaList)
+				renderListMetaJSON(w, metaList, false)
+				return
+			case "djson":
+				renderListMetaJSON(w, metaList, true)
 				return
 			}
 		}
