@@ -36,6 +36,7 @@ type Encoder interface {
 
 	WriteZettel(io.Writer, *ast.Zettel) (int, error)
 	WriteMeta(io.Writer, *domain.Meta) (int, error)
+	WriteContent(io.Writer, *ast.Zettel) (int, error)
 	WriteBlocks(io.Writer, ast.BlockSlice) (int, error)
 	WriteInlines(io.Writer, ast.InlineSlice) (int, error)
 }

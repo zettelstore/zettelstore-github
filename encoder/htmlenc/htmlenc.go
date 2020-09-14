@@ -127,6 +127,10 @@ func (he *htmlEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return length, err
 }
 
+func (he *htmlEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+	return he.WriteBlocks(w, zettel.Ast)
+}
+
 // WriteBlocks encodes a block slice.
 func (he *htmlEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	v := newVisitor(he, w)

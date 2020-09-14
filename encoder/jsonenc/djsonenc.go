@@ -85,6 +85,10 @@ func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, err
 	return length, err
 }
 
+func (je *jsonDetailEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+	return je.WriteBlocks(w, zettel.Ast)
+}
+
 // WriteBlocks writes a block slice to the writer
 func (je *jsonDetailEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	v := newDetailVisitor(w, je)

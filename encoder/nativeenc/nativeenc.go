@@ -82,6 +82,10 @@ func (ne *nativeEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) 
 	return length, err
 }
 
+func (ne *nativeEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+	return ne.WriteBlocks(w, zettel.Ast)
+}
+
 // WriteBlocks writes a block slice to the writer
 func (ne *nativeEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	v := newVisitor(w, ne)

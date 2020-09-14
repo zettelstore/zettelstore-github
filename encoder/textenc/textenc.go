@@ -63,6 +63,10 @@ func (te *textEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return length, err
 }
 
+func (te *textEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+	return te.WriteBlocks(w, zettel.Ast)
+}
+
 // WriteBlocks writes the content of a block slice to the writer.
 func (te *textEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	v := newVisitor(w)

@@ -64,6 +64,10 @@ func (ze *zmkEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return meta.Write(w)
 }
 
+func (ze *zmkEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+	return ze.WriteBlocks(w, zettel.Ast)
+}
+
 // WriteBlocks writes the content of a block slice to the writer.
 func (ze *zmkEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	v := newVisitor(w, ze)

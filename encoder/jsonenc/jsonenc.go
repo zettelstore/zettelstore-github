@@ -62,6 +62,13 @@ func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return length, err
 }
 
+func (je *jsonEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+	b := encoder.NewBufWriter(w)
+	writeEscaped(&b, zettel.Content.AsString())
+	length, err := b.Flush()
+	return length, err
+}
+
 // WriteBlocks writes a block slice to the writer
 func (je *jsonEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	jde := jsonDetailEncoder{}

@@ -90,13 +90,13 @@ func writeZettel(w io.Writer, zettel *ast.Zettel, format string, options ...enco
 	return err
 }
 
-func writeBlocks(w io.Writer, bs ast.BlockSlice, format string, options ...encoder.Option) error {
+func writeContent(w io.Writer, zettel *ast.Zettel, format string, options ...encoder.Option) error {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return errNoSuchFormat
 	}
 
-	_, err := enc.WriteBlocks(w, bs)
+	_, err := enc.WriteContent(w, zettel)
 	return err
 }
 

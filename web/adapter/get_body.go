@@ -58,9 +58,7 @@ func MakeGetBodyHandler(
 		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
 		format := getFormat(r, "json")
 		w.Header().Set("Content-Type", formatContentType(format))
-		err = writeBlocks(w,
-			z.Ast,
-			format,
+		err = writeContent(w, z, format,
 			langOption,
 			&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
