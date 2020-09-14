@@ -21,7 +21,6 @@
 package jsonenc
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"sort"
@@ -37,17 +36,17 @@ func init() {
 }
 
 func createDetailEncoder() encoder.Encoder {
-	return &jsonEncoder{}
+	return &jsonDetailEncoder{}
 }
 
-type jsonEncoder struct {
+type jsonDetailEncoder struct {
 	adaptLink  func(*ast.LinkNode) ast.InlineNode
 	adaptImage func(*ast.ImageNode) ast.InlineNode
 	meta       *domain.Meta
 }
 
 // SetOption sets an option for the encoder
-func (je *jsonEncoder) SetOption(option encoder.Option) {
+func (je *jsonDetailEncoder) SetOption(option encoder.Option) {
 	switch opt := option.(type) {
 	case *encoder.MetaOption:
 		je.meta = opt.Meta
@@ -59,15 +58,15 @@ func (je *jsonEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel writes the encoded zettel to the writer.
-func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
 	v := newVisitor(w, je)
 	v.b.WriteByte('{')
 	v.b.WriteString("\"title\":")
 	v.acceptInlineSlice(zettel.Title)
 	if je.meta != nil {
-		v.acceptMeta(je.meta, false)
+		acceptMeta(&v.b, je.meta, false)
 	} else {
-		v.acceptMeta(zettel.Meta, false)
+		acceptMeta(&v.b, zettel.Meta, false)
 	}
 	v.b.WriteString(",\"content\":")
 	v.acceptBlockSlice(zettel.Ast)
@@ -77,17 +76,17 @@ func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	v := newVisitor(w, je)
 	v.b.WriteByte('{')
-	v.acceptMeta(meta, true)
+	acceptMeta(&v.b, meta, true)
 	v.b.WriteByte('}')
 	length, err := v.b.Flush()
 	return length, err
 }
 
 // WriteBlocks writes a block slice to the writer
-func (je *jsonEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
+func (je *jsonDetailEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
 	v := newVisitor(w, je)
 	v.acceptBlockSlice(bs)
 	length, err := v.b.Flush()
@@ -95,75 +94,25 @@ func (je *jsonEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) 
 }
 
 // WriteInlines writes an inline slice to the writer
-func (je *jsonEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
+func (je *jsonDetailEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
 	v := newVisitor(w, je)
 	v.acceptInlineSlice(is)
 	length, err := v.b.Flush()
 	return length, err
 }
 
-// visitor writes the abstract syntax tree to an io.Writer.
-type visitor struct {
+// detailVisitor writes the abstract syntax tree to an io.Writer.
+type detailVisitor struct {
 	b   encoder.BufWriter
-	enc *jsonEncoder
+	enc *jsonDetailEncoder
 }
 
-func newVisitor(w io.Writer, je *jsonEncoder) *visitor {
-	return &visitor{b: encoder.NewBufWriter(w), enc: je}
-}
-
-func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
-	if withTitle {
-		v.b.WriteString("\"title\":\"")
-		v.b.Write(Escape(meta.GetDefault(domain.MetaKeyTitle, "")))
-		v.b.WriteByte('"')
-	}
-	v.writeMetaList(meta, domain.MetaKeyTags, "tags")
-	v.writeMetaString(meta, domain.MetaKeySyntax, "syntax")
-	v.writeMetaString(meta, domain.MetaKeyRole, "role")
-	if pairs := meta.PairsRest(); len(pairs) > 0 {
-		v.b.WriteString(",\"header\":{\"")
-		first := true
-		for _, p := range pairs {
-			if !first {
-				v.b.WriteString("\",\"")
-			}
-			v.b.Write(Escape(p.Key))
-			v.b.WriteString("\":\"")
-			v.b.Write(Escape(p.Value))
-			first = false
-		}
-		v.b.WriteString("\"}")
-	}
-}
-
-func (v *visitor) writeMetaString(meta *domain.Meta, key string, native string) {
-	if val, ok := meta.Get(key); ok && len(val) > 0 {
-		v.b.WriteString(",\"")
-		v.b.Write(Escape(native))
-		v.b.WriteString("\":\"")
-		v.b.Write(Escape(val))
-		v.b.WriteByte('"')
-	}
-}
-
-func (v *visitor) writeMetaList(meta *domain.Meta, key string, native string) {
-	if vals, ok := meta.GetList(key); ok && len(vals) > 0 {
-		v.b.WriteString(",\"")
-		v.b.Write(Escape(native))
-		v.b.WriteString("\":[\"")
-		for i, val := range vals {
-			if i > 0 {
-				v.b.WriteString("\",\"")
-			}
-			v.b.Write(Escape(val))
-		}
-		v.b.WriteString("\"]")
-	}
+func newVisitor(w io.Writer, je *jsonDetailEncoder) *detailVisitor {
+	return &detailVisitor{b: encoder.NewBufWriter(w), enc: je}
 }
 
 // VisitPara emits JSON code for a paragraph.
-func (v *visitor) VisitPara(pn *ast.ParaNode) {
+func (v *detailVisitor) VisitPara(pn *ast.ParaNode) {
 	v.writeNodeStart("Para")
 	v.writeContentStart('i')
 	v.acceptInlineSlice(pn.Inlines)
@@ -177,7 +126,7 @@ var verbatimCode = map[ast.VerbatimCode]string{
 }
 
 // VisitVerbatim emits JSON code for verbatim lines.
-func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
+func (v *detailVisitor) VisitVerbatim(vn *ast.VerbatimNode) {
 	code, ok := verbatimCode[vn.Code]
 	if !ok {
 		panic(fmt.Sprintf("Unknown verbatim code %v", vn.Code))
@@ -189,7 +138,7 @@ func (v *visitor) VisitVerbatim(vn *ast.VerbatimNode) {
 		if i > 0 {
 			v.b.WriteByte(',')
 		}
-		v.writeEscaped(line)
+		writeEscaped(&v.b, line)
 	}
 	v.b.WriteString("]}")
 }
@@ -201,7 +150,7 @@ var regionCode = map[ast.RegionCode]string{
 }
 
 // VisitRegion writes JSON code for block regions.
-func (v *visitor) VisitRegion(rn *ast.RegionNode) {
+func (v *detailVisitor) VisitRegion(rn *ast.RegionNode) {
 	code, ok := regionCode[rn.Code]
 	if !ok {
 		panic(fmt.Sprintf("Unknown region code %v", rn.Code))
@@ -218,7 +167,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 }
 
 // VisitHeading writes the JSON code for a heading.
-func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
+func (v *detailVisitor) VisitHeading(hn *ast.HeadingNode) {
 	v.writeNodeStart("Heading")
 	v.visitAttributes(hn.Attrs)
 	v.writeContentStart('n')
@@ -229,7 +178,7 @@ func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
 }
 
 // VisitHRule writes JSON code for a horizontal rule: <hr>.
-func (v *visitor) VisitHRule(hn *ast.HRuleNode) {
+func (v *detailVisitor) VisitHRule(hn *ast.HRuleNode) {
 	v.writeNodeStart("Hrule")
 	v.visitAttributes(hn.Attrs)
 	v.b.WriteByte('}')
@@ -242,7 +191,7 @@ var listCode = map[ast.NestedListCode]string{
 }
 
 // VisitNestedList writes JSON code for lists and blockquotes.
-func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
+func (v *detailVisitor) VisitNestedList(ln *ast.NestedListNode) {
 	v.writeNodeStart(listCode[ln.Code])
 	v.writeContentStart('c')
 	for i, item := range ln.Items {
@@ -255,7 +204,7 @@ func (v *visitor) VisitNestedList(ln *ast.NestedListNode) {
 }
 
 // VisitDescriptionList emits a JSON description list.
-func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
+func (v *detailVisitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
 	v.writeNodeStart("DescriptionList")
 	v.writeContentStart('g')
 	for i, def := range dn.Descriptions {
@@ -277,7 +226,7 @@ func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
 }
 
 // VisitTable emits a JSON table.
-func (v *visitor) VisitTable(tn *ast.TableNode) {
+func (v *detailVisitor) VisitTable(tn *ast.TableNode) {
 	v.writeNodeStart("Table")
 	v.writeContentStart('p')
 
@@ -316,42 +265,42 @@ var alignmentCode = map[ast.Alignment]string{
 	ast.AlignRight:   "[\">\",",
 }
 
-func (v *visitor) writeCell(cell *ast.TableCell) {
+func (v *detailVisitor) writeCell(cell *ast.TableCell) {
 	v.b.WriteString(alignmentCode[cell.Align])
 	v.acceptInlineSlice(cell.Inlines)
 	v.b.WriteByte(']')
 }
 
 // VisitBLOB writes the binary object as a value.
-func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
+func (v *detailVisitor) VisitBLOB(bn *ast.BLOBNode) {
 	v.writeNodeStart("Blob")
 	v.writeContentStart('q')
-	v.writeEscaped(bn.Title)
+	writeEscaped(&v.b, bn.Title)
 	v.writeContentStart('s')
-	v.writeEscaped(bn.Syntax)
+	writeEscaped(&v.b, bn.Syntax)
 	v.writeContentStart('o')
 	v.b.WriteBase64(bn.Blob)
 	v.b.WriteString("\"}")
 }
 
 // VisitText writes text content.
-func (v *visitor) VisitText(tn *ast.TextNode) {
+func (v *detailVisitor) VisitText(tn *ast.TextNode) {
 	v.writeNodeStart("Text")
 	v.writeContentStart('s')
-	v.writeEscaped(tn.Text)
+	writeEscaped(&v.b, tn.Text)
 	v.b.WriteByte('}')
 }
 
 // VisitTag writes tag content.
-func (v *visitor) VisitTag(tn *ast.TagNode) {
+func (v *detailVisitor) VisitTag(tn *ast.TagNode) {
 	v.writeNodeStart("Tag")
 	v.writeContentStart('s')
-	v.writeEscaped(tn.Tag)
+	writeEscaped(&v.b, tn.Tag)
 	v.b.WriteByte('}')
 }
 
 // VisitSpace emits a white space.
-func (v *visitor) VisitSpace(sn *ast.SpaceNode) {
+func (v *detailVisitor) VisitSpace(sn *ast.SpaceNode) {
 	v.writeNodeStart("Space")
 	if l := len(sn.Lexeme); l > 1 {
 		v.writeContentStart('n')
@@ -361,7 +310,7 @@ func (v *visitor) VisitSpace(sn *ast.SpaceNode) {
 }
 
 // VisitBreak writes JSON code for line breaks.
-func (v *visitor) VisitBreak(bn *ast.BreakNode) {
+func (v *detailVisitor) VisitBreak(bn *ast.BreakNode) {
 	if bn.Hard {
 		v.writeNodeStart("Hard")
 	} else {
@@ -379,7 +328,7 @@ var mapRefState = map[ast.RefState]string{
 }
 
 // VisitLink writes JSON code for links.
-func (v *visitor) VisitLink(ln *ast.LinkNode) {
+func (v *detailVisitor) VisitLink(ln *ast.LinkNode) {
 	if adapt := v.enc.adaptLink; adapt != nil {
 		n := adapt(ln)
 		var ok bool
@@ -391,16 +340,16 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	v.writeNodeStart("Link")
 	v.visitAttributes(ln.Attrs)
 	v.writeContentStart('q')
-	v.writeEscaped(mapRefState[ln.Ref.State])
+	writeEscaped(&v.b, mapRefState[ln.Ref.State])
 	v.writeContentStart('s')
-	v.writeEscaped(ln.Ref.String())
+	writeEscaped(&v.b, ln.Ref.String())
 	v.writeContentStart('i')
 	v.acceptInlineSlice(ln.Inlines)
 	v.b.WriteByte('}')
 }
 
 // VisitImage writes JSON code for images.
-func (v *visitor) VisitImage(in *ast.ImageNode) {
+func (v *detailVisitor) VisitImage(in *ast.ImageNode) {
 	if adapt := v.enc.adaptImage; adapt != nil {
 		n := adapt(in)
 		var ok bool
@@ -414,11 +363,11 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 	if in.Ref == nil {
 		v.writeContentStart('j')
 		v.b.WriteString("\"s\":")
-		v.writeEscaped(in.Syntax)
+		writeEscaped(&v.b, in.Syntax)
 		switch in.Syntax {
 		case "svg":
 			v.writeContentStart('q')
-			v.writeEscaped(string(in.Blob))
+			writeEscaped(&v.b, string(in.Blob))
 		default:
 			v.writeContentStart('o')
 			v.b.WriteBase64(in.Blob)
@@ -427,7 +376,7 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 		v.b.WriteByte('}')
 	} else {
 		v.writeContentStart('s')
-		v.writeEscaped(in.Ref.String())
+		writeEscaped(&v.b, in.Ref.String())
 	}
 	if len(in.Inlines) > 0 {
 		v.writeContentStart('i')
@@ -437,11 +386,11 @@ func (v *visitor) VisitImage(in *ast.ImageNode) {
 }
 
 // VisitCite writes code for citations.
-func (v *visitor) VisitCite(cn *ast.CiteNode) {
+func (v *detailVisitor) VisitCite(cn *ast.CiteNode) {
 	v.writeNodeStart("Cite")
 	v.visitAttributes(cn.Attrs)
 	v.writeContentStart('s')
-	v.writeEscaped(cn.Key)
+	writeEscaped(&v.b, cn.Key)
 	if len(cn.Inlines) > 0 {
 		v.writeContentStart('i')
 		v.acceptInlineSlice(cn.Inlines)
@@ -450,7 +399,7 @@ func (v *visitor) VisitCite(cn *ast.CiteNode) {
 }
 
 // VisitFootnote write JSON code for a footnote.
-func (v *visitor) VisitFootnote(fn *ast.FootnoteNode) {
+func (v *detailVisitor) VisitFootnote(fn *ast.FootnoteNode) {
 	v.writeNodeStart("Footnote")
 	v.visitAttributes(fn.Attrs)
 	v.writeContentStart('i')
@@ -459,11 +408,11 @@ func (v *visitor) VisitFootnote(fn *ast.FootnoteNode) {
 }
 
 // VisitMark writes JSON code to mark a position.
-func (v *visitor) VisitMark(mn *ast.MarkNode) {
+func (v *detailVisitor) VisitMark(mn *ast.MarkNode) {
 	v.writeNodeStart("Mark")
 	if len(mn.Text) > 0 {
 		v.writeContentStart('s')
-		v.writeEscaped(mn.Text)
+		writeEscaped(&v.b, mn.Text)
 	}
 	v.b.WriteByte('}')
 }
@@ -487,7 +436,7 @@ var formatCode = map[ast.FormatCode]string{
 }
 
 // VisitFormat write JSON code for formatting text.
-func (v *visitor) VisitFormat(fn *ast.FormatNode) {
+func (v *detailVisitor) VisitFormat(fn *ast.FormatNode) {
 	v.writeNodeStart(formatCode[fn.Code])
 	v.visitAttributes(fn.Attrs)
 	v.writeContentStart('i')
@@ -504,7 +453,7 @@ var literalCode = map[ast.LiteralCode]string{
 }
 
 // VisitLiteral write JSON code for literal inline text.
-func (v *visitor) VisitLiteral(ln *ast.LiteralNode) {
+func (v *detailVisitor) VisitLiteral(ln *ast.LiteralNode) {
 	code, ok := literalCode[ln.Code]
 	if !ok {
 		panic(fmt.Sprintf("Unknown literal code %v", ln.Code))
@@ -512,11 +461,11 @@ func (v *visitor) VisitLiteral(ln *ast.LiteralNode) {
 	v.writeNodeStart(code)
 	v.visitAttributes(ln.Attrs)
 	v.writeContentStart('s')
-	v.writeEscaped(ln.Text)
+	writeEscaped(&v.b, ln.Text)
 	v.b.WriteByte('}')
 }
 
-func (v *visitor) acceptBlockSlice(bns ast.BlockSlice) {
+func (v *detailVisitor) acceptBlockSlice(bns ast.BlockSlice) {
 	v.b.WriteByte('[')
 	for i, bn := range bns {
 		if i > 0 {
@@ -527,7 +476,7 @@ func (v *visitor) acceptBlockSlice(bns ast.BlockSlice) {
 	v.b.WriteByte(']')
 }
 
-func (v *visitor) acceptItemSlice(ins ast.ItemSlice) {
+func (v *detailVisitor) acceptItemSlice(ins ast.ItemSlice) {
 	v.b.WriteByte('[')
 	for i, in := range ins {
 		if i > 0 {
@@ -538,7 +487,7 @@ func (v *visitor) acceptItemSlice(ins ast.ItemSlice) {
 	v.b.WriteByte(']')
 }
 
-func (v *visitor) acceptDescriptionSlice(dns ast.DescriptionSlice) {
+func (v *detailVisitor) acceptDescriptionSlice(dns ast.DescriptionSlice) {
 	v.b.WriteByte('[')
 	for i, dn := range dns {
 		if i > 0 {
@@ -549,7 +498,7 @@ func (v *visitor) acceptDescriptionSlice(dns ast.DescriptionSlice) {
 	v.b.WriteByte(']')
 }
 
-func (v *visitor) acceptInlineSlice(ins ast.InlineSlice) {
+func (v *detailVisitor) acceptInlineSlice(ins ast.InlineSlice) {
 	v.b.WriteByte('[')
 	for i, in := range ins {
 		if i > 0 {
@@ -561,7 +510,7 @@ func (v *visitor) acceptInlineSlice(ins ast.InlineSlice) {
 }
 
 // visitAttributes write JSON attributes
-func (v *visitor) visitAttributes(a *ast.Attributes) {
+func (v *detailVisitor) visitAttributes(a *ast.Attributes) {
 	if a == nil || len(a.Attrs) == 0 {
 		return
 	}
@@ -583,7 +532,7 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 	v.b.WriteString("\"}")
 }
 
-func (v *visitor) writeNodeStart(t string) {
+func (v *detailVisitor) writeNodeStart(t string) {
 	v.b.WriteStrings("{\"t\":\"", t, "\"")
 }
 
@@ -603,64 +552,10 @@ var contentCode = map[rune][]byte{
 	'y': []byte("Content code 'y' is not allowed"), // field after 'j'
 }
 
-func (v *visitor) writeContentStart(code rune) {
+func (v *detailVisitor) writeContentStart(code rune) {
 	if b, ok := contentCode[code]; ok {
 		v.b.Write(b)
 		return
 	}
 	panic("Unknown content code " + strconv.Itoa(int(code)))
-}
-
-var (
-	jsBackslash   = []byte{'\\', '\\'}
-	jsDoubleQuote = []byte{'\\', '"'}
-	jsNewline     = []byte{'\\', 'n'}
-	jsTab         = []byte{'\\', 't'}
-	jsCr          = []byte{'\\', 'r'}
-	jsUnicode     = []byte{'\\', 'u', '0', '0', '0', '0'}
-	jsHex         = []byte("0123456789ABCDEF")
-)
-
-func (v *visitor) writeEscaped(s string) {
-	v.b.WriteByte('"')
-	v.b.Write(Escape(s))
-	v.b.WriteByte('"')
-}
-
-// Escape returns the given string as a byte slice, where every non-printable
-// rune is made printable.
-func Escape(s string) []byte {
-	var buf bytes.Buffer
-
-	last := 0
-	for i, ch := range s {
-		var b []byte
-		switch ch {
-		case '\t':
-			b = jsTab
-		case '\r':
-			b = jsCr
-		case '\n':
-			b = jsNewline
-		case '"':
-			b = jsDoubleQuote
-		case '\\':
-			b = jsBackslash
-		default:
-			if ch < ' ' {
-				b = jsUnicode
-				b[2] = '0'
-				b[3] = '0'
-				b[4] = jsHex[ch>>4]
-				b[5] = jsHex[ch&0xF]
-			} else {
-				continue
-			}
-		}
-		buf.WriteString(s[last:i])
-		buf.Write(b)
-		last = i + 1
-	}
-	buf.WriteString(s[last:])
-	return buf.Bytes()
 }
