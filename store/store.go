@@ -96,6 +96,15 @@ func NewErrNotAuthorized(op string, user *domain.Meta, zid domain.ZettelID) erro
 }
 
 func (err *ErrNotAuthorized) Error() string {
+	if err.user == nil {
+		if err.zid.IsValid() {
+			return fmt.Sprintf(
+				"Operation %q on zettel %v not allowed for not authorized user",
+				err.op,
+				err.zid.Format())
+		}
+		return fmt.Sprintf("Operation %q not allowed for not authorized user", err.op)
+	}
 	if err.zid.IsValid() {
 		return fmt.Sprintf(
 			"Operation %q on zettel %v not allowed for user %v/%v",
