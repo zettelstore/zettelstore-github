@@ -60,7 +60,7 @@ var goData = goStore{
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Zettelstore, build {{config.GetVersion.Build}}">
 {{- block "meta-header" .}}{{end}}
-<link rel="stylesheet" href="{{urlZettel 'c' %d}}">
+<link rel="stylesheet" href="{{urlZettel 'z' %d}}?_format=raw&_view=content">
 {{- block "header" .}}{{end}}
 <title>{{.Title}}</title>
 </head>
