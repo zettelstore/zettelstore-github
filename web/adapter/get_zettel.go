@@ -126,3 +126,30 @@ func MakeGetZettelHandler(
 		}
 	}
 }
+
+var syntaxType = map[string]string{
+	"css":           "text/css; charset=utf-8",
+	"gif":           "image/gif",
+	"html":          "text/html; charset=utf-8",
+	"jpeg":          "image/jpeg",
+	"jpg":           "image/jpeg",
+	"js":            "text/javascript; charset=utf-8",
+	"pdf":           "application/pdf",
+	"png":           "image/png",
+	"svg":           "image/svg+xml",
+	"xml":           "text/xml; charset=utf-8",
+	"zmk":           "text/x-zmk; charset=utf-8",
+	"plain":         "text/plain; charset=utf-8",
+	"text":          "text/plain; charset=utf-8",
+	"markdown":      "text/markdown; charset=utf-8",
+	"md":            "text/markdown; charset=utf-8",
+	"graphviz":      "text/vnd.graphviz; charset=utf-8",
+	"blockdiag":     "text/x-blockdiag; charset=utf-8",
+	"seqdiag":       "text/x-seqdiag; charset=utf-8",
+	"actdiag":       "text/x-actdiag; charset=utf-8",
+	"nwdiag":        "text/x-nwdiag; charset=utf-8",
+	"plantuml":      "text/x-plantuml; charset=utf-8",
+	"template":      "text/x-go-html-template; charset=utf-8",
+	"template-html": "text/x-go-html-template; charset=utf-8",
+	"template-text": "text/x-go-text-template; charset=utf-8",
+}
