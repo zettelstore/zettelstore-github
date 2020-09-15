@@ -22,6 +22,7 @@
 package encoder
 
 import (
+	"errors"
 	"io"
 	"log"
 	"sort"
@@ -40,6 +41,12 @@ type Encoder interface {
 	WriteBlocks(io.Writer, ast.BlockSlice) (int, error)
 	WriteInlines(io.Writer, ast.InlineSlice) (int, error)
 }
+
+// Some errors to signal when WriteBlocks/WriteInlines are not implemented.
+var (
+	ErrNoWriteBlocks  = errors.New("Method WriteBlocks is not implemented")
+	ErrNoWriteInlines = errors.New("Method WriteInlines is not implemented")
+)
 
 // Option allows to configure an encoder
 type Option interface {

@@ -29,16 +29,10 @@ import (
 )
 
 func init() {
-	encoder.Register("text", createEncoder)
+	encoder.Register("text", func() encoder.Encoder { return &textEncoder{} })
 }
 
-// createEncoder creates a new text encoder.
-func createEncoder() encoder.Encoder {
-	return &textEncoder{}
-}
-
-type textEncoder struct {
-}
+type textEncoder struct{}
 
 // SetOption sets an option for this encoder
 func (te *textEncoder) SetOption(option encoder.Option) {}

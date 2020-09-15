@@ -32,11 +32,7 @@ import (
 )
 
 func init() {
-	encoder.Register("djson", createDetailEncoder)
-}
-
-func createDetailEncoder() encoder.Encoder {
-	return &jsonDetailEncoder{}
+	encoder.Register("djson", func() encoder.Encoder { return &jsonDetailEncoder{} })
 }
 
 type jsonDetailEncoder struct {

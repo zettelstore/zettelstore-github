@@ -31,11 +31,7 @@ import (
 )
 
 func init() {
-	encoder.Register("zmk", createEncoder)
-}
-
-func createEncoder() encoder.Encoder {
-	return &zmkEncoder{}
+	encoder.Register("zmk", func() encoder.Encoder { return &zmkEncoder{} })
 }
 
 type zmkEncoder struct {

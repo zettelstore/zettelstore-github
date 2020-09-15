@@ -30,11 +30,7 @@ import (
 )
 
 func init() {
-	encoder.Register("json", createEncoder)
-}
-
-func createEncoder() encoder.Encoder {
-	return &jsonEncoder{}
+	encoder.Register("json", func() encoder.Encoder { return &jsonEncoder{} })
 }
 
 type jsonEncoder struct{}
@@ -71,14 +67,12 @@ func (je *jsonEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error
 
 // WriteBlocks writes a block slice to the writer
 func (je *jsonEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
-	jde := jsonDetailEncoder{}
-	return jde.WriteBlocks(w, bs)
+	return 0, encoder.ErrNoWriteBlocks
 }
 
 // WriteInlines writes an inline slice to the writer
 func (je *jsonEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
-	jde := jsonDetailEncoder{}
-	return jde.WriteInlines(w, is)
+	return 0, encoder.ErrNoWriteInlines
 }
 
 func writeMeta(b *encoder.BufWriter, meta *domain.Meta) {

@@ -64,10 +64,10 @@ func (re *rawEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error)
 
 // WriteBlocks writes a block slice to the writer
 func (re *rawEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) {
-	return 0, nil
+	return 0, encoder.ErrNoWriteBlocks
 }
 
 // WriteInlines writes an inline slice to the writer
 func (re *rawEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
-	return 0, nil
+	return 0, encoder.ErrNoWriteInlines
 }

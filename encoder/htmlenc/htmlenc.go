@@ -33,7 +33,7 @@ import (
 )
 
 func init() {
-	encoder.Register("html", createEncoder)
+	encoder.Register("html", func() encoder.Encoder { return &htmlEncoder{} })
 }
 
 type htmlEncoder struct {
@@ -46,12 +46,7 @@ type htmlEncoder struct {
 	adaptCite  func(*ast.CiteNode) ast.InlineNode
 	meta       *domain.Meta
 	ignoreMeta map[string]bool
-
-	footnotes []*ast.FootnoteNode
-}
-
-func createEncoder() encoder.Encoder {
-	return &htmlEncoder{}
+	footnotes  []*ast.FootnoteNode
 }
 
 func (he *htmlEncoder) SetOption(option encoder.Option) {
