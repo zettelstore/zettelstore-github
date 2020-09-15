@@ -25,6 +25,7 @@ import (
 	"io"
 	"sort"
 	"strconv"
+	"unicode"
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/domain"
@@ -56,14 +57,14 @@ func (je *jsonDetailEncoder) SetOption(option encoder.Option) {
 // WriteZettel writes the encoded zettel to the writer.
 func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
 	v := newDetailVisitor(w, je)
-	v.b.WriteByte('{')
-	v.b.WriteString("\"title\":")
+	v.b.WriteString("{\"meta\":{\"title\":")
 	v.acceptInlineSlice(zettel.Title)
 	if je.meta != nil {
-		v.acceptMeta(je.meta, false)
+		v.writeMeta(je.meta, false)
 	} else {
-		v.acceptMeta(zettel.Meta, false)
+		v.writeMeta(zettel.Meta, false)
 	}
+	v.b.WriteByte('}')
 	v.b.WriteString(",\"content\":")
 	v.acceptBlockSlice(zettel.Ast)
 	v.b.WriteByte('}')
@@ -75,7 +76,7 @@ func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, 
 func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	v := newDetailVisitor(w, je)
 	v.b.WriteByte('{')
-	v.acceptMeta(meta, true)
+	v.writeMeta(meta, true)
 	v.b.WriteByte('}')
 	length, err := v.b.Flush()
 	return length, err
@@ -559,52 +560,36 @@ func (v *detailVisitor) writeContentStart(code rune) {
 	}
 	panic("Unknown content code " + strconv.Itoa(int(code)))
 }
-func (v *detailVisitor) acceptMeta(meta *domain.Meta, withTitle bool) {
-	if withTitle {
-		v.b.WriteString("\"title\":\"")
-		v.b.Write(Escape(meta.GetDefault(domain.MetaKeyTitle, "")))
-		v.b.WriteByte('"')
-	}
-	v.writeMetaList(meta, domain.MetaKeyTags, "tags")
-	v.writeMetaString(meta, domain.MetaKeySyntax, "syntax")
-	v.writeMetaString(meta, domain.MetaKeyRole, "role")
-	if pairs := meta.PairsRest(); len(pairs) > 0 {
-		v.b.WriteString(",\"header\":{\"")
-		first := true
-		for _, p := range pairs {
-			if !first {
-				v.b.WriteString("\",\"")
-			}
-			v.b.Write(Escape(p.Key))
-			v.b.WriteString("\":\"")
-			v.b.Write(Escape(p.Value))
+
+func (v *detailVisitor) writeMeta(meta *domain.Meta, withTitle bool) {
+	first := withTitle
+	for _, p := range meta.Pairs() {
+		if p.Key == "title" && !withTitle {
+			continue
+		}
+		if first {
+			v.b.WriteByte('"')
 			first = false
+		} else {
+			v.b.WriteString(",\"")
 		}
-		v.b.WriteString("\"}")
-	}
-}
-
-func (v *detailVisitor) writeMetaString(meta *domain.Meta, key string, native string) {
-	if val, ok := meta.Get(key); ok && len(val) > 0 {
-		v.b.WriteString(",\"")
-		v.b.Write(Escape(native))
-		v.b.WriteString("\":\"")
-		v.b.Write(Escape(val))
-		v.b.WriteByte('"')
-	}
-}
-
-func (v *detailVisitor) writeMetaList(meta *domain.Meta, key string, native string) {
-	if vals, ok := meta.GetList(key); ok && len(vals) > 0 {
-		v.b.WriteString(",\"")
-		v.b.Write(Escape(native))
-		v.b.WriteString("\":[\"")
-		for i, val := range vals {
-			if i > 0 {
-				v.b.WriteString("\",\"")
+		v.b.Write(Escape(p.Key))
+		v.b.WriteString("\":")
+		if unicode.IsUpper(rune(meta.Type(p.Key))) {
+			v.b.WriteByte('[')
+			for i, val := range domain.ListFromValue(p.Value) {
+				if i > 0 {
+					v.b.WriteByte(',')
+				}
+				v.b.WriteByte('"')
+				v.b.Write(Escape(val))
+				v.b.WriteByte('"')
 			}
-			v.b.Write(Escape(val))
+			v.b.WriteByte(']')
+		} else {
+			v.b.WriteByte('"')
+			v.b.Write(Escape(p.Value))
+			v.b.WriteByte('"')
 		}
-		v.b.WriteString("\"]")
 	}
 }
