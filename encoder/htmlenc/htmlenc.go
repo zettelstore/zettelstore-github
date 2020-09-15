@@ -172,7 +172,16 @@ func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
 			continue
 		}
 		if !v.enc.ignoreMeta[pair.Key] {
-			if key, ok := mapMetaKey[pair.Key]; ok {
+			if pair.Key == domain.MetaKeyTags {
+				v.b.WriteString("\n<meta name=\"keywords\" content=\"")
+				for i, val := range domain.ListFromValue(pair.Value) {
+					if i > 0 {
+						v.b.WriteString(", ")
+					}
+					v.writeQuotedEscaped(strings.TrimPrefix(val, "#"))
+				}
+				v.b.WriteString("\">")
+			} else if key, ok := mapMetaKey[pair.Key]; ok {
 				v.writeMeta("", key, pair.Value)
 			} else {
 				v.writeMeta("zs-", pair.Key, pair.Value)
