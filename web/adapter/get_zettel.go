@@ -56,13 +56,13 @@ func MakeGetZettelHandler(
 		z, meta := parser.ParseZettel(zettel, syntax)
 
 		format := getFormat(r, "json")
-		view := r.URL.Query().Get("_view")
-		if len(view) == 0 {
-			view = "zettel"
+		part := r.URL.Query().Get("_part")
+		if len(part) == 0 {
+			part = "zettel"
 		}
 
 		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
-		switch view {
+		switch part {
 		case "zettel":
 			if format != "raw" {
 				w.Header().Set("Content-Type", formatContentType(format))
@@ -102,7 +102,7 @@ func MakeGetZettelHandler(
 				&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 			)
 		default:
-			http.Error(w, fmt.Sprintf("Unknown _view=%v parameter", view), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
 			return
 		}
 		if err != nil {

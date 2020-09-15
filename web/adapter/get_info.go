@@ -102,7 +102,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			IntLinks []internalReference
 			ExtLinks []string
 			Formats  []string
-			Views    []string
+			Parts    []string
 		}{
 			Lang:     langOption.Value,
 			Title:    textTitle, // TODO: merge with site-title?
@@ -111,7 +111,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			IntLinks: intLinks,
 			ExtLinks: extLinks,
 			Formats:  encoder.GetFormats(),
-			Views:    []string{"zettel", "meta", "content"},
+			Parts:    []string{"zettel", "meta", "content"},
 		})
 	}
 }
