@@ -64,53 +64,43 @@ func MakeGetZettelHandler(
 		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
 		switch view {
 		case "zettel":
-			if format == "raw" {
-				_, err = zettel.Meta.Write(w)
-				if err == nil {
-					_, err = w.Write([]byte{'\n'})
-					if err == nil {
-						_, err = w.Write(z.Content.AsBytes())
-					}
-				}
-			} else {
+			if format != "raw" {
 				w.Header().Set("Content-Type", formatContentType(format))
-				err = writeZettel(w, z, format,
-					langOption,
-					&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
-					&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
-					&encoder.MetaOption{Meta: meta},
-					&encoder.StringsOption{
-						Key: "no-meta",
-						Value: []string{
-							domain.MetaKeyLang,
-						},
-					},
-				)
 			}
+			err = writeZettel(w, z, format,
+				langOption,
+				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
+				&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
+				&encoder.MetaOption{Meta: meta},
+				&encoder.StringsOption{
+					Key: "no-meta",
+					Value: []string{
+						domain.MetaKeyLang,
+					},
+				},
+			)
 		case "meta":
 			if format == "raw" {
 				w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-				_, err = zettel.Meta.Write(w)
 			} else {
 				w.Header().Set("Content-Type", formatContentType(format))
-				err = writeMeta(w, zettel.Meta, format)
 			}
+			err = writeMeta(w, zettel.Meta, format)
 		case "content":
 			if format == "raw" {
 				syntax := config.GetSyntax(zettel.Meta)
 				if contentType, ok := syntaxType[syntax]; ok {
 					w.Header().Add("Content-Type", contentType)
 				}
-				_, err = w.Write(zettel.Content.AsBytes())
 			} else {
 				w.Header().Set("Content-Type", formatContentType(format))
-				err = writeContent(w, z, format,
-					langOption,
-					&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
-					&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
-					&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
-				)
 			}
+			err = writeContent(w, z, format,
+				langOption,
+				&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
+				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
+				&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
+			)
 		default:
 			http.Error(w, fmt.Sprintf("Unknown _view=%v parameter", view), http.StatusBadRequest)
 			return

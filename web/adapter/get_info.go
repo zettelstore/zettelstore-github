@@ -110,7 +110,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			Meta:     wrapMeta(z.Meta),
 			IntLinks: intLinks,
 			ExtLinks: extLinks,
-			Formats:  append(encoder.GetFormats(), "raw"),
+			Formats:  encoder.GetFormats(),
 			Views:    []string{"zettel", "meta", "content"},
 		})
 	}
