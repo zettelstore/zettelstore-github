@@ -65,9 +65,7 @@ func MakeListMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta
 func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta) {
 	buf := encoder.NewBufWriter(w)
 
-	buf.WriteString("<html lang=\"")
-	buf.WriteString(config.GetDefaultLang())
-	buf.WriteString("\">\n<body>\n<ul>\n")
+	buf.WriteStrings("<html lang=\"", config.GetDefaultLang(), "\">\n<body>\n<ul>\n")
 	for _, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
 		htmlTitle, err := formatInlines(parser.ParseTitle(title), "html")
@@ -76,11 +74,9 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 			log.Println(err)
 			return
 		}
-		buf.WriteString("<li><a href=\"")
-		buf.WriteString(urlForZettel(key, meta.Zid))
-		buf.WriteString("\">")
-		buf.WriteString(htmlTitle)
-		buf.WriteString("</a></li>\n")
+		buf.WriteStrings(
+			"<li><a href=\"", urlForZettel(key, meta.Zid), "?_format=html", "\">",
+			htmlTitle, "</a></li>\n")
 	}
 	buf.WriteString("</ul>\n</body>\n</html>")
 	buf.Flush()
@@ -97,11 +93,9 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, enc enco
 		if i > 0 {
 			buf.WriteByte(',')
 		}
-		buf.WriteString("{\"id\":\"")
-		buf.WriteString(meta.Zid.Format())
-		buf.WriteString("\",\"url\":\"")
-		buf.WriteString(urlForZettel('z', meta.Zid))
-		buf.WriteString("\",\"meta\":")
+		buf.WriteStrings(
+			"{\"id\":\"", meta.Zid.Format(), "\",\"url\":\"", urlForZettel('z', meta.Zid),
+			"?_format=", format, "\",\"meta\":")
 		var title ast.InlineSlice
 		if detail {
 			title = parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
