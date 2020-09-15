@@ -25,10 +25,10 @@ import (
 	"log"
 	"net/http"
 
+	"zettelstore.de/z/ast"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/encoder/jsonenc"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
@@ -49,10 +49,9 @@ func MakeListMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta
 		switch format {
 		case "html":
 			renderListMetaHTML(w, key, metaList)
-		case "json":
-			renderListMetaJSON(w, metaList, false)
-		case "djson":
-			renderListMetaJSON(w, metaList, true)
+		case "json", "djson":
+			enc := encoder.Create(format)
+			renderListMetaJSON(w, metaList, enc, format)
 		case "native", "raw", "text", "zmk":
 			http.Error(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format), http.StatusNotImplemented)
 			log.Println(format)
@@ -87,22 +86,14 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 	buf.Flush()
 }
 
-func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, detail bool) {
+func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, enc encoder.Encoder, format string) {
+	if enc == nil {
+		return
+	}
+	detail := format == "djson"
 	buf := encoder.NewBufWriter(w)
-
-	var jsonTitle string
-	var err error
 	buf.WriteString("{\"list\":[")
 	for i, meta := range metaList {
-		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		if detail {
-			jsonTitle, err = formatInlines(parser.ParseTitle(title), "json")
-			if err != nil {
-				http.Error(w, "Internal error", http.StatusInternalServerError)
-				log.Println(err)
-				return
-			}
-		}
 		if i > 0 {
 			buf.WriteByte(',')
 		}
@@ -110,50 +101,13 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, detail b
 		buf.WriteString(meta.Zid.Format())
 		buf.WriteString("\",\"url\":\"")
 		buf.WriteString(urlForZettel('z', meta.Zid))
-		buf.WriteString("\",\"meta\":{\"title\":")
+		buf.WriteString("\",\"meta\":")
+		var title ast.InlineSlice
 		if detail {
-			buf.WriteString(jsonTitle)
-		} else {
-			buf.WriteByte('"')
-			buf.Write(jsonenc.Escape(title))
-			buf.WriteByte('"')
+			title = parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
 		}
-		if syntax, ok := meta.Get(domain.MetaKeySyntax); ok {
-			buf.WriteString(",\"syntax\":\"")
-			buf.Write(jsonenc.Escape(syntax))
-			buf.WriteByte('"')
-		}
-		if tags, ok := meta.GetList(domain.MetaKeyTags); ok {
-			buf.WriteString(",\"tags\":[")
-			for j, tag := range tags {
-				if j > 0 {
-					buf.WriteByte(',')
-				}
-				buf.WriteByte('"')
-				buf.Write(jsonenc.Escape(tag))
-				buf.WriteByte('"')
-			}
-			buf.WriteByte(']')
-		}
-		if role, ok := meta.Get(domain.MetaKeyRole); ok {
-			buf.WriteString(",\"role\":\"")
-			buf.Write(jsonenc.Escape(role))
-			buf.WriteByte('"')
-		}
-		if pairs := meta.PairsRest(); len(pairs) > 0 {
-			buf.WriteByte(',')
-			for j, p := range pairs {
-				if j > 0 {
-					buf.WriteByte(',')
-				}
-				buf.WriteByte('"')
-				buf.Write(jsonenc.Escape(p.Key))
-				buf.WriteString("\":\"")
-				buf.Write(jsonenc.Escape(p.Value))
-				buf.WriteByte('"')
-			}
-		}
-		buf.WriteString("}}")
+		enc.WriteMeta(&buf, meta, title)
+		buf.WriteByte('}')
 	}
 	buf.WriteString("]}")
 	buf.Flush()

@@ -167,7 +167,7 @@ func checkMetaFile(t *testing.T, resultName string, zettel *ast.Zettel, format s
 
 	if enc := encoder.Create(format); enc != nil {
 		var sb strings.Builder
-		enc.WriteMeta(&sb, zettel.Meta)
+		enc.WriteMeta(&sb, zettel.Meta, nil)
 		checkFileContent(t, resultName, sb.String())
 		return
 	}

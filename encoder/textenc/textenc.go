@@ -40,14 +40,14 @@ func (te *textEncoder) SetOption(option encoder.Option) {}
 // WriteZettel does nothing.
 func (te *textEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
 	v := newVisitor(w)
-	te.WriteMeta(&v.b, zettel.Meta)
+	te.WriteMeta(&v.b, zettel.Meta, nil)
 	v.acceptBlockSlice(zettel.Ast)
 	length, err := v.b.Flush()
 	return length, err
 }
 
 // WriteMeta encodes meta data as text.
-func (te *textEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (te *textEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
 	b := encoder.NewBufWriter(w)
 	for _, pair := range meta.Pairs() {
 		b.WriteString(pair.Value)

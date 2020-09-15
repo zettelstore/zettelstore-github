@@ -73,10 +73,16 @@ func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, 
 }
 
 // WriteMeta encodes meta data as JSON.
-func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
 	v := newDetailVisitor(w, je)
 	v.b.WriteByte('{')
-	v.writeMeta(meta, true)
+	if title == nil {
+		v.writeMeta(meta, true)
+	} else {
+		v.b.WriteString("\"title\":")
+		v.acceptInlineSlice(title)
+		v.writeMeta(meta, false)
+	}
 	v.b.WriteByte('}')
 	length, err := v.b.Flush()
 	return length, err

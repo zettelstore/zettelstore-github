@@ -27,6 +27,7 @@ import (
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/store"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
@@ -87,11 +88,9 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 		if format := getFormat(r, "html"); format != "html" {
 			w.Header().Set("Content-Type", formatContentType(format))
 			switch format {
-			case "json":
-				renderListMetaJSON(w, metaList, false)
-				return
-			case "djson":
-				renderListMetaJSON(w, metaList, true)
+			case "json", "djson":
+				enc := encoder.Create(format)
+				renderListMetaJSON(w, metaList, enc, format)
 				return
 			}
 		}
