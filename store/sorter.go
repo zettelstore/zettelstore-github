@@ -22,7 +22,6 @@ package store
 
 import (
 	"sort"
-	"strings"
 
 	"zettelstore.de/z/domain"
 )
@@ -38,7 +37,7 @@ func ApplySorter(metaList []*domain.Meta, s *Sorter) []*domain.Meta {
 		return metaList
 	}
 
-	sorter := getSortFunc(s.Order, metaList)
+	sorter := getSortFunc(s.Order, s.Descending, metaList)
 	sort.Slice(metaList, sorter)
 	if s.Offset > 0 {
 		if s.Offset > len(metaList) {
@@ -54,21 +53,15 @@ func ApplySorter(metaList []*domain.Meta, s *Sorter) []*domain.Meta {
 
 type sortFunc func(i, j int) bool
 
-func getSortFunc(key string, ml []*domain.Meta) sortFunc {
-	sortDesc := false
-	if strings.HasPrefix(key, "-") {
-		sortDesc = true
-		key = key[1:]
-	}
-
+func getSortFunc(key string, descending bool, ml []*domain.Meta) sortFunc {
 	keyType := domain.KeyType(key)
 	if key == domain.MetaKeyID || keyType == domain.MetaTypeCred {
-		if sortDesc {
+		if descending {
 			return func(i, j int) bool { return ml[i].Zid > ml[j].Zid }
 		}
 		return func(i, j int) bool { return ml[i].Zid < ml[j].Zid }
 	} else if keyType == domain.MetaTypeBool {
-		if sortDesc {
+		if descending {
 			return func(i, j int) bool {
 				left := ml[i].GetBool(key)
 				if left == ml[j].GetBool(key) {
@@ -86,7 +79,7 @@ func getSortFunc(key string, ml []*domain.Meta) sortFunc {
 		}
 	}
 
-	if sortDesc {
+	if descending {
 		return func(i, j int) bool {
 			iVal, iOk := ml[i].Get(key)
 			jVal, jOk := ml[j].Get(key)

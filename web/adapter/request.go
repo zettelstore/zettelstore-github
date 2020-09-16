@@ -69,10 +69,16 @@ func getFilterSorter(r *http.Request) (filter *store.Filter, sorter *store.Sorte
 		switch key {
 		case "_sort":
 			if len(values) > 0 {
-				if sortkey := values[0]; domain.KeyIsValid(sortkey) ||
-					strings.HasPrefix(sortkey, "-") && domain.KeyIsValid(sortkey[1:]) {
+				descending := false
+				sortkey := values[0]
+				if strings.HasPrefix(sortkey, "-") {
+					descending = true
+					sortkey = sortkey[1:]
+				}
+				if domain.KeyIsValid(sortkey) {
 					sorter = ensureSorter(sorter)
 					sorter.Order = sortkey
+					sorter.Descending = descending
 				}
 			}
 		case "_offset":

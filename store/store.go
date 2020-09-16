@@ -150,7 +150,8 @@ type FilterExpr map[string][]string // map of keys to or-ed values
 
 // Sorter specifies ordering and limiting a sequnce of meta data.
 type Sorter struct {
-	Order  string // Name of meta key. None given: use "id". If key starts with "-" use descending order.
-	Offset int    // <= 0: no offset
-	Limit  int    // <= 0: no limit
+	Order      string // Name of meta key. None given: use "id"
+	Descending bool   // Sort by order, but descending
+	Offset     int    // <= 0: no offset
+	Limit      int    // <= 0: no limit
 }
