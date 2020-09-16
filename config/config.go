@@ -132,6 +132,18 @@ func GetSiteName() string {
 	return "Zettelstore"
 }
 
+// GetStart returns the value of the "start" key.
+func GetStart() domain.ZettelID {
+	if config := getConfigurationMeta(); config != nil {
+		if start, ok := config.Get(domain.MetaKeyStart); ok {
+			if startID, err := domain.ParseZettelID(start); err == nil {
+				return startID
+			}
+		}
+	}
+	return domain.InvalidZettelID
+}
+
 // GetYAMLHeader returns the current value of the "yaml-header" key.
 func GetYAMLHeader() bool {
 	if config := getConfigurationMeta(); config != nil {
