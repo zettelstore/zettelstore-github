@@ -23,6 +23,7 @@ package adapter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"strings"
@@ -110,7 +111,7 @@ func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder
 	return err
 }
 
-func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta) func(*ast.LinkNode) ast.InlineNode {
+func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, part, format string) func(*ast.LinkNode) ast.InlineNode {
 	return func(origLink *ast.LinkNode) ast.InlineNode {
 		origRef := origLink.Ref
 		if origRef == nil || origRef.State != ast.RefStateZettel {
@@ -123,7 +124,17 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta) fun
 		_, err = getMeta.Run(ctx, zid)
 		newLink := *origLink
 		if err == nil {
-			newRef := ast.ParseReference(urlForZettel(key, zid))
+			url := urlForZettel(key, zid)
+			if part != "" {
+				if format != "" {
+					url = fmt.Sprintf("%v?_part=%v&_format=%v", url, part, format)
+				} else {
+					url = fmt.Sprintf("%v?_part=%v", url, part)
+				}
+			} else if format != "" {
+				url = fmt.Sprintf("%v?_format=%v", url, format)
+			}
+			newRef := ast.ParseReference(url)
 			newRef.State = ast.RefStateZettelFound
 			newLink.Ref = newRef
 			return &newLink

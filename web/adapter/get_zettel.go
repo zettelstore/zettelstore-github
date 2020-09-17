@@ -55,13 +55,14 @@ func MakeGetZettelHandler(
 
 		format := getFormat(r, "json")
 		part := r.URL.Query().Get("_part")
+
+		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+		linkAdapter := encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta, part, format)}
+		imageAdapter := encoder.AdaptImageOption{Adapter: makeImageAdapter()}
+
 		if len(part) == 0 {
 			part = "zettel"
 		}
-
-		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
-		linkAdapter := encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta)}
-		imageAdapter := encoder.AdaptImageOption{Adapter: makeImageAdapter()}
 		switch part {
 		case "zettel":
 			if format != "raw" {

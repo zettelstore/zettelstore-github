@@ -86,7 +86,7 @@ func MakeGetHTMLZettelHandler(
 			&langOption,
 			&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
 			&encoder.BoolOption{Key: "newwindow", Value: true},
-			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'h', getMeta)},
+			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'h', getMeta, "", "")},
 			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 		)
 		if err != nil {
