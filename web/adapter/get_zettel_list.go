@@ -39,8 +39,7 @@ func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.Han
 		filter, sorter := getFilterSorter(r)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
 		if err != nil {
-			http.Error(w, "Zettel store not operational", http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 
@@ -56,8 +55,7 @@ func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.Han
 			http.Error(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format), http.StatusNotImplemented)
 			log.Println(format)
 		default:
-			http.Error(w, fmt.Sprintf("Zettel list not available in format %q", format), http.StatusNotFound)
-			log.Println(format)
+			http.Error(w, fmt.Sprintf("Zettel list not available in format %q", format), http.StatusBadRequest)
 		}
 	}
 }

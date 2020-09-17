@@ -21,7 +21,6 @@
 package adapter
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -49,8 +48,7 @@ func MakeGetHTMLZettelHandler(
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")

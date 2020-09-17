@@ -22,7 +22,6 @@ package adapter
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/config"
@@ -35,7 +34,7 @@ import (
 func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("New zettel not possible in format %q", format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("New zettel not possible in format %q", format), http.StatusBadRequest)
 			return
 		}
 		zid, err := domain.ParseZettelID(r.URL.Path[1:])
@@ -66,14 +65,12 @@ func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zettel, err := parseZettelForm(r, domain.InvalidZettelID)
 		if err != nil {
-			http.Error(w, "Unable to read form data", http.StatusInternalServerError)
-			log.Println(err)
+			http.Error(w, "Unable to read form data", http.StatusBadRequest)
 			return
 		}
 
 		if err := newZettel.Run(r.Context(), zettel); err != nil {
-			http.Error(w, "Unable to create new zettel", http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 		http.Redirect(w, r, urlForZettel('h', zettel.Meta.Zid), http.StatusFound)

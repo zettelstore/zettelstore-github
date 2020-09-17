@@ -22,7 +22,6 @@ package adapter
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/config"
@@ -35,7 +34,7 @@ import (
 func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Delete zettel not possible in format %q", format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Delete zettel not possible in format %q", format), http.StatusBadRequest)
 			return
 		}
 
@@ -48,8 +47,7 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 
@@ -77,8 +75,7 @@ func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.Handler
 		}
 
 		if err := deleteZettel.Run(r.Context(), zid); err != nil {
-			http.Error(w, fmt.Sprintf("Unable to delete zettel %q", zid.Format()), http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 		http.Redirect(w, r, urlForList('/'), http.StatusFound)

@@ -21,44 +21,30 @@
 package adapter
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
-	"zettelstore.de/z/config"
-	"zettelstore.de/z/domain"
-	"zettelstore.de/z/usecase"
-	"zettelstore.de/z/web/session"
+	"zettelstore.de/z/store"
 )
 
-// MakeListHTMLMetaHandler creates a HTTP handler for rendering the list of zettel as HTML.
-func MakeListHTMLMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		filter, sorter := getFilterSorter(r)
-		metaList, err := listMeta.Run(ctx, filter, sorter)
-		if err != nil {
-			checkUsecaseError(w, err)
-			return
-		}
-
-		user := session.GetUser(ctx)
-		metas, err := buildHTMLMetaList(metaList)
-		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
-			return
-		}
-		te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
-			Lang  string
-			Title string
-			User  userWrapper
-			Metas []metaInfo
-		}{
-			Lang:  config.GetDefaultLang(),
-			Title: config.GetSiteName(),
-			User:  wrapUser(user),
-			Metas: metas,
-		})
-
+func checkUsecaseError(w http.ResponseWriter, err error) {
+	if err, ok := err.(*store.ErrUnknownID); ok {
+		http.Error(w, fmt.Sprintf("Zettel %q not found", err.Zid.Format()), http.StatusNotFound)
+		return
 	}
+	if err, ok := err.(*store.ErrNotAuthorized); ok {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	if err, ok := err.(*store.ErrInvalidID); ok {
+		http.Error(w, fmt.Sprintf("Zettel-ID %q not appropriate in this context", err.Zid.Format()), http.StatusBadRequest)
+		return
+	}
+	if err == store.ErrStopped {
+		http.Error(w, "Zettelstore not operational", http.StatusInternalServerError)
+		return
+	}
+	http.Error(w, "Unknown internal error", http.StatusInternalServerError)
+	log.Println(err)
 }

@@ -78,8 +78,7 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 
 		metaList, err := search.Run(r.Context(), filter, sorter)
 		if err != nil {
-			http.Error(w, "Zettel store not operational", http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 

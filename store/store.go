@@ -81,43 +81,43 @@ type Store interface {
 
 // ErrNotAuthorized is returned if the caller has no authorization to perform the operation.
 type ErrNotAuthorized struct {
-	op   string
-	user *domain.Meta
-	zid  domain.ZettelID
+	Op   string
+	User *domain.Meta
+	Zid  domain.ZettelID
 }
 
 // NewErrNotAuthorized creates an new authorization error.
 func NewErrNotAuthorized(op string, user *domain.Meta, zid domain.ZettelID) error {
 	return &ErrNotAuthorized{
-		op:   op,
-		user: user,
-		zid:  zid,
+		Op:   op,
+		User: user,
+		Zid:  zid,
 	}
 }
 
 func (err *ErrNotAuthorized) Error() string {
-	if err.user == nil {
-		if err.zid.IsValid() {
+	if err.User == nil {
+		if err.Zid.IsValid() {
 			return fmt.Sprintf(
 				"Operation %q on zettel %v not allowed for not authorized user",
-				err.op,
-				err.zid.Format())
+				err.Op,
+				err.Zid.Format())
 		}
-		return fmt.Sprintf("Operation %q not allowed for not authorized user", err.op)
+		return fmt.Sprintf("Operation %q not allowed for not authorized user", err.Op)
 	}
-	if err.zid.IsValid() {
+	if err.Zid.IsValid() {
 		return fmt.Sprintf(
 			"Operation %q on zettel %v not allowed for user %v/%v",
-			err.op,
-			err.zid.Format(),
-			err.user.GetDefault(domain.MetaKeyIdent, "?"),
-			err.user.Zid.Format())
+			err.Op,
+			err.Zid.Format(),
+			err.User.GetDefault(domain.MetaKeyIdent, "?"),
+			err.User.Zid.Format())
 	}
 	return fmt.Sprintf(
 		"Operation %q not allowed for user %v/%v",
-		err.op,
-		err.user.GetDefault(domain.MetaKeyIdent, "?"),
-		err.user.Zid.Format())
+		err.Op,
+		err.User.GetDefault(domain.MetaKeyIdent, "?"),
+		err.User.Zid.Format())
 }
 
 // IsAuthError return true, if the error is of type ErrNotAuthorized.

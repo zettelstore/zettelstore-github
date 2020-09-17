@@ -22,7 +22,6 @@ package adapter
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/config"
@@ -43,14 +42,12 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format), http.StatusNotFound)
-			log.Println(err)
+			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format), http.StatusBadRequest)
 			return
 		}
 
@@ -74,14 +71,12 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 		}
 		zettel, err := parseZettelForm(r, zid)
 		if err != nil {
-			http.Error(w, "Unable to read zettel form", http.StatusInternalServerError)
-			log.Println(err)
+			http.Error(w, "Unable to read zettel form", http.StatusBadRequest)
 			return
 		}
 
 		if err := updateZettel.Run(r.Context(), zettel); err != nil {
-			http.Error(w, fmt.Sprintf("Unable to update zettel %q", zid.Format()), http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 		http.Redirect(w, r, urlForZettel('h', zid), http.StatusFound)

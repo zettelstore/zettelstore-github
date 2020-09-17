@@ -21,7 +21,6 @@
 package adapter
 
 import (
-	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -49,8 +48,7 @@ func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.Han
 		iMinCount, _ := strconv.Atoi(r.URL.Query().Get("min"))
 		tagData, err := listTags.Run(ctx, iMinCount)
 		if err != nil {
-			http.Error(w, "Zettel store not operational", http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 

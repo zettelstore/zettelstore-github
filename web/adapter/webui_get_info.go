@@ -47,7 +47,7 @@ type internalReference struct {
 func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Zettel info not available in format %q", format), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Zettel info not available in format %q", format), http.StatusBadRequest)
 			return
 		}
 
@@ -60,8 +60,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Zettel %q not found", zid.Format()), http.StatusNotFound)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")

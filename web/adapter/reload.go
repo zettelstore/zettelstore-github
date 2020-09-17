@@ -21,7 +21,6 @@
 package adapter
 
 import (
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/usecase"
@@ -32,8 +31,7 @@ func MakeReloadHandler(reload usecase.Reload) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := reload.Run(r.Context())
 		if err != nil {
-			http.Error(w, "Zettel store not operational", http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 

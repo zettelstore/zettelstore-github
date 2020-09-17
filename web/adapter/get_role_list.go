@@ -21,7 +21,6 @@
 package adapter
 
 import (
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/config"
@@ -38,8 +37,7 @@ func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.Han
 		ctx := r.Context()
 		roleList, err := listRole.Run(ctx)
 		if err != nil {
-			http.Error(w, "Zettel store not operational", http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 

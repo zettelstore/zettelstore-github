@@ -43,7 +43,7 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 		}
 
 		if !config.WithAuth() {
-			http.Error(w, "Login not available", http.StatusBadRequest)
+			http.Error(w, "Login not available", http.StatusForbidden)
 			return
 		}
 
@@ -83,7 +83,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 			return
 		}
 		if !config.WithAuth() {
-			http.Error(w, "Authentication not available", http.StatusBadRequest)
+			http.Error(w, "Authentication not available", http.StatusForbidden)
 			return
 		}
 		err := r.ParseForm()
@@ -98,8 +98,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 		ctx := r.Context()
 		token, err := auth.Run(ctx, ident, cred, formatDur)
 		if err != nil {
-			http.Error(w, "Unable to check login data", http.StatusInternalServerError)
-			log.Println(err)
+			checkUsecaseError(w, err)
 			return
 		}
 		if token == nil {
