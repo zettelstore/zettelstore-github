@@ -38,7 +38,7 @@ func MakeReloadHandler(reload usecase.Reload) http.HandlerFunc {
 		}
 
 		if format := getFormat(r, "html"); format != "html" {
-			w.Header().Set("Content-Type", formatContentType(format))
+			w.Header().Set("Content-Type", format2ContentType(format))
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}

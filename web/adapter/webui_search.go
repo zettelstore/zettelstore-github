@@ -86,7 +86,7 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 		ctx := r.Context()
 		user := session.GetUser(ctx)
 		if format := getFormat(r, "html"); format != "html" {
-			w.Header().Set("Content-Type", formatContentType(format))
+			w.Header().Set("Content-Type", format2ContentType(format))
 			switch format {
 			case "json", "djson":
 				enc := encoder.Create(format)

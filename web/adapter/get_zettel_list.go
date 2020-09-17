@@ -45,7 +45,7 @@ func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.Han
 		}
 
 		format := getFormat(r, "json")
-		w.Header().Set("Content-Type", formatContentType(format))
+		w.Header().Set("Content-Type", format2ContentType(format))
 		switch format {
 		case "html":
 			renderListMetaHTML(w, metaList)

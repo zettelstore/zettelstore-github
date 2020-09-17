@@ -36,33 +36,12 @@ func getFormat(r *http.Request, defFormat string) string {
 	}
 	if accepts, ok := r.Header["Accept"]; ok {
 		for _, acc := range accepts {
-			switch acc {
-			case "application/json":
-				return "json"
-			case "text/html":
-				return "html"
+			if format, ok := contentType2format(acc); ok {
+				return format
 			}
 		}
 	}
 	return defFormat
-}
-
-var formatCT = map[string]string{
-	"html":   "text/html; charset=utf-8",
-	"native": plainText,
-	"json":   "application/json",
-	"djson":  "application/json",
-	"text":   plainText,
-	"zmk":    plainText,
-	"raw":    plainText, // In some cases...
-}
-
-func formatContentType(format string) string {
-	ct, ok := formatCT[format]
-	if !ok {
-		return "application/octet-stream"
-	}
-	return ct
 }
 
 func getFilterSorter(r *http.Request) (filter *store.Filter, sorter *store.Sorter) {

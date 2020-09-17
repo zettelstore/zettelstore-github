@@ -56,7 +56,7 @@ func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.Han
 
 		user := session.GetUser(ctx)
 		if format := getFormat(r, "html"); format != "html" {
-			w.Header().Set("Content-Type", formatContentType(format))
+			w.Header().Set("Content-Type", format2ContentType(format))
 			switch format {
 			case "json":
 				renderListTagsJSON(w, tagData)

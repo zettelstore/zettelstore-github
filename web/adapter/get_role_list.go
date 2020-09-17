@@ -45,7 +45,7 @@ func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.Han
 
 		user := session.GetUser(ctx)
 		if format := getFormat(r, "html"); format != "html" {
-			w.Header().Set("Content-Type", formatContentType(format))
+			w.Header().Set("Content-Type", format2ContentType(format))
 			switch format {
 			case "json":
 				renderListRoleJSON(w, roleList)

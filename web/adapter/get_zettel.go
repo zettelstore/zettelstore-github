@@ -66,7 +66,7 @@ func MakeGetZettelHandler(
 		switch part {
 		case "zettel":
 			if format != "raw" {
-				w.Header().Set("Content-Type", formatContentType(format))
+				w.Header().Set("Content-Type", format2ContentType(format))
 			}
 			err = writeZettel(w, z, format,
 				&langOption,
@@ -81,16 +81,15 @@ func MakeGetZettelHandler(
 				},
 			)
 		case "meta":
-			w.Header().Set("Content-Type", formatContentType(format))
+			w.Header().Set("Content-Type", format2ContentType(format))
 			err = writeMeta(w, zettel.Meta, format)
 		case "content":
 			if format == "raw" {
-				syntax := config.GetSyntax(zettel.Meta)
-				if contentType, ok := syntaxType[syntax]; ok {
-					w.Header().Add("Content-Type", contentType)
+				if ct, ok := syntax2contentType(config.GetSyntax(zettel.Meta)); ok {
+					w.Header().Add("Content-Type", ct)
 				}
 			} else {
-				w.Header().Set("Content-Type", formatContentType(format))
+				w.Header().Set("Content-Type", format2ContentType(format))
 			}
 			err = writeContent(w, z, format,
 				&langOption,
@@ -112,27 +111,4 @@ func MakeGetZettelHandler(
 			log.Println(err)
 		}
 	}
-}
-
-const plainText = "text/plain; charset=utf-8"
-
-var syntaxType = map[string]string{
-	"css":      "text/css; charset=utf-8",
-	"gif":      "image/gif",
-	"html":     "text/html; charset=utf-8",
-	"jpeg":     "image/jpeg",
-	"jpg":      "image/jpeg",
-	"js":       "text/javascript; charset=utf-8",
-	"pdf":      "application/pdf",
-	"png":      "image/png",
-	"svg":      "image/svg+xml",
-	"xml":      "text/xml; charset=utf-8",
-	"zmk":      "text/x-zmk; charset=utf-8",
-	"plain":    plainText,
-	"text":     plainText,
-	"markdown": "text/markdown; charset=utf-8",
-	"md":       "text/markdown; charset=utf-8",
-	//"graphviz":      "text/vnd.graphviz; charset=utf-8",
-	"go-template-html": plainText,
-	"go-template-text": plainText,
 }
