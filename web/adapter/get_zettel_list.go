@@ -34,7 +34,7 @@ import (
 )
 
 // MakeListMetaHandler creates a new HTTP handler for the use case "list some zettel".
-func MakeListMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
+func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filter, sorter := getFilterSorter(r)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
@@ -48,7 +48,7 @@ func MakeListMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta
 		w.Header().Set("Content-Type", formatContentType(format))
 		switch format {
 		case "html":
-			renderListMetaHTML(w, key, metaList)
+			renderListMetaHTML(w, metaList)
 		case "json", "djson":
 			enc := encoder.Create(format)
 			renderListMetaJSON(w, metaList, enc, format)
@@ -62,7 +62,7 @@ func MakeListMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta
 	}
 }
 
-func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta) {
+func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
 	buf := encoder.NewBufWriter(w)
 
 	buf.WriteStrings("<html lang=\"", config.GetDefaultLang(), "\">\n<body>\n<ul>\n")
@@ -75,7 +75,7 @@ func renderListMetaHTML(w http.ResponseWriter, key byte, metaList []*domain.Meta
 			return
 		}
 		buf.WriteStrings(
-			"<li><a href=\"", urlForZettel(key, meta.Zid), "?_format=html", "\">",
+			"<li><a href=\"", urlForZettel('z', meta.Zid), "?_format=html", "\">",
 			htmlTitle, "</a></li>\n")
 	}
 	buf.WriteString("</ul>\n</body>\n</html>")

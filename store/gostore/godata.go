@@ -151,7 +151,7 @@ var goData = goStore{
 				`{{define "content"}}
 <h1>{{.Title}}</h1>
 <ul>
-{{range .Metas}}<li><a href="{{urlZettel $.Key .Meta.Zid}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetTags}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
+{{range .Metas}}<li><a href="{{urlZettel 'h' .Meta.Zid}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetTags}} <a href="{{urlList 'h'}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
 </ul>
 <p>Items: {{len .Metas}}</p>
 {{end}}`)},
@@ -175,9 +175,9 @@ var goData = goStore{
 {{if CanWrite .User .Meta}}<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
 {{ .Meta.Zid.Format}} &#183;{{end}}
 <a href="{{urlZettel 'i' .Meta.Zid}}">Info</a> &#183;
-{{- with .Meta.GetRole "*"}} (<a href="{{urlList $.Key}}?role={{.}}">{{.}}</a>){{end}}
+{{- with .Meta.GetRole "*"}} (<a href="{{urlList 'h'}}?role={{.}}">{{.}}</a>){{end}}
 {{- with .Meta.GetTags}}
-{{- if .}}:{{range .}} <a href="{{urlList $.Key}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
+{{- if .}}:{{range .}} <a href="{{urlList 'h'}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
 {{- end}}
 {{if CanWrite .User .Meta}}&#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{end}}
 {{with .Meta.GetURL}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}

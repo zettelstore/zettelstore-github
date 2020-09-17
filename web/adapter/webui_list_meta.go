@@ -31,7 +31,7 @@ import (
 )
 
 // MakeListHTMLMetaHandler creates a HTTP handler for rendering the list of zettel as HTML.
-func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
+func MakeListHTMLMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		filter, sorter := getFilterSorter(r)
@@ -50,13 +50,11 @@ func MakeListHTMLMetaHandler(key byte, te *TemplateEngine, listMeta usecase.List
 			return
 		}
 		te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
-			Key   byte
 			Lang  string
 			Title string
 			User  userWrapper
 			Metas []metaInfo
 		}{
-			Key:   key,
 			Lang:  config.GetDefaultLang(),
 			Title: config.GetSiteName(),
 			User:  wrapUser(user),

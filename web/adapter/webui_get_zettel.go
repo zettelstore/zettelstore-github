@@ -36,7 +36,6 @@ import (
 
 // MakeGetHTMLZettelHandler creates a new HTTP handler for the use case "get zettel".
 func MakeGetHTMLZettelHandler(
-	key byte,
 	te *TemplateEngine,
 	getZettel usecase.GetZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
@@ -92,7 +91,7 @@ func MakeGetHTMLZettelHandler(
 			langOption,
 			&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
 			&encoder.BoolOption{Key: "newwindow", Value: true},
-			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
+			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'h', getMeta)},
 			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 		)
 		if err != nil {
@@ -101,7 +100,6 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
-			Key        byte
 			Lang       string
 			Title      string
 			HTMLTitle  template.HTML
@@ -110,7 +108,6 @@ func MakeGetHTMLZettelHandler(
 			MetaHeader template.HTML
 			Content    template.HTML
 		}{
-			Key:        key,
 			Lang:       langOption.Value,
 			Title:      textTitle, // TODO: merge with site-title?
 			HTMLTitle:  template.HTML(htmlTitle),

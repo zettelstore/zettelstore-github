@@ -114,8 +114,8 @@ func setupRouting(us store.Store, readonly bool) http.Handler {
 
 	ucGetMeta := usecase.NewGetMeta(ps)
 	ucGetZettel := usecase.NewGetZettel(ps)
-	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler('h', te, usecase.NewListMeta(ps))
-	getHTMLZettelHandler := adapter.MakeGetHTMLZettelHandler('h', te, ucGetZettel, ucGetMeta)
+	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler(te, usecase.NewListMeta(ps))
+	getHTMLZettelHandler := adapter.MakeGetHTMLZettelHandler(te, ucGetZettel, ucGetMeta)
 
 	router := router.NewRouter()
 	router.Handle("/", adapter.MakeGetRootHandler(ps, listHTMLMetaHandler, getHTMLZettelHandler))
@@ -143,7 +143,7 @@ func setupRouting(us store.Store, readonly bool) http.Handler {
 	}
 	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, usecase.NewListTags(ps)))
 	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, usecase.NewSearch(ps)))
-	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler('z', te, usecase.NewListMeta(ps)))
-	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler('z', te, ucGetZettel, ucGetMeta))
+	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler(te, usecase.NewListMeta(ps)))
+	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler(te, ucGetZettel, ucGetMeta))
 	return session.NewHandler(router, usecase.NewGetUserByZid(us))
 }

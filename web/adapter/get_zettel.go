@@ -34,7 +34,6 @@ import (
 
 // MakeGetZettelHandler creates a new HTTP handler to return a rendered zettel.
 func MakeGetZettelHandler(
-	key byte,
 	te *TemplateEngine,
 	getZettel usecase.GetZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
@@ -69,7 +68,7 @@ func MakeGetZettelHandler(
 			}
 			err = writeZettel(w, z, format,
 				langOption,
-				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
+				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta)},
 				&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 				&encoder.MetaOption{Meta: meta},
 				&encoder.StringsOption{
@@ -98,7 +97,7 @@ func MakeGetZettelHandler(
 			err = writeContent(w, z, format,
 				langOption,
 				&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
-				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, key, getMeta)},
+				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta)},
 				&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 			)
 		default:
