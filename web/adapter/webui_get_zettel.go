@@ -56,8 +56,8 @@ func MakeGetHTMLZettelHandler(
 		syntax := r.URL.Query().Get("syntax")
 		z, meta := parser.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
-		textTitle, err := formatInlines(z.Title, "text", langOption)
+		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+		textTitle, err := formatInlines(z.Title, "text", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -67,11 +67,8 @@ func MakeGetHTMLZettelHandler(
 			meta,
 			"html",
 			&encoder.StringsOption{
-				Key: "no-meta",
-				Value: []string{
-					domain.MetaKeyTitle,
-					domain.MetaKeyLang,
-				},
+				Key:   "no-meta",
+				Value: []string{domain.MetaKeyTitle, domain.MetaKeyLang},
 			},
 		)
 		if err != nil {
@@ -79,7 +76,7 @@ func MakeGetHTMLZettelHandler(
 			log.Println(err)
 			return
 		}
-		htmlTitle, err := formatInlines(z.Title, "html", langOption)
+		htmlTitle, err := formatInlines(z.Title, "html", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -88,7 +85,7 @@ func MakeGetHTMLZettelHandler(
 		htmlContent, err := formatBlocks(
 			z.Ast,
 			"html",
-			langOption,
+			&langOption,
 			&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
 			&encoder.BoolOption{Key: "newwindow", Value: true},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'h', getMeta)},

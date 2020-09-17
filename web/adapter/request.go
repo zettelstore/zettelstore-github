@@ -49,11 +49,12 @@ func getFormat(r *http.Request, defFormat string) string {
 
 var formatCT = map[string]string{
 	"html":   "text/html; charset=utf-8",
-	"native": "text/plain; charset=utf-8",
+	"native": plainText,
 	"json":   "application/json",
 	"djson":  "application/json",
-	"text":   "text/plain; charset=utf-8",
-	"zmk":    "text/plain; charset=utf-8",
+	"text":   plainText,
+	"zmk":    plainText,
+	"raw":    plainText, // In some cases...
 }
 
 func formatContentType(format string) string {

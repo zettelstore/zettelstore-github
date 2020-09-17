@@ -60,16 +60,18 @@ func MakeGetZettelHandler(
 			part = "zettel"
 		}
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+		linkAdapter := encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta)}
+		imageAdapter := encoder.AdaptImageOption{Adapter: makeImageAdapter()}
 		switch part {
 		case "zettel":
 			if format != "raw" {
 				w.Header().Set("Content-Type", formatContentType(format))
 			}
 			err = writeZettel(w, z, format,
-				langOption,
-				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta)},
-				&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
+				&langOption,
+				&linkAdapter,
+				&imageAdapter,
 				&encoder.MetaOption{Meta: meta},
 				&encoder.StringsOption{
 					Key: "no-meta",
@@ -79,11 +81,7 @@ func MakeGetZettelHandler(
 				},
 			)
 		case "meta":
-			if format == "raw" {
-				w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-			} else {
-				w.Header().Set("Content-Type", formatContentType(format))
-			}
+			w.Header().Set("Content-Type", formatContentType(format))
 			err = writeMeta(w, zettel.Meta, format)
 		case "content":
 			if format == "raw" {
@@ -95,10 +93,10 @@ func MakeGetZettelHandler(
 				w.Header().Set("Content-Type", formatContentType(format))
 			}
 			err = writeContent(w, z, format,
-				langOption,
+				&langOption,
 				&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
-				&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta)},
-				&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
+				&linkAdapter,
+				&imageAdapter,
 			)
 		default:
 			http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
@@ -116,29 +114,25 @@ func MakeGetZettelHandler(
 	}
 }
 
+const plainText = "text/plain; charset=utf-8"
+
 var syntaxType = map[string]string{
-	"css":           "text/css; charset=utf-8",
-	"gif":           "image/gif",
-	"html":          "text/html; charset=utf-8",
-	"jpeg":          "image/jpeg",
-	"jpg":           "image/jpeg",
-	"js":            "text/javascript; charset=utf-8",
-	"pdf":           "application/pdf",
-	"png":           "image/png",
-	"svg":           "image/svg+xml",
-	"xml":           "text/xml; charset=utf-8",
-	"zmk":           "text/x-zmk; charset=utf-8",
-	"plain":         "text/plain; charset=utf-8",
-	"text":          "text/plain; charset=utf-8",
-	"markdown":      "text/markdown; charset=utf-8",
-	"md":            "text/markdown; charset=utf-8",
-	"graphviz":      "text/vnd.graphviz; charset=utf-8",
-	"blockdiag":     "text/x-blockdiag; charset=utf-8",
-	"seqdiag":       "text/x-seqdiag; charset=utf-8",
-	"actdiag":       "text/x-actdiag; charset=utf-8",
-	"nwdiag":        "text/x-nwdiag; charset=utf-8",
-	"plantuml":      "text/x-plantuml; charset=utf-8",
-	"template":      "text/x-go-html-template; charset=utf-8",
-	"template-html": "text/x-go-html-template; charset=utf-8",
-	"template-text": "text/x-go-text-template; charset=utf-8",
+	"css":      "text/css; charset=utf-8",
+	"gif":      "image/gif",
+	"html":     "text/html; charset=utf-8",
+	"jpeg":     "image/jpeg",
+	"jpg":      "image/jpeg",
+	"js":       "text/javascript; charset=utf-8",
+	"pdf":      "application/pdf",
+	"png":      "image/png",
+	"svg":      "image/svg+xml",
+	"xml":      "text/xml; charset=utf-8",
+	"zmk":      "text/x-zmk; charset=utf-8",
+	"plain":    plainText,
+	"text":     plainText,
+	"markdown": "text/markdown; charset=utf-8",
+	"md":       "text/markdown; charset=utf-8",
+	//"graphviz":      "text/vnd.graphviz; charset=utf-8",
+	"go-template-html": plainText,
+	"go-template-text": plainText,
 }
