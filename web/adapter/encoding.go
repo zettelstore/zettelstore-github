@@ -163,7 +163,7 @@ func makeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 		if err != nil {
 			panic(err)
 		}
-		newImage.Ref = ast.ParseReference(urlForZettel('c', zid))
+		newImage.Ref = ast.ParseReference(urlForZettel('z', zid) + "?_part=content&_format=raw")
 		newImage.Ref.State = ast.RefStateZettelFound
 		return &newImage
 	}
