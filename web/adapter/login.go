@@ -113,8 +113,8 @@ func authenticateViaJSON(auth usecase.Authenticate, w http.ResponseWriter, r *ht
 		return
 	}
 	if token == nil {
-		http.Error(w, "Authentication failed", http.StatusUnauthorized)
 		w.Header().Set("WWW-Authenticate", `Bearer realm="Default"`)
+		http.Error(w, "Authentication failed", http.StatusUnauthorized)
 		return
 	}
 
