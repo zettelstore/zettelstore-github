@@ -19,5 +19,8 @@
 bin/
 releases/
 
+# IDE settings
+.vscode
+
 # zettelstor config file
 .zscfg
