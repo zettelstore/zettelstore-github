@@ -23,6 +23,7 @@ package session
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"zettelstore.de/z/auth/token"
@@ -90,13 +91,17 @@ func updateContext(ctx context.Context, user *domain.Meta) context.Context {
 
 // ServeHTTP processes one HTTP request.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(sessionName)
-	if err != nil {
+	k := token.KindJSON
+	t := getHeaderToken(r)
+	if t == nil {
+		k = token.KindHTML
+		t = getSessionToken(r)
+	}
+	if t == nil {
 		h.next.ServeHTTP(w, r)
 		return
 	}
-	t := []byte(cookie.Value)
-	ident, zid, err := token.CheckToken(t, token.KindHTML)
+	ident, zid, err := token.CheckToken(t, k)
 	if err != nil {
 		h.next.ServeHTTP(w, r)
 		return
@@ -108,4 +113,32 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.next.ServeHTTP(w, r.WithContext(updateContext(ctx, user)))
+}
+
+func getSessionToken(r *http.Request) []byte {
+	cookie, err := r.Cookie(sessionName)
+	if err != nil {
+		return nil
+	}
+	return []byte(cookie.Value)
+}
+
+func getHeaderToken(r *http.Request) []byte {
+	h := r.Header["Authorization"]
+	if h == nil {
+		return nil
+	}
+
+	// “Multiple message-header fields with the same field-name MAY be
+	// present in a message if and only if the entire field-value for that
+	// header field is defined as a comma-separated list.”
+	// — “Hypertext Transfer Protocol” RFC 2616, subsection 4.2
+	auth := strings.Join(h, ", ")
+
+	const prefix = "Bearer "
+	// RFC 2617, subsection 1.2 defines the scheme token as case-insensitive.
+	if len(auth) < len(prefix) || !strings.EqualFold(auth[:len(prefix)], prefix) {
+		return nil
+	}
+	return []byte(auth[len(prefix):])
 }
