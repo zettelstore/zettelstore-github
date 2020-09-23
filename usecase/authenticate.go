@@ -51,7 +51,7 @@ func NewAuthenticate(port AuthenticatePort) Authenticate {
 }
 
 // Run executes the use case.
-func (uc Authenticate) Run(ctx context.Context, ident string, credential string, d time.Duration) ([]byte, error) {
+func (uc Authenticate) Run(ctx context.Context, ident string, credential string, d time.Duration, k token.Kind) ([]byte, error) {
 	identMeta, err := uc.ucGetUser.Run(ctx, ident)
 	if identMeta == nil || err != nil {
 		wait()
@@ -64,7 +64,7 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 			return nil, err
 		}
 		if ok {
-			token, err := token.GetToken(identMeta, d)
+			token, err := token.GetToken(identMeta, d, k)
 			if err != nil {
 				return nil, err
 			}

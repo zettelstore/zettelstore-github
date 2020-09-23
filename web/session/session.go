@@ -96,7 +96,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	t := []byte(cookie.Value)
-	ident, zid, err := token.CheckToken(t)
+	ident, zid, err := token.CheckToken(t, token.KindHTML)
 	if err != nil {
 		h.next.ServeHTTP(w, r)
 		return

@@ -279,7 +279,7 @@ func (te *TemplateEngine) renderTemplate(
 	}
 	if user := session.GetUser(ctx); user != nil {
 		htmlLifetime, _ := config.TokenLifetime()
-		t, err := token.GetToken(user, htmlLifetime)
+		t, err := token.GetToken(user, htmlLifetime, token.KindHTML)
 		if err == nil {
 			session.SetToken(w, t, htmlLifetime)
 		}

@@ -38,11 +38,24 @@ var ErrNoUser = errors.New("auth: meta is no user")
 // ErrNoIdent signals that the 'ident' key is missing.
 var ErrNoIdent = errors.New("auth: missing ident")
 
+// ErrOtherKind signals that the token was defined for another token kind.
+var ErrOtherKind = errors.New("auth: wrong token kind")
+
 // ErrNoZid signals that the 'zid' key is missing.
 var ErrNoZid = errors.New("auth: missing zettel id")
 
-// GetToken returns a token to be used for authentification
-func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
+// Kind specifies for which application / usage a token is/was requested.
+type Kind int
+
+// Allowed values of token kind
+const (
+	_ Kind = iota
+	KindJSON
+	KindHTML
+)
+
+// GetToken returns a token to be used for authentification.
+func GetToken(ident *domain.Meta, d time.Duration, kind Kind) ([]byte, error) {
 	if role, ok := ident.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
 		return nil, ErrNoUser
 	}
@@ -60,6 +73,7 @@ func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
 		},
 		Set: map[string]interface{}{
 			"zid": ident.Zid.Format(),
+			"_tk": int(kind),
 		},
 	}
 	token, err := claims.HMACSign(reqHash, config.Secret())
@@ -73,7 +87,7 @@ func GetToken(ident *domain.Meta, d time.Duration) ([]byte, error) {
 var ErrTokenExpired = errors.New("auth: token expired")
 
 // CheckToken checks the validity of the token and returns relevant data.
-func CheckToken(token []byte) (string, domain.ZettelID, error) {
+func CheckToken(token []byte, k Kind) (string, domain.ZettelID, error) {
 	h, err := jwt.NewHMAC(reqHash, config.Secret())
 	if err != nil {
 		return "", domain.InvalidZettelID, err
@@ -92,7 +106,12 @@ func CheckToken(token []byte) (string, domain.ZettelID, error) {
 	}
 	if zidS, ok := claims.Set["zid"].(string); ok {
 		if zid, err := domain.ParseZettelID(zidS); err == nil {
-			return ident, zid, nil
+			if kind, ok := claims.Set["_tk"].(float64); ok {
+				if Kind(kind) == k {
+					return ident, zid, nil
+				}
+			}
+			return "", domain.InvalidZettelID, ErrOtherKind
 		}
 	}
 	return "", domain.InvalidZettelID, ErrNoZid

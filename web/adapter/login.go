@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
@@ -92,7 +93,7 @@ func authenticateViaHTML(te *TemplateEngine, auth usecase.Authenticate, w http.R
 		return
 	}
 	ctx := r.Context()
-	token, err := auth.Run(ctx, ident, cred, authDuration)
+	token, err := auth.Run(ctx, ident, cred, authDuration, token.KindHTML)
 	if err != nil {
 		checkUsecaseError(w, err)
 		return
@@ -134,7 +135,7 @@ func authenticateForJSON(auth usecase.Authenticate, w http.ResponseWriter, r *ht
 			return nil, nil
 		}
 	}
-	token, err := auth.Run(r.Context(), ident, cred, authDuration)
+	token, err := auth.Run(r.Context(), ident, cred, authDuration, token.KindJSON)
 	return token, err
 }
 
