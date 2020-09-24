@@ -21,6 +21,7 @@ releases/
 
 # IDE settings
 .vscode
+cmd/zettelstore/__debug_bin
 
 # zettelstor config file
 .zscfg
