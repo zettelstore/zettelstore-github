@@ -23,9 +23,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 
-	"net/http"
 	"zettelstore.de/z/auth/policy"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
@@ -33,6 +34,7 @@ import (
 	"zettelstore.de/z/store/chainstore"
 	"zettelstore.de/z/store/filestore"
 	"zettelstore.de/z/store/gostore"
+	"zettelstore.de/z/store/memstore"
 	"zettelstore.de/z/store/policystore"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
@@ -71,26 +73,33 @@ func setupStores(cfg *domain.Meta) (store.Store, int, error) {
 	var stores []store.Store
 	cnt := 1
 	for {
-		dir, ok := cfg.Get(fmt.Sprintf("store-%v-dir", cnt))
-		if !ok {
+		key := fmt.Sprintf("store-%v-uri", cnt)
+		uri, ok := cfg.Get(key)
+		if !ok || uri == "" {
 			break
 		}
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to create zettel directory %q\n", dir)
-			return nil, 2, err
-		}
-		fs, err := filestore.NewStore(dir)
+		u, err := url.Parse(uri)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to create filestore for %q\n", dir)
+			fmt.Fprintf(os.Stderr, "Invalid value for key %v:%v", key, uri)
 			return nil, 2, err
 		}
-		stores = append(stores, fs)
+		var s store.Store
+		switch u.Scheme {
+		case "":
+			u.Scheme = "dir"
+			fallthrough
+		case "dir":
+			s, err = setupFileStore(u)
+		case "mem":
+			s, err = memstore.NewStore(u)
+		}
+		if err != nil {
+			return nil, 2, err
+		}
+		stores = append(stores, s)
 		cnt++
 	}
-	if len(stores) == 0 {
-		fmt.Fprintln(os.Stderr, "No directory for storing zettel specified.")
-		return nil, 2, nil
-	}
+
 	stores = append(stores, gostore.NewStore())
 	cs := chainstore.NewStore(stores...)
 	if err := cs.Start(context.Background()); err != nil {
@@ -99,6 +108,20 @@ func setupStores(cfg *domain.Meta) (store.Store, int, error) {
 	}
 	config.SetupConfiguration(cs)
 	return cs, 0, nil
+}
+
+func setupFileStore(u *url.URL) (store.Store, error) {
+	dir := u.Path
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create zettel directory %q\n", dir)
+		return nil, err
+	}
+	fs, err := filestore.NewStore(u)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create filestore for %q\n", dir)
+		return nil, err
+	}
+	return fs, nil
 }
 
 func setupRouting(us store.Store, readonly bool) http.Handler {

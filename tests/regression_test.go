@@ -24,6 +24,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -56,7 +57,11 @@ func getFileStores(wd string, kind string) (root string, stores []store.Store) {
 
 	for _, info := range infos {
 		if info.Mode().IsDir() {
-			store, err := filestore.NewStore(filepath.Join(root, info.Name()))
+			u, err := url.Parse("dir://" + filepath.Join(root, info.Name()))
+			if err != nil {
+				panic(err)
+			}
+			store, err := filestore.NewStore(u)
 			if err != nil {
 				panic(err)
 			}

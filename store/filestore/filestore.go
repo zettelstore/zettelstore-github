@@ -22,7 +22,7 @@ package filestore
 
 import (
 	"context"
-	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,29 +35,9 @@ import (
 	"zettelstore.de/z/store/filestore/directory"
 )
 
-// NewStore creates and returns a new Store.
-func NewStore(dir string) (store.Store, error) {
-	var path string
-	if len(dir) == 0 {
-		path = "." // TODO: make absolute path of current working directory
-	} else {
-		path = dir
-	}
-	path = filepath.Clean(path)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, err
-	}
-	fs := &fileStore{
-		dir:       path,
-		dirReload: 600 * time.Second, // TODO: make configurable
-		fSrvs:     17,                // TODO: make configurable
-	}
-	fs.cacheChange(true, domain.InvalidZettelID)
-	return fs, nil
-}
-
 // fileStore uses a directory to store zettel as files.
 type fileStore struct {
+	u          *url.URL
 	observers  []store.ObserverFunc
 	mxObserver sync.RWMutex
 	dir        string
@@ -70,13 +50,29 @@ type fileStore struct {
 	mxCache    sync.RWMutex
 }
 
+// NewStore creates and returns a new Store.
+func NewStore(u *url.URL) (store.Store, error) {
+	path := filepath.Clean(u.Path)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil, err
+	}
+	fs := &fileStore{
+		u:         u,
+		dir:       path,
+		dirReload: 600 * time.Second, // TODO: make configurable
+		fSrvs:     17,                // TODO: make configurable
+	}
+	fs.cacheChange(true, domain.InvalidZettelID)
+	return fs, nil
+}
+
 func (fs *fileStore) isStopped() bool {
 	return fs.dirSrv == nil
 }
 
 // Location returns the directory path of the file store.
 func (fs *fileStore) Location() string {
-	return fmt.Sprintf("dir://%s", fs.dir)
+	return fs.u.String()
 }
 
 // Start the file store.

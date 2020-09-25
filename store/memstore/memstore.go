@@ -22,13 +22,16 @@ package memstore
 
 import (
 	"context"
+	"net/url"
 	"sync"
+	"time"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 )
 
 type memStore struct {
+	u         *url.URL
 	zettel    map[domain.ZettelID]domain.Zettel
 	started   bool
 	mx        sync.RWMutex
@@ -36,21 +39,18 @@ type memStore struct {
 }
 
 // NewStore returns a reference to the one global gostore.
-func NewStore() store.Store {
-	return &memStore{}
+func NewStore(u *url.URL) (store.Store, error) {
+	return &memStore{u: u}, nil
 }
 
 func (ms *memStore) notifyChanged(all bool, zid domain.ZettelID) {
-	ms.mx.RLock()
-	observers := ms.observers
-	ms.mx.RUnlock()
-	for _, ob := range observers {
+	for _, ob := range ms.observers {
 		ob(all, zid)
 	}
 }
 
 func (ms *memStore) Location() string {
-	return "mem://"
+	return ms.u.String()
 }
 
 func (ms *memStore) Start(ctx context.Context) error {
@@ -130,11 +130,29 @@ func (ms *memStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
 		return store.ErrStopped
 	}
 
-	zettel.Meta = zettel.Meta.Clone()
-	zettel.Meta.Freeze()
-	ms.zettel[zettel.Meta.Zid] = zettel
-	ms.notifyChanged(false, zettel.Meta.Zid)
+	meta := zettel.Meta.Clone()
+	if !meta.Zid.IsValid() {
+		meta.Zid = ms.calcNewZid()
+	}
+	meta.Freeze()
+	zettel.Meta = meta
+	ms.zettel[meta.Zid] = zettel
+	ms.notifyChanged(false, meta.Zid)
 	return nil
+}
+
+func (ms *memStore) calcNewZid() domain.ZettelID {
+	zid := domain.NewZettelID(false)
+	if _, ok := ms.zettel[zid]; !ok {
+		return zid
+	}
+	for {
+		zid = domain.NewZettelID(true)
+		if _, ok := ms.zettel[zid]; !ok {
+			return zid
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 }
 
 func (ms *memStore) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
