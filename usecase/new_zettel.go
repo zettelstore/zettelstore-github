@@ -29,8 +29,8 @@ import (
 
 // NewZettelPort is the interface used by this use case.
 type NewZettelPort interface {
-	// SetZettel updates an existing zettel or creates a new one.
-	SetZettel(ctx context.Context, zettel domain.Zettel) error
+	// CreateZettel creates a new zettel.
+	CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error)
 }
 
 // NewZettel is the data for this use case.
@@ -44,10 +44,10 @@ func NewNewZettel(port NewZettelPort) NewZettel {
 }
 
 // Run executes the use case.
-func (uc NewZettel) Run(ctx context.Context, zettel domain.Zettel) error {
+func (uc NewZettel) Run(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	meta := zettel.Meta
 	if meta.Zid.IsValid() {
-		return nil // TODO: new error: already exists
+		return meta.Zid, nil // TODO: new error: already exists
 	}
 
 	if title, ok := meta.Get(domain.MetaKeyTitle); !ok || title == "" {
@@ -61,5 +61,5 @@ func (uc NewZettel) Run(ctx context.Context, zettel domain.Zettel) error {
 	}
 	meta.YamlSep = config.GetYAMLHeader()
 
-	return uc.store.SetZettel(ctx, zettel)
+	return uc.store.CreateZettel(ctx, zettel)
 }

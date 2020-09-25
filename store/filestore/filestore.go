@@ -252,42 +252,27 @@ func (fs *fileStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.S
 	return store.ApplySorter(res, s), err
 }
 
-// SetZettel stores new data for a zettel.
-func (fs *fileStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
+func (fs *fileStore) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	if fs.isStopped() {
 		return store.ErrStopped
 	}
 
-	var entry directory.Entry
-	newEntry := false
 	meta := zettel.Meta
-	if meta.Zid.IsValid() {
-		// Update existing zettel or create a new one with given id.
-		entry = fs.dirSrv.GetEntry(meta.Zid)
-		if !entry.IsValid() {
-			// Existing zettel, but new in this store.
-			entry.Zid = meta.Zid
-			fs.updateEntryFromMeta(&entry, meta)
-		}
-		fs.notifyChanged(false, meta.Zid)
-	} else {
-		// Calculate a new id, because of new zettel.
-		entry = fs.dirSrv.GetNew()
-		meta.Zid = entry.Zid
-		fs.updateEntryFromMeta(&entry, meta)
-		newEntry = true
+	if !meta.Zid.IsValid() {
+		return &store.ErrInvalidID{Zid: meta.Zid}
 	}
+	entry := fs.dirSrv.GetEntry(meta.Zid)
+	if !entry.IsValid() {
+		// Existing zettel, but new in this store.
+		entry.Zid = meta.Zid
+		fs.updateEntryFromMeta(&entry, meta)
+	}
+	fs.notifyChanged(false, meta.Zid)
 
 	rc := make(chan resSetZettel)
 	fs.getFileChan(meta.Zid) <- &fileSetZettel{&entry, zettel, rc}
 	err := <-rc
 	close(rc)
-	if newEntry && err == nil {
-		fs.dirSrv.UpdateEntry(&entry)
-
-		// Make meta available, because file store may need some time to update directory.
-		fs.cacheSetMeta(zettel.Meta)
-	}
 	return err
 }
 

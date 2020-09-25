@@ -114,27 +114,21 @@ func (ps *polStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.So
 	return result, nil
 }
 
-// SetZettel stores new data for a zettel.
-func (ps *polStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
+func (ps *polStore) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	zid := zettel.Meta.Zid
 	user := session.GetUser(ctx)
-	if zid.IsValid() {
-		// Write existing zettel
-		oldMeta, err := ps.store.GetMeta(ctx, zid)
-		if err != nil {
-			return err
-		}
-		if ps.policy.CanWrite(user, oldMeta, zettel.Meta) {
-			return ps.store.SetZettel(ctx, zettel)
-		}
-		return store.NewErrNotAuthorized("Write", user, zid)
+	if !zid.IsValid() {
+		return &store.ErrInvalidID{Zid: zid}
 	}
-
-	// Create new zettel
-	if ps.policy.CanCreate(user, zettel.Meta) {
-		return ps.store.SetZettel(ctx, zettel)
+	// Write existing zettel
+	oldMeta, err := ps.store.GetMeta(ctx, zid)
+	if err != nil {
+		return err
 	}
-	return store.NewErrNotAuthorized("Create", user, domain.InvalidZettelID)
+	if ps.policy.CanWrite(user, oldMeta, zettel.Meta) {
+		return ps.store.UpdateZettel(ctx, zettel)
+	}
+	return store.NewErrNotAuthorized("Write", user, zid)
 }
 
 // Rename changes the current zid to a new zid.

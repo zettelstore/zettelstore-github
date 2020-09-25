@@ -97,6 +97,20 @@ func (ms *memStore) CreateZettel(ctx context.Context, zettel domain.Zettel) (dom
 	return meta.Zid, nil
 }
 
+func (ms *memStore) calcNewZid() domain.ZettelID {
+	zid := domain.NewZettelID(false)
+	if _, ok := ms.zettel[zid]; !ok {
+		return zid
+	}
+	for {
+		zid = domain.NewZettelID(true)
+		if _, ok := ms.zettel[zid]; !ok {
+			return zid
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
 func (ms *memStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	ms.mx.RLock()
 	defer ms.mx.RUnlock()
@@ -139,7 +153,7 @@ func (ms *memStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.So
 	return store.ApplySorter(result, s), nil
 }
 
-func (ms *memStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
+func (ms *memStore) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	ms.mx.Lock()
 	defer ms.mx.Unlock()
 	if !ms.started {
@@ -148,27 +162,13 @@ func (ms *memStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
 
 	meta := zettel.Meta.Clone()
 	if !meta.Zid.IsValid() {
-		meta.Zid = ms.calcNewZid()
+		return &store.ErrInvalidID{Zid: meta.Zid}
 	}
 	meta.Freeze()
 	zettel.Meta = meta
 	ms.zettel[meta.Zid] = zettel
 	ms.notifyChanged(false, meta.Zid)
 	return nil
-}
-
-func (ms *memStore) calcNewZid() domain.ZettelID {
-	zid := domain.NewZettelID(false)
-	if _, ok := ms.zettel[zid]; !ok {
-		return zid
-	}
-	for {
-		zid = domain.NewZettelID(true)
-		if _, ok := ms.zettel[zid]; !ok {
-			return zid
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
 }
 
 func (ms *memStore) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {

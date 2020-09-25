@@ -111,8 +111,7 @@ func (gs *goStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.Sor
 
 var errReadOnly = errors.New("Read-only store")
 
-// SetZettel updates a zettel.
-func (gs *goStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
+func (gs *goStore) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	return errReadOnly
 }
 

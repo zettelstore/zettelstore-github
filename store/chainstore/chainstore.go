@@ -214,10 +214,9 @@ func (cs *chStore) SelectMeta(ctx context.Context, f *store.Filter, s *store.Sor
 	}
 }
 
-// SetZettel stores new data for a zettel.
-func (cs *chStore) SetZettel(ctx context.Context, zettel domain.Zettel) error {
+func (cs *chStore) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	if len(cs.stores) > 0 {
-		return cs.stores[0].SetZettel(ctx, zettel)
+		return cs.stores[0].UpdateZettel(ctx, zettel)
 	}
 	return errEmpty
 }

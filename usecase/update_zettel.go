@@ -31,8 +31,8 @@ type UpdateZettelPort interface {
 	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 
-	// SetZettel updates an existing zettel or creates a new one.
-	SetZettel(ctx context.Context, zettel domain.Zettel) error
+	// UpdateZettel updates an existing zettel.
+	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
 }
 
 // UpdateZettel is the data for this use case.
@@ -59,5 +59,5 @@ func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel) error {
 	if meta.Zid == domain.ConfigurationID {
 		meta.Set(domain.MetaKeySyntax, "meta")
 	}
-	return uc.store.SetZettel(ctx, zettel)
+	return uc.store.UpdateZettel(ctx, zettel)
 }

@@ -65,12 +65,8 @@ type Store interface {
 	// TODO: more docs
 	SelectMeta(ctx context.Context, f *Filter, s *Sorter) ([]*domain.Meta, error)
 
-	// SetZettel updates an existing zettel or creates a new one.
-	// It the zettel contains a valid Zid, an update operation is assumed,
-	// otherwise the store must assign a new Zid for the zettel. In this case, the
-	// meta data of the zettel will contain the updated Zid. The caller is
-	// potentially allowed to assign an Zid itself, but at own risk.
-	SetZettel(ctx context.Context, zettel domain.Zettel) error
+	// UpdateZettel updates an existing zettel.
+	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
 
 	// DeleteZettel removes the zettel from the store.
 	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
