@@ -56,7 +56,7 @@ func getFileStores(wd string, kind string) (root string, stores []store.Store) {
 
 	for _, info := range infos {
 		if info.Mode().IsDir() {
-			store, err := store.Use("dir://" + filepath.Join(root, info.Name()))
+			store, err := store.Connect("dir://" + filepath.Join(root, info.Name()))
 			if err != nil {
 				panic(err)
 			}
