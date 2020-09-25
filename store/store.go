@@ -51,6 +51,10 @@ type Store interface {
 	// if one or all zettel are found to be changed.
 	RegisterChangeObserver(ObserverFunc)
 
+	// CreateZettel creates a new zettel.
+	// Returns the new zettel id (and an error indication).
+	CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error)
+
 	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 

@@ -81,6 +81,22 @@ func (ms *memStore) RegisterChangeObserver(ob store.ObserverFunc) {
 	ms.observers = append(ms.observers, ob)
 }
 
+func (ms *memStore) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+	ms.mx.Lock()
+	defer ms.mx.Unlock()
+	if !ms.started {
+		return domain.InvalidZettelID, store.ErrStopped
+	}
+
+	meta := zettel.Meta.Clone()
+	meta.Zid = ms.calcNewZid()
+	meta.Freeze()
+	zettel.Meta = meta
+	ms.zettel[meta.Zid] = zettel
+	ms.notifyChanged(false, meta.Zid)
+	return meta.Zid, nil
+}
+
 func (ms *memStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	ms.mx.RLock()
 	defer ms.mx.RUnlock()

@@ -140,6 +140,30 @@ func (fs *fileStore) RegisterChangeObserver(f store.ObserverFunc) {
 	fs.mxObserver.Unlock()
 }
 
+func (fs *fileStore) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+	if fs.isStopped() {
+		return domain.InvalidZettelID, store.ErrStopped
+	}
+
+	meta := zettel.Meta
+
+	entry := fs.dirSrv.GetNew()
+	meta.Zid = entry.Zid
+	fs.updateEntryFromMeta(&entry, meta)
+
+	rc := make(chan resSetZettel)
+	fs.getFileChan(meta.Zid) <- &fileSetZettel{&entry, zettel, rc}
+	err := <-rc
+	close(rc)
+	if err == nil {
+		fs.dirSrv.UpdateEntry(&entry)
+
+		// Make meta available, because file store may need some time to update directory.
+		fs.cacheSetMeta(zettel.Meta)
+	}
+	return meta.Zid, err
+}
+
 // GetZettel reads the zettel from a file.
 func (fs *fileStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	if fs.isStopped() {

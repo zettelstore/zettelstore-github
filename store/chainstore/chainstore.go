@@ -118,6 +118,13 @@ func (cs *chStore) RegisterChangeObserver(f store.ObserverFunc) {
 	cs.mxObserver.Unlock()
 }
 
+func (cs *chStore) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+	if len(cs.stores) > 0 {
+		return cs.stores[0].CreateZettel(ctx, zettel)
+	}
+	return domain.InvalidZettelID, errEmpty
+}
+
 // GetZettel reads the zettel from a file.
 func (cs *chStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	nStores := len(cs.stores)

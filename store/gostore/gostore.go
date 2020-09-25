@@ -76,6 +76,10 @@ func (gs *goStore) RegisterChangeObserver(f store.ObserverFunc) {
 	// This store never changes anything. So ignore the registration.
 }
 
+func (gs *goStore) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+	return domain.InvalidZettelID, errReadOnly
+}
+
 // GetZettel retrieves a specific zettel.
 func (gs *goStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	if z, ok := gs.zettel[zid]; ok {

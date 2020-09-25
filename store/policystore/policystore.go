@@ -64,7 +64,14 @@ func (ps *polStore) RegisterChangeObserver(f store.ObserverFunc) {
 	ps.store.RegisterChangeObserver(f)
 }
 
-// GetZettel reads the zettel from a file.
+func (ps *polStore) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+	user := session.GetUser(ctx)
+	if ps.policy.CanCreate(user, zettel.Meta) {
+		return ps.store.CreateZettel(ctx, zettel)
+	}
+	return domain.InvalidZettelID, store.NewErrNotAuthorized("Create", user, domain.InvalidZettelID)
+}
+
 func (ps *polStore) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	zettel, err := ps.store.GetZettel(ctx, zid)
 	if err != nil {
