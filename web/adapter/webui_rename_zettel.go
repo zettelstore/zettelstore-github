@@ -23,6 +23,7 @@ package adapter
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
@@ -81,7 +82,7 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 			http.Error(w, "Invalid value for current zettel id in form", http.StatusBadRequest)
 			return
 		}
-		newZid, err := domain.ParseZettelID(r.PostFormValue("newzid"))
+		newZid, err := domain.ParseZettelID(strings.TrimSpace(r.PostFormValue("newzid")))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid new zettel id %q", newZid.Format()), http.StatusBadRequest)
 			return
