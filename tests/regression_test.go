@@ -24,7 +24,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,7 +34,6 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/store"
-	"zettelstore.de/z/store/filestore"
 
 	_ "zettelstore.de/z/encoder/htmlenc"
 	_ "zettelstore.de/z/encoder/jsonenc"
@@ -44,6 +42,7 @@ import (
 	_ "zettelstore.de/z/encoder/zmkenc"
 	_ "zettelstore.de/z/parser/blob"
 	_ "zettelstore.de/z/parser/zettelmark"
+	_ "zettelstore.de/z/store/filestore"
 )
 
 var formats = []string{"html", "djson", "native", "text"}
@@ -57,11 +56,7 @@ func getFileStores(wd string, kind string) (root string, stores []store.Store) {
 
 	for _, info := range infos {
 		if info.Mode().IsDir() {
-			u, err := url.Parse("dir://" + filepath.Join(root, info.Name()))
-			if err != nil {
-				panic(err)
-			}
-			store, err := filestore.NewStore(u)
+			store, err := store.Use("dir://" + filepath.Join(root, info.Name()))
 			if err != nil {
 				panic(err)
 			}

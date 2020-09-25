@@ -20,7 +20,7 @@
 // Package cmd provides command generic functions.
 package cmd
 
-// Mention all needed parser and writer to have them registered.
+// Mention all needed encoders, parsers and stores to have them registered.
 import (
 	_ "zettelstore.de/z/encoder/htmlenc"   // Allow to use HTML encoder.
 	_ "zettelstore.de/z/encoder/jsonenc"   // Allow to use JSON encoder.
@@ -33,4 +33,7 @@ import (
 	_ "zettelstore.de/z/parser/meta"       // Allow to use meta parser.
 	_ "zettelstore.de/z/parser/plain"      // Allow to use plain parser.
 	_ "zettelstore.de/z/parser/zettelmark" // Allow to use zettelmark parser.
+	_ "zettelstore.de/z/store/filestore"   // Allow to use file store.
+	_ "zettelstore.de/z/store/gostore"     // Allow to use global internal store.
+	_ "zettelstore.de/z/store/memstore"    // Allow to use memory store.
 )

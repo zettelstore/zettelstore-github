@@ -35,6 +35,10 @@ import (
 	"zettelstore.de/z/store/filestore/directory"
 )
 
+func init() {
+	store.Register("dir", useStore)
+}
+
 // fileStore uses a directory to store zettel as files.
 type fileStore struct {
 	u          *url.URL
@@ -50,9 +54,14 @@ type fileStore struct {
 	mxCache    sync.RWMutex
 }
 
-// NewStore creates and returns a new Store.
-func NewStore(u *url.URL) (store.Store, error) {
-	path := filepath.Clean(u.Path)
+func useStore(u *url.URL) (store.Store, error) {
+	var path string
+	if u.Opaque != "" {
+		path = u.Opaque
+	} else {
+		path = u.Path
+	}
+	path = filepath.Clean(path)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, err
 	}

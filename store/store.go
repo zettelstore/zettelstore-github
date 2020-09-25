@@ -24,6 +24,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"net/url"
+	"sort"
 
 	"zettelstore.de/z/domain"
 )
@@ -154,4 +157,46 @@ type Sorter struct {
 	Descending bool   // Sort by order, but descending
 	Offset     int    // <= 0: no offset
 	Limit      int    // <= 0: no limit
+}
+
+// Connect returns a handle to the specified store
+func Connect(rawURL string) (Store, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
+	}
+	if u.Scheme == "" {
+		u.Scheme = "dir"
+	}
+	if create, ok := registry[u.Scheme]; ok {
+		return create(u)
+	}
+	return nil, &ErrInvalidScheme{u.Scheme}
+}
+
+// ErrInvalidScheme is returned if there is no store with the given scheme
+type ErrInvalidScheme struct{ Scheme string }
+
+func (err *ErrInvalidScheme) Error() string { return "Invalid scheme: " + err.Scheme }
+
+type createFunc func(*url.URL) (Store, error)
+
+var registry = map[string]createFunc{}
+
+// Register the encoder for later retrieval.
+func Register(scheme string, create createFunc) {
+	if _, ok := registry[scheme]; ok {
+		log.Fatalf("Store with scheme %q already registered", scheme)
+	}
+	registry[scheme] = create
+}
+
+// GetSchemes returns all registered scheme, ordered by scheme string.
+func GetSchemes() []string {
+	result := make([]string, 0, len(registry))
+	for scheme := range registry {
+		result = append(result, scheme)
+	}
+	sort.Strings(result)
+	return result
 }

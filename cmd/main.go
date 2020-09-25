@@ -108,7 +108,7 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 		case "p":
 			cfg.Set("listen-addr", "127.0.0.1:"+flg.Value.String())
 		case "d":
-			cfg.Set("store-1-dir", flg.Value.String())
+			cfg.Set("store-1-uri", "dir://"+flg.Value.String())
 		case "r":
 			cfg.Set("readonly", flg.Value.String())
 		case "v":
@@ -162,7 +162,12 @@ func executeCommand(name string, args ...string) {
 func Main(progName, buildVersion string) {
 	config.SetupVersion(progName, buildVersion)
 	if len(os.Args) <= 1 {
-		executeCommand("run", "-d", "./zettel")
+		dir := "./zettel"
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to create zettel directory %q (%s)\n", dir, err)
+			return
+		}
+		executeCommand("run", "-d", "dir:"+dir)
 	} else {
 		executeCommand(os.Args[1], os.Args[2:]...)
 	}

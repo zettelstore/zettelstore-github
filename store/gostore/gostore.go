@@ -23,10 +23,19 @@ package gostore
 import (
 	"context"
 	"errors"
+	"net/url"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/store"
 )
+
+func init() {
+	store.Register(
+		"globals",
+		func(u *url.URL) (store.Store, error) {
+			return &goStore{u: u, zettel: goZettelMap}, nil
+		})
+}
 
 type goHeader map[string]string
 
@@ -45,18 +54,13 @@ type goZettel struct {
 }
 
 type goStore struct {
-	name   string
+	u      *url.URL
 	zettel map[domain.ZettelID]goZettel
-}
-
-// NewStore returns a reference to the one global gostore.
-func NewStore() store.Store {
-	return &goData
 }
 
 // Location returns some information where the store is located.
 func (gs *goStore) Location() string {
-	return gs.name
+	return gs.u.String()
 }
 
 // Start the store. Now all other functions of the store are allowed.

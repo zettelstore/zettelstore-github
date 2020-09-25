@@ -30,17 +30,20 @@ import (
 	"zettelstore.de/z/store"
 )
 
+func init() {
+	store.Register(
+		"mem",
+		func(u *url.URL) (store.Store, error) {
+			return &memStore{u: u}, nil
+		})
+}
+
 type memStore struct {
 	u         *url.URL
 	zettel    map[domain.ZettelID]domain.Zettel
 	started   bool
 	mx        sync.RWMutex
 	observers []store.ObserverFunc
-}
-
-// NewStore returns a reference to the one global gostore.
-func NewStore(u *url.URL) (store.Store, error) {
-	return &memStore{u: u}, nil
 }
 
 func (ms *memStore) notifyChanged(all bool, zid domain.ZettelID) {
