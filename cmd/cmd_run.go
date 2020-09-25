@@ -69,7 +69,7 @@ func setupStores(cfg *domain.Meta) (store.Store, int, error) {
 	var stores []store.Store = nil
 	hasGlobals := false
 	for cnt := 1; ; cnt++ {
-		key := fmt.Sprintf("store-%v-uri", cnt)
+		key := fmt.Sprintf("place-%v-uri", cnt)
 		uri, ok := cfg.Get(key)
 		if !ok || uri == "" {
 			break

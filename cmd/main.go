@@ -108,7 +108,7 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 		case "p":
 			cfg.Set("listen-addr", "127.0.0.1:"+flg.Value.String())
 		case "d":
-			cfg.Set("store-1-uri", "dir://"+flg.Value.String())
+			cfg.Set("place-1-uri", "dir://"+flg.Value.String())
 		case "r":
 			cfg.Set("readonly", flg.Value.String())
 		case "v":
