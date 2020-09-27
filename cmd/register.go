@@ -33,7 +33,7 @@ import (
 	_ "zettelstore.de/z/parser/meta"       // Allow to use meta parser.
 	_ "zettelstore.de/z/parser/plain"      // Allow to use plain parser.
 	_ "zettelstore.de/z/parser/zettelmark" // Allow to use zettelmark parser.
-	_ "zettelstore.de/z/store/filestore"   // Allow to use file store.
-	_ "zettelstore.de/z/store/gostore"     // Allow to use global internal store.
-	_ "zettelstore.de/z/store/memstore"    // Allow to use memory store.
+	_ "zettelstore.de/z/place/constplace"  // Allow to use global internal place.
+	_ "zettelstore.de/z/place/dirplace"    // Allow to use directory place.
+	_ "zettelstore.de/z/place/memplace"    // Allow to use memory place.
 )

@@ -17,7 +17,7 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package stock allows to get zettel without reading it from the store.
+// Package stock allows to get zettel without reading it from a place.
 package stock
 
 import (
@@ -25,44 +25,44 @@ import (
 	"sync"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
-// Store is a store that is used by a stock.
-type Store interface {
+// Place is a place that is used by a stock.
+type Place interface {
 	// RegisterChangeObserver registers an observer that will be notified
 	// if all or one zettel are found to be changed.
-	RegisterChangeObserver(ob store.ObserverFunc)
+	RegisterChangeObserver(ob place.ObserverFunc)
 
 	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 }
 
-// Stock allow to get subscribed zettel without reading it from a store.
+// Stock allow to get subscribed zettel without reading it from a place.
 type Stock interface {
 	Subscribe(zid domain.ZettelID) error
 	GetZettel(zid domain.ZettelID) domain.Zettel
 	GetMeta(zid domain.ZettelID) *domain.Meta
 }
 
-// NewStock creates a new stock that operates on the given store.
-func NewStock(store Store) Stock {
+// NewStock creates a new stock that operates on the given place.
+func NewStock(place Place) Stock {
 	//RegisterChangeObserver(func(domain.ZettelID))
 	stock := &defaultStock{
-		store: store,
+		place: place,
 		subs:  make(map[domain.ZettelID]domain.Zettel),
 	}
-	store.RegisterChangeObserver(stock.observe)
+	place.RegisterChangeObserver(stock.observe)
 	return stock
 }
 
 type defaultStock struct {
-	store  Store
+	place  Place
 	subs   map[domain.ZettelID]domain.Zettel
 	mxSubs sync.RWMutex
 }
 
-// observe tracks all changes the store signals.
+// observe tracks all changes the place signals.
 func (s *defaultStock) observe(all bool, zid domain.ZettelID) {
 	if !all {
 		s.mxSubs.RLock()
@@ -87,7 +87,7 @@ func (s *defaultStock) observe(all bool, zid domain.ZettelID) {
 }
 
 func (s *defaultStock) update(zid domain.ZettelID) {
-	if zettel, err := s.store.GetZettel(context.Background(), zid); err == nil {
+	if zettel, err := s.place.GetZettel(context.Background(), zid); err == nil {
 		s.subs[zid] = zettel
 		return
 	}
@@ -100,7 +100,7 @@ func (s *defaultStock) Subscribe(zid domain.ZettelID) error {
 	if _, found := s.subs[zid]; found {
 		return nil
 	}
-	zettel, err := s.store.GetZettel(context.Background(), zid)
+	zettel, err := s.place.GetZettel(context.Background(), zid)
 	if err != nil {
 		return err
 	}

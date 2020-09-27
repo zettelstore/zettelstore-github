@@ -24,27 +24,27 @@ import (
 	"context"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // ListMetaPort is the interface used by this use case.
 type ListMetaPort interface {
 	// SelectMeta returns all zettel meta data that match the selection
 	// criteria. The result is ordered by descending zettel id.
-	SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
 }
 
 // ListMeta is the data for this use case.
 type ListMeta struct {
-	store ListMetaPort
+	port ListMetaPort
 }
 
 // NewListMeta creates a new use case.
 func NewListMeta(port ListMetaPort) ListMeta {
-	return ListMeta{store: port}
+	return ListMeta{port: port}
 }
 
 // Run executes the use case.
-func (uc ListMeta) Run(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error) {
-	return uc.store.SelectMeta(ctx, f, s)
+func (uc ListMeta) Run(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
+	return uc.port.SelectMeta(ctx, f, s)
 }

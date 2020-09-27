@@ -28,7 +28,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
@@ -37,8 +37,8 @@ import (
 func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
-		var filter *store.Filter
-		var sorter *store.Sorter
+		var filter *place.Filter
+		var sorter *place.Sorter
 		for key, values := range query {
 			switch key {
 			case "offset":

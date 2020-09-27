@@ -17,8 +17,8 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package filestore provides a file based zettel store.
-package filestore
+// Package dirplace provides a directory-based zettel place.
+package dirplace
 
 import (
 	"io/ioutil"
@@ -27,7 +27,7 @@ import (
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/input"
-	"zettelstore.de/z/store/filestore/directory"
+	"zettelstore.de/z/place/dirplace/directory"
 )
 
 func fileService(num uint32, cmds <-chan fileCmd) {

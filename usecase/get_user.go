@@ -25,7 +25,7 @@ import (
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // Use case: return user identified by meta key ident.
@@ -34,17 +34,17 @@ import (
 // GetUserPort is the interface used by this use case.
 type GetUserPort interface {
 	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
-	SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
 }
 
 // GetUser is the data for this use case.
 type GetUser struct {
-	store GetUserPort
+	port GetUserPort
 }
 
 // NewGetUser creates a new use case.
 func NewGetUser(port GetUserPort) GetUser {
-	return GetUser{store: port}
+	return GetUser{port: port}
 }
 
 // Run executes the use case.
@@ -57,7 +57,7 @@ func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
 	// It is important to try first with the owner. First, because another user
 	// could give herself the same ''ident''. Second, in most cases the owner
 	// will authenticate.
-	identMeta, err := uc.store.GetMeta(ctx, owner)
+	identMeta, err := uc.port.GetMeta(ctx, owner)
 	if err == nil && identMeta.GetDefault(domain.MetaKeyIdent, "") == ident {
 		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
 			return nil, nil
@@ -65,13 +65,13 @@ func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
 		return identMeta, nil
 	}
 	// Owner was not found or has another ident. Try via list search.
-	filter := store.Filter{
+	filter := place.Filter{
 		Expr: map[string][]string{
 			domain.MetaKeyIdent: []string{ident},
 			domain.MetaKeyRole:  []string{domain.MetaValueRoleUser},
 		},
 	}
-	metaList, err := uc.store.SelectMeta(ctx, &filter, nil)
+	metaList, err := uc.port.SelectMeta(ctx, &filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -91,17 +91,17 @@ type GetUserByZidPort interface {
 
 // GetUserByZid is the data for this use case.
 type GetUserByZid struct {
-	store GetUserByZidPort
+	port GetUserByZidPort
 }
 
 // NewGetUserByZid creates a new use case.
 func NewGetUserByZid(port GetUserByZidPort) GetUserByZid {
-	return GetUserByZid{store: port}
+	return GetUserByZid{port: port}
 }
 
 // Run executes the use case.
 func (uc GetUserByZid) Run(ctx context.Context, zid domain.ZettelID, ident string) (*domain.Meta, error) {
-	userMeta, err := uc.store.GetMeta(ctx, zid)
+	userMeta, err := uc.port.GetMeta(ctx, zid)
 	if err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package directory manages the directory part of a file store.
+// Package directory manages the directory part of a dirstore.
 package directory
 
 import (
@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // Service specifies a directory service.
@@ -33,7 +33,7 @@ type Service struct {
 	dirPath     string
 	ticker      *time.Ticker
 	cmds        chan dirCmd
-	changeFuncs []store.ObserverFunc
+	changeFuncs []place.ObserverFunc
 	mxFuncs     sync.RWMutex
 }
 
@@ -68,7 +68,7 @@ func (srv *Service) Stop() {
 }
 
 // Subscribe to invalidation events.
-func (srv *Service) Subscribe(changeFunc store.ObserverFunc) {
+func (srv *Service) Subscribe(changeFunc place.ObserverFunc) {
 	srv.mxFuncs.Lock()
 	if changeFunc != nil {
 		srv.changeFuncs = append(srv.changeFuncs, changeFunc)

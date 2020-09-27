@@ -35,11 +35,11 @@ import (
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 	"zettelstore.de/z/web/session"
 )
 
-type templateStore interface {
+type templatePlace interface {
 	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 
@@ -49,20 +49,20 @@ type templateStore interface {
 
 // TemplateEngine is the way to render HTML templates.
 type TemplateEngine struct {
-	store         templateStore
+	place         templatePlace
 	templateCache map[domain.ZettelID]*template.Template
 	mxCache       sync.RWMutex
 	policy        policy.Policy
 }
 
 // NewTemplateEngine creates a new TemplateEngine.
-func NewTemplateEngine(s store.Store, p policy.Policy) *TemplateEngine {
+func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 	te := &TemplateEngine{
-		store:  s,
-		policy: p,
+		place:  p,
+		policy: pol,
 	}
 	te.observe(true, domain.InvalidZettelID)
-	s.RegisterChangeObserver(te.observe)
+	p.RegisterChangeObserver(te.observe)
 	return te
 }
 
@@ -240,7 +240,7 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 	}
 	baseTemplate, ok := te.cacheGetTemplate(domain.BaseTemplateID)
 	if !ok {
-		baseTemplateZettel, err := te.store.GetZettel(ctx, domain.BaseTemplateID)
+		baseTemplateZettel, err := te.place.GetZettel(ctx, domain.BaseTemplateID)
 		if err != nil {
 			return nil, err
 		}
@@ -254,7 +254,7 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 	if err != nil {
 		return nil, err
 	}
-	realTemplateZettel, err := te.store.GetZettel(ctx, templateID)
+	realTemplateZettel, err := te.place.GetZettel(ctx, templateID)
 	if err != nil {
 		return nil, err
 	}

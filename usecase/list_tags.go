@@ -24,24 +24,24 @@ import (
 	"context"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // ListTagsPort is the interface used by this use case.
 type ListTagsPort interface {
 	// SelectMeta returns all zettel meta data that match the selection
 	// criteria. The result is ordered by descending zettel id.
-	SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
 }
 
 // ListTags is the data for this use case.
 type ListTags struct {
-	store ListTagsPort
+	port ListTagsPort
 }
 
 // NewListTags creates a new use case.
 func NewListTags(port ListTagsPort) ListTags {
-	return ListTags{store: port}
+	return ListTags{port: port}
 }
 
 // TagData associates tags with a list of all zettel meta that use this tag
@@ -49,7 +49,7 @@ type TagData map[string][]*domain.Meta
 
 // Run executes the use case.
 func (uc ListTags) Run(ctx context.Context, minCount int) (TagData, error) {
-	metas, err := uc.store.SelectMeta(ctx, nil, nil)
+	metas, err := uc.port.SelectMeta(ctx, nil, nil)
 	if err != nil {
 		return nil, err
 	}

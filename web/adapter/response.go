@@ -25,23 +25,23 @@ import (
 	"log"
 	"net/http"
 
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 func checkUsecaseError(w http.ResponseWriter, err error) {
-	if err, ok := err.(*store.ErrUnknownID); ok {
+	if err, ok := err.(*place.ErrUnknownID); ok {
 		http.Error(w, fmt.Sprintf("Zettel %q not found", err.Zid.Format()), http.StatusNotFound)
 		return
 	}
-	if err, ok := err.(*store.ErrNotAuthorized); ok {
+	if err, ok := err.(*place.ErrNotAuthorized); ok {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	if err, ok := err.(*store.ErrInvalidID); ok {
+	if err, ok := err.(*place.ErrInvalidID); ok {
 		http.Error(w, fmt.Sprintf("Zettel-ID %q not appropriate in this context", err.Zid.Format()), http.StatusBadRequest)
 		return
 	}
-	if err == store.ErrStopped {
+	if err == place.ErrStopped {
 		http.Error(w, "Zettelstore not operational", http.StatusInternalServerError)
 		return
 	}

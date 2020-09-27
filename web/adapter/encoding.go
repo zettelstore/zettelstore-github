@@ -33,7 +33,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 )
 
@@ -139,7 +139,7 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, par
 			newLink.Ref = newRef
 			return &newLink
 		}
-		if store.IsAuthError(err) {
+		if place.IsAuthError(err) {
 			return &ast.FormatNode{
 				Code:    ast.FormatSpan,
 				Attrs:   origLink.Attrs,

@@ -17,8 +17,8 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package store provides a generic interface to zettel stores.
-package store
+// Package place provides a generic interface to zettel places.
+package place
 
 import (
 	"context"
@@ -37,17 +37,17 @@ import (
 // changed zettel.
 type ObserverFunc func(bool, domain.ZettelID)
 
-// Store is implemented by all Zettel stores.
-type Store interface {
-	// Location returns some information where the store is located.
-	// Format is dependent of the store.
+// Place is implemented by all Zettel places.
+type Place interface {
+	// Location returns some information where the place is located.
+	// Format is dependent of the place.
 	Location() string
 
-	// Start the store. Now all other functions of the store are allowed.
-	// Starting an already started store is not allowed.
+	// Start the place. Now all other functions of the place are allowed.
+	// Starting an already started place is not allowed.
 	Start(ctx context.Context) error
 
-	// Stop the started store. Now only the Start() function is allowed.
+	// Stop the started place. Now only the Start() function is allowed.
 	Stop(ctx context.Context) error
 
 	// RegisterChangeObserver registers an observer that will be notified
@@ -71,7 +71,7 @@ type Store interface {
 	// UpdateZettel updates an existing zettel.
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
 
-	// DeleteZettel removes the zettel from the store.
+	// DeleteZettel removes the zettel from the place.
 	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 
 	// Rename changes the current Zid to a new Zid.
@@ -129,15 +129,15 @@ func IsAuthError(err error) bool {
 	return ok
 }
 
-// ErrStopped is returned if calling methods on a store that was not started.
-var ErrStopped = errors.New("Store is stopped")
+// ErrStopped is returned if calling methods on a place that was not started.
+var ErrStopped = errors.New("Place is stopped")
 
-// ErrUnknownID is returned if the zettel id is unknown to the store.
+// ErrUnknownID is returned if the zettel id is unknown to the place.
 type ErrUnknownID struct{ Zid domain.ZettelID }
 
 func (err *ErrUnknownID) Error() string { return "Unknown Zettel id: " + err.Zid.Format() }
 
-// ErrInvalidID is returned if the zettel id is not appropriate for the store operation.
+// ErrInvalidID is returned if the zettel id is not appropriate for the place operation.
 type ErrInvalidID struct{ Zid domain.ZettelID }
 
 func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid.Format() }
@@ -159,8 +159,8 @@ type Sorter struct {
 	Limit      int    // <= 0: no limit
 }
 
-// Connect returns a handle to the specified store
-func Connect(rawURL string) (Store, error) {
+// Connect returns a handle to the specified place
+func Connect(rawURL string) (Place, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
@@ -174,19 +174,19 @@ func Connect(rawURL string) (Store, error) {
 	return nil, &ErrInvalidScheme{u.Scheme}
 }
 
-// ErrInvalidScheme is returned if there is no store with the given scheme
+// ErrInvalidScheme is returned if there is no place with the given scheme
 type ErrInvalidScheme struct{ Scheme string }
 
 func (err *ErrInvalidScheme) Error() string { return "Invalid scheme: " + err.Scheme }
 
-type createFunc func(*url.URL) (Store, error)
+type createFunc func(*url.URL) (Place, error)
 
 var registry = map[string]createFunc{}
 
 // Register the encoder for later retrieval.
 func Register(scheme string, create createFunc) {
 	if _, ok := registry[scheme]; ok {
-		log.Fatalf("Store with scheme %q already registered", scheme)
+		log.Fatalf("Place with scheme %q already registered", scheme)
 	}
 	registry[scheme] = create
 }

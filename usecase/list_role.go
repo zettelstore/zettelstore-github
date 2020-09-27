@@ -25,29 +25,29 @@ import (
 	"sort"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // ListRolePort is the interface used by this use case.
 type ListRolePort interface {
 	// SelectMeta returns all zettel meta data that match the selection
 	// criteria. The result is ordered by descending zettel id.
-	SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
 }
 
 // ListRole is the data for this use case.
 type ListRole struct {
-	store ListRolePort
+	port ListRolePort
 }
 
 // NewListRole creates a new use case.
 func NewListRole(port ListRolePort) ListRole {
-	return ListRole{store: port}
+	return ListRole{port: port}
 }
 
 // Run executes the use case.
 func (uc ListRole) Run(ctx context.Context) ([]string, error) {
-	metas, err := uc.store.SelectMeta(ctx, nil, nil)
+	metas, err := uc.port.SelectMeta(ctx, nil, nil)
 	if err != nil {
 		return nil, err
 	}

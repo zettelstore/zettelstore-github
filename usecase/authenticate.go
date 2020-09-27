@@ -27,25 +27,25 @@ import (
 	"zettelstore.de/z/auth/cred"
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // AuthenticatePort is the interface used by this use case.
 type AuthenticatePort interface {
 	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
-	SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
 }
 
 // Authenticate is the data for this use case.
 type Authenticate struct {
-	store     AuthenticatePort
+	port      AuthenticatePort
 	ucGetUser GetUser
 }
 
 // NewAuthenticate creates a new use case.
 func NewAuthenticate(port AuthenticatePort) Authenticate {
 	return Authenticate{
-		store:     port,
+		port:      port,
 		ucGetUser: NewGetUser(port),
 	}
 }

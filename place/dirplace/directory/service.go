@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // ping sends every tick a signal to reload the directory list
@@ -104,7 +104,7 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 				}
 				srv.notifyChange(true, domain.InvalidZettelID)
 			case fileStatusError:
-				log.Println("FILESTORE", "ERROR", ev.err)
+				log.Println("DIRPLACE", "ERROR", ev.err)
 			case fileStatusUpdate:
 				if newMap != nil {
 					dirMapUpdate(newMap, ev)
@@ -209,7 +209,7 @@ func (cmd *cmdRenameEntry) run(m dirMap) {
 	newEntry := *cmd.newEntry
 	newZid := newEntry.Zid
 	if _, found := m[newZid]; found {
-		cmd.result <- &store.ErrInvalidID{Zid: newZid}
+		cmd.result <- &place.ErrInvalidID{Zid: newZid}
 		return
 	}
 	delete(m, cmd.curEntry.Zid)

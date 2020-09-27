@@ -17,8 +17,8 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package gostore stores zettel inside the executable.
-package gostore
+// Package constplace stores zettel inside the executable.
+package constplace
 
 import (
 	"fmt"
@@ -31,9 +31,9 @@ const (
 	roleConfiguration = "configuration"
 )
 
-var goZettelMap = map[domain.ZettelID]goZettel{
-	domain.ConfigurationID: goZettel{
-		goHeader{
+var constZettelMap = map[domain.ZettelID]constZettel{
+	domain.ConfigurationID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Configuration",
 			domain.MetaKeySyntax:     "meta",
 			domain.MetaKeyRole:       roleConfiguration,
@@ -42,8 +42,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 		"# Zettelstore Configuration",
 	},
 
-	domain.BaseTemplateID: goZettel{
-		goHeader{
+	domain.BaseTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Base HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -107,8 +107,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 		)),
 	},
 
-	domain.LoginTemplateID: goZettel{
-		goHeader{
+	domain.LoginTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Login Form HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -138,8 +138,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 {{end}}`,
 		)},
 
-	domain.ListTemplateID: goZettel{
-		goHeader{
+	domain.ListTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "List Meta HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -154,8 +154,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 <p>Items: {{len .Metas}}</p>
 {{end}}`)},
 
-	domain.DetailTemplateID: goZettel{
-		goHeader{
+	domain.DetailTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Detail HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -185,8 +185,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 </article>
 {{- end}}`)},
 
-	domain.InfoTemplateID: goZettel{
-		goHeader{
+	domain.InfoTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Info HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -234,8 +234,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 {{- end}}`),
 	},
 
-	domain.FormTemplateID: goZettel{
-		goHeader{
+	domain.FormTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Form HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -283,8 +283,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 {{end}}`,
 	},
 
-	domain.RenameTemplateID: goZettel{
-		goHeader{
+	domain.RenameTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Rename Form HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -313,8 +313,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 {{end}}`,
 	},
 
-	domain.DeleteTemplateID: goZettel{
-		goHeader{
+	domain.DeleteTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Delete HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -338,8 +338,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 {{end}}`,
 	},
 
-	domain.RolesTemplateID: goZettel{
-		goHeader{
+	domain.RolesTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "List Roles HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -353,8 +353,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 {{end}}`,
 	},
 
-	domain.TagsTemplateID: goZettel{
-		goHeader{
+	domain.TagsTemplateID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "List Tags HTML Template",
 			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
@@ -369,8 +369,8 @@ var goZettelMap = map[domain.ZettelID]goZettel{
 {{end}}`,
 	},
 
-	domain.BaseCSSID: goZettel{
-		goHeader{
+	domain.BaseCSSID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Base CSS",
 			domain.MetaKeySyntax:     "css",
 			domain.MetaKeyRole:       roleConfiguration,
@@ -649,8 +649,8 @@ h1+.zs-meta {
 `,
 	},
 
-	domain.MaterialIconID: goZettel{
-		goHeader{
+	domain.MaterialIconID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:      "Text icon for external material",
 			domain.MetaKeySyntax:     "svg",
 			domain.MetaKeyRole:       roleConfiguration,
@@ -660,8 +660,8 @@ h1+.zs-meta {
 		`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M 9 2 L 9 3 L 12.292969 3 L 6.023438 9.273438 L 6.726563 9.976563 L 13 3.707031 L 13 7 L 14 7 L 14 2 Z M 4 4 C 2.894531 4 2 4.894531 2 6 L 2 12 C 2 13.105469 2.894531 14 4 14 L 10 14 C 11.105469 14 12 13.105469 12 12 L 12 7 L 11 8 L 11 12 C 11 12.550781 10.550781 13 10 13 L 4 13 C 3.449219 13 3 12.550781 3 12 L 3 6 C 3 5.449219 3.449219 5 4 5 L 8 5 L 9 4 Z"/></svg>`,
 	},
 
-	domain.TemplateZettelID: goZettel{
-		goHeader{
+	domain.TemplateZettelID: constZettel{
+		constHeader{
 			domain.MetaKeyTitle:  "New Zettel",
 			domain.MetaKeySyntax: "zmk",
 			domain.MetaKeyRole:   "zettel",

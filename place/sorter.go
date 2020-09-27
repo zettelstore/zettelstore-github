@@ -17,8 +17,8 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package store provides a generic interface to zettel stores.
-package store
+// Package place provides a generic interface to zettel places.
+package place
 
 import (
 	"sort"

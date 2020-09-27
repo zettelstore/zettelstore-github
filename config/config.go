@@ -24,8 +24,8 @@ import (
 	"fmt"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
-	"zettelstore.de/z/store/stock"
+	"zettelstore.de/z/place"
+	"zettelstore.de/z/place/stock"
 )
 
 // --- Configuration zettel --------------------------------------------------
@@ -33,11 +33,11 @@ import (
 var configStock stock.Stock
 
 // SetupConfiguration enables the configuration data.
-func SetupConfiguration(store store.Store) {
+func SetupConfiguration(place place.Place) {
 	if configStock != nil {
 		panic("configStock already set")
 	}
-	configStock = stock.NewStock(store)
+	configStock = stock.NewStock(place)
 	if err := configStock.Subscribe(domain.ConfigurationID); err != nil {
 		panic(err)
 	}

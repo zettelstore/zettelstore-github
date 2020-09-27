@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 func getFormat(r *http.Request, defFormat string) string {
@@ -44,7 +44,7 @@ func getFormat(r *http.Request, defFormat string) string {
 	return defFormat
 }
 
-func getFilterSorter(r *http.Request) (filter *store.Filter, sorter *store.Sorter) {
+func getFilterSorter(r *http.Request) (filter *place.Filter, sorter *place.Sorter) {
 	for key, values := range r.URL.Query() {
 		switch key {
 		case "_sort":
@@ -99,17 +99,17 @@ func getFilterSorter(r *http.Request) (filter *store.Filter, sorter *store.Sorte
 	return filter, sorter
 }
 
-func ensureFilter(filter *store.Filter) *store.Filter {
+func ensureFilter(filter *place.Filter) *place.Filter {
 	if filter == nil {
-		filter = new(store.Filter)
-		filter.Expr = make(store.FilterExpr)
+		filter = new(place.Filter)
+		filter.Expr = make(place.FilterExpr)
 	}
 	return filter
 }
 
-func ensureSorter(sorter *store.Sorter) *store.Sorter {
+func ensureSorter(sorter *place.Sorter) *place.Sorter {
 	if sorter == nil {
-		sorter = new(store.Sorter)
+		sorter = new(place.Sorter)
 	}
 	return sorter
 }

@@ -33,7 +33,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 
 	_ "zettelstore.de/z/encoder/htmlenc"
 	_ "zettelstore.de/z/encoder/jsonenc"
@@ -42,12 +42,12 @@ import (
 	_ "zettelstore.de/z/encoder/zmkenc"
 	_ "zettelstore.de/z/parser/blob"
 	_ "zettelstore.de/z/parser/zettelmark"
-	_ "zettelstore.de/z/store/filestore"
+	_ "zettelstore.de/z/place/dirplace"
 )
 
 var formats = []string{"html", "djson", "native", "text"}
 
-func getFileStores(wd string, kind string) (root string, stores []store.Store) {
+func getFilePlaces(wd string, kind string) (root string, places []place.Place) {
 	root = filepath.Clean(filepath.Join(wd, "..", "testdata", kind))
 	infos, err := ioutil.ReadDir(root)
 	if err != nil {
@@ -56,14 +56,14 @@ func getFileStores(wd string, kind string) (root string, stores []store.Store) {
 
 	for _, info := range infos {
 		if info.Mode().IsDir() {
-			store, err := store.Connect("dir://" + filepath.Join(root, info.Name()))
+			place, err := place.Connect("dir://" + filepath.Join(root, info.Name()))
 			if err != nil {
 				panic(err)
 			}
-			stores = append(stores, store)
+			places = append(places, place)
 		}
 	}
-	return root, stores
+	return root, places
 }
 
 func trimLastEOL(s string) string {
@@ -130,33 +130,33 @@ func TestContentRegression(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	root, stores := getFileStores(wd, "content")
-	for _, store := range stores {
-		if err := store.Start(context.Background()); err != nil {
+	root, places := getFilePlaces(wd, "content")
+	for _, place := range places {
+		if err := place.Start(context.Background()); err != nil {
 			panic(err)
 		}
-		storeName := store.Location()[len("dir://")+len(root):]
-		metaList, err := store.SelectMeta(context.Background(), nil, nil)
+		placeName := place.Location()[len("dir://")+len(root):]
+		metaList, err := place.SelectMeta(context.Background(), nil, nil)
 		if err != nil {
 			panic(err)
 		}
 		for _, meta := range metaList {
-			zettel, err := store.GetZettel(context.Background(), meta.Zid)
+			zettel, err := place.GetZettel(context.Background(), meta.Zid)
 			if err != nil {
 				panic(err)
 			}
 			z, _ := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
-				t.Run(fmt.Sprintf("%s::%d(%s)", store.Location(), meta.Zid, format), func(st *testing.T) {
-					resultName := filepath.Join(wd, "result", "content", storeName, z.Zid.Format()+"."+format)
+				t.Run(fmt.Sprintf("%s::%d(%s)", place.Location(), meta.Zid, format), func(st *testing.T) {
+					resultName := filepath.Join(wd, "result", "content", placeName, z.Zid.Format()+"."+format)
 					checkBlocksFile(st, resultName, z, format)
 				})
 			}
-			t.Run(fmt.Sprintf("%s::%d", store.Location(), meta.Zid), func(st *testing.T) {
+			t.Run(fmt.Sprintf("%s::%d", place.Location(), meta.Zid), func(st *testing.T) {
 				checkZmkEncoder(st, z)
 			})
 		}
-		if err := store.Stop(context.Background()); err != nil {
+		if err := place.Stop(context.Background()); err != nil {
 			panic(err)
 		}
 	}
@@ -179,30 +179,30 @@ func TestMetaRegression(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	root, stores := getFileStores(wd, "meta")
-	for _, store := range stores {
-		if err := store.Start(context.Background()); err != nil {
+	root, places := getFilePlaces(wd, "meta")
+	for _, place := range places {
+		if err := place.Start(context.Background()); err != nil {
 			panic(err)
 		}
-		storeName := store.Location()[len("dir://")+len(root):]
-		metaList, err := store.SelectMeta(context.Background(), nil, nil)
+		placeName := place.Location()[len("dir://")+len(root):]
+		metaList, err := place.SelectMeta(context.Background(), nil, nil)
 		if err != nil {
 			panic(err)
 		}
 		for _, meta := range metaList {
-			zettel, err := store.GetZettel(context.Background(), meta.Zid)
+			zettel, err := place.GetZettel(context.Background(), meta.Zid)
 			if err != nil {
 				panic(err)
 			}
 			z, _ := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
-				t.Run(fmt.Sprintf("%s::%d(%s)", store.Location(), meta.Zid, format), func(st *testing.T) {
-					resultName := filepath.Join(wd, "result", "meta", storeName, z.Zid.Format()+"."+format)
+				t.Run(fmt.Sprintf("%s::%d(%s)", place.Location(), meta.Zid, format), func(st *testing.T) {
+					resultName := filepath.Join(wd, "result", "meta", placeName, z.Zid.Format()+"."+format)
 					checkMetaFile(st, resultName, z, format)
 				})
 			}
 		}
-		if err := store.Stop(context.Background()); err != nil {
+		if err := place.Stop(context.Background()); err != nil {
 			panic(err)
 		}
 	}

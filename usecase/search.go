@@ -24,28 +24,28 @@ import (
 	"context"
 
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/store"
+	"zettelstore.de/z/place"
 )
 
 // SearchPort is the interface used by this use case.
 type SearchPort interface {
 	// SelectMeta returns all zettel meta data that match the selection
 	// criteria. The result is ordered by descending zettel id.
-	SelectMeta(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
 }
 
 // Search is the data for this use case.
 type Search struct {
-	store SearchPort
+	port SearchPort
 }
 
 // NewSearch creates a new use case.
 func NewSearch(port SearchPort) Search {
-	return Search{store: port}
+	return Search{port: port}
 }
 
 // Run executes the use case.
-func (uc Search) Run(ctx context.Context, f *store.Filter, s *store.Sorter) ([]*domain.Meta, error) {
+func (uc Search) Run(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
 	// TODO: interpret f[""]. Can contain expressions for specific meta tags.
-	return uc.store.SelectMeta(ctx, f, s)
+	return uc.port.SelectMeta(ctx, f, s)
 }
