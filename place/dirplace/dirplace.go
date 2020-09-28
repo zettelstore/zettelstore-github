@@ -42,6 +42,7 @@ func init() {
 // dirPlace uses a directory to store zettel as files.
 type dirPlace struct {
 	u          *url.URL
+	next       place.Place
 	observers  []place.ObserverFunc
 	mxObserver sync.RWMutex
 	dir        string
@@ -54,7 +55,7 @@ type dirPlace struct {
 	mxCache    sync.RWMutex
 }
 
-func connectPlace(u *url.URL) (place.Place, error) {
+func connectPlace(u *url.URL, next place.Place) (place.Place, error) {
 	var path string
 	if u.Opaque != "" {
 		path = u.Opaque
@@ -67,6 +68,7 @@ func connectPlace(u *url.URL) (place.Place, error) {
 	}
 	dp := &dirPlace{
 		u:         u,
+		next:      next,
 		dir:       path,
 		dirReload: 600 * time.Second, // TODO: make configurable
 		fSrvs:     17,                // TODO: make configurable
@@ -79,6 +81,8 @@ func (dp *dirPlace) isStopped() bool {
 	return dp.dirSrv == nil
 }
 
+func (dp *dirPlace) Next() place.Place { return dp.next }
+
 func (dp *dirPlace) Location() string {
 	return dp.u.String()
 }
@@ -87,6 +91,11 @@ func (dp *dirPlace) Start(ctx context.Context) error {
 	if !dp.isStopped() {
 		panic("Calling dirplace.Start() twice.")
 	}
+	if dp.next != nil {
+		if err := dp.next.Start(ctx); err != nil {
+			return err
+		}
+	}
 	dp.mxCmds.Lock()
 	dp.fCmds = make([]chan fileCmd, 0, dp.fSrvs)
 	for i := uint32(0); i < dp.fSrvs; i++ {
@@ -94,9 +103,8 @@ func (dp *dirPlace) Start(ctx context.Context) error {
 		go fileService(i, cc)
 		dp.fCmds = append(dp.fCmds, cc)
 	}
-	dp.mxCmds.Unlock()
-
 	dp.dirSrv = directory.NewService(dp.dir, dp.dirReload)
+	dp.mxCmds.Unlock()
 	dp.dirSrv.Subscribe(dp.notifyChanged)
 	dp.dirSrv.Start()
 	return nil
@@ -134,6 +142,9 @@ func (dp *dirPlace) Stop(ctx context.Context) error {
 	for _, c := range dp.fCmds {
 		close(c)
 	}
+	if dp.next != nil {
+		return dp.next.Stop(ctx)
+	}
 	return nil
 }
 
@@ -141,6 +152,9 @@ func (dp *dirPlace) Stop(ctx context.Context) error {
 // if a zettel was found to be changed.
 // possibly changed.
 func (dp *dirPlace) RegisterChangeObserver(f place.ObserverFunc) {
+	if dp.next != nil {
+		dp.next.RegisterChangeObserver(f)
+	}
 	dp.mxObserver.Lock()
 	dp.observers = append(dp.observers, f)
 	dp.mxObserver.Unlock()
@@ -178,6 +192,9 @@ func (dp *dirPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.
 
 	entry := dp.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
+		if dp.next != nil {
+			return dp.next.GetZettel(ctx, zid)
+		}
 		return domain.Zettel{}, &place.ErrUnknownID{Zid: zid}
 	}
 
@@ -206,6 +223,9 @@ func (dp *dirPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 	}
 	entry := dp.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
+		if dp.next != nil {
+			return dp.next.GetMeta(ctx, zid)
+		}
 		return nil, &place.ErrUnknownID{Zid: zid}
 	}
 
@@ -255,7 +275,17 @@ func (dp *dirPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.So
 		}
 	}
 	close(rc)
-	return place.ApplySorter(res, s), err
+	if err != nil {
+		return nil, err
+	}
+	if dp.next != nil {
+		other, err := dp.next.SelectMeta(ctx, f, nil)
+		if err != nil {
+			return nil, err
+		}
+		return place.MergeSorted(place.ApplySorter(res, nil), other, s), err
+	}
+	return place.ApplySorter(res, s), nil
 }
 
 func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
@@ -372,6 +402,12 @@ func (dp *dirPlace) Reload(ctx context.Context) error {
 	err := dp.Stop(ctx)
 	if err == nil {
 		err = dp.Start(ctx)
+	}
+	if dp.next != nil {
+		err1 := dp.next.Reload(ctx)
+		if err == nil {
+			err = err1
+		}
 	}
 	return err
 }

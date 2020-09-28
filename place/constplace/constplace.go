@@ -32,8 +32,8 @@ import (
 func init() {
 	place.Register(
 		"globals",
-		func(u *url.URL) (place.Place, error) {
-			return &constPlace{u: u, zettel: constZettelMap}, nil
+		func(u *url.URL, next place.Place) (place.Place, error) {
+			return &constPlace{u: u, next: next, zettel: constZettelMap}, nil
 		})
 }
 
@@ -55,8 +55,11 @@ type constZettel struct {
 
 type constPlace struct {
 	u      *url.URL
+	next   place.Place
 	zettel map[domain.ZettelID]constZettel
 }
+
+func (cp *constPlace) Next() place.Place { return cp.next }
 
 // Location returns some information where the place is located.
 func (cp *constPlace) Location() string {
@@ -66,11 +69,17 @@ func (cp *constPlace) Location() string {
 // Start the place. Now all other functions of the place are allowed.
 // Starting an already started place is not allowed.
 func (cp *constPlace) Start(ctx context.Context) error {
+	if cp.next != nil {
+		return cp.next.Start(ctx)
+	}
 	return nil
 }
 
 // Stop the started place. Now only the Start() function is allowed.
 func (cp *constPlace) Stop(ctx context.Context) error {
+	if cp.next != nil {
+		return cp.next.Stop(ctx)
+	}
 	return nil
 }
 
@@ -78,6 +87,9 @@ func (cp *constPlace) Stop(ctx context.Context) error {
 // if a zettel was found to be changed.
 func (cp *constPlace) RegisterChangeObserver(f place.ObserverFunc) {
 	// This place never changes anything. So ignore the registration.
+	if cp.next != nil {
+		cp.next.RegisterChangeObserver(f)
+	}
 }
 
 func (cp *constPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
@@ -89,6 +101,9 @@ func (cp *constPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domai
 	if z, ok := cp.zettel[zid]; ok {
 		return domain.Zettel{Meta: makeMeta(zid, z.header), Content: z.content}, nil
 	}
+	if cp.next != nil {
+		return cp.next.GetZettel(ctx, zid)
+	}
 	return domain.Zettel{}, &place.ErrUnknownID{Zid: zid}
 }
 
@@ -96,6 +111,9 @@ func (cp *constPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domai
 func (cp *constPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
 	if z, ok := cp.zettel[zid]; ok {
 		return makeMeta(zid, z.header), nil
+	}
+	if cp.next != nil {
+		return cp.next.GetMeta(ctx, zid)
 	}
 	return nil, &place.ErrUnknownID{Zid: zid}
 }
@@ -109,6 +127,13 @@ func (cp *constPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.
 		if hasMatch(meta) {
 			res = append(res, meta)
 		}
+	}
+	if cp.next != nil {
+		other, err := cp.next.SelectMeta(ctx, f, nil)
+		if err != nil {
+			return nil, err
+		}
+		return place.MergeSorted(place.ApplySorter(res, nil), other, s), nil
 	}
 	return place.ApplySorter(res, s), nil
 }

@@ -33,13 +33,14 @@ import (
 func init() {
 	place.Register(
 		"mem",
-		func(u *url.URL) (place.Place, error) {
-			return &memPlace{u: u}, nil
+		func(u *url.URL, next place.Place) (place.Place, error) {
+			return &memPlace{u: u, next: next}, nil
 		})
 }
 
 type memPlace struct {
 	u         *url.URL
+	next      place.Place
 	zettel    map[domain.ZettelID]domain.Zettel
 	started   bool
 	mx        sync.RWMutex
@@ -52,11 +53,18 @@ func (mp *memPlace) notifyChanged(all bool, zid domain.ZettelID) {
 	}
 }
 
+func (mp *memPlace) Next() place.Place { return nil }
+
 func (mp *memPlace) Location() string {
 	return mp.u.String()
 }
 
 func (mp *memPlace) Start(ctx context.Context) error {
+	if mp.next != nil {
+		if err := mp.next.Start(ctx); err != nil {
+			return err
+		}
+	}
 	mp.mx.Lock()
 	defer mp.mx.Unlock()
 	if mp.started {
@@ -75,13 +83,19 @@ func (mp *memPlace) Stop(ctx context.Context) error {
 	}
 	mp.zettel = nil
 	mp.started = false
+	if mp.next != nil {
+		return mp.next.Stop(ctx)
+	}
 	return nil
 }
 
-func (mp *memPlace) RegisterChangeObserver(ob place.ObserverFunc) {
+func (mp *memPlace) RegisterChangeObserver(f place.ObserverFunc) {
+	if mp.next != nil {
+		mp.next.RegisterChangeObserver(f)
+	}
 	mp.mx.Lock()
-	defer mp.mx.Unlock()
-	mp.observers = append(mp.observers, ob)
+	mp.observers = append(mp.observers, f)
+	mp.mx.Unlock()
 }
 
 func (mp *memPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
@@ -116,12 +130,16 @@ func (mp *memPlace) calcNewZid() domain.ZettelID {
 
 func (mp *memPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	mp.mx.RLock()
-	defer mp.mx.RUnlock()
 	if !mp.started {
+		mp.mx.RUnlock()
 		return domain.Zettel{}, place.ErrStopped
 	}
 	zettel, ok := mp.zettel[zid]
+	mp.mx.RUnlock()
 	if !ok {
+		if mp.next != nil {
+			return mp.next.GetZettel(ctx, zid)
+		}
 		return domain.Zettel{}, &place.ErrUnknownID{Zid: zid}
 	}
 	return zettel, nil
@@ -129,12 +147,16 @@ func (mp *memPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.
 
 func (mp *memPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
 	mp.mx.RLock()
-	defer mp.mx.RUnlock()
 	if !mp.started {
+		mp.mx.RUnlock()
 		return nil, place.ErrStopped
 	}
 	zettel, ok := mp.zettel[zid]
+	mp.mx.RUnlock()
 	if !ok {
+		if mp.next != nil {
+			return mp.next.GetMeta(ctx, zid)
+		}
 		return nil, &place.ErrUnknownID{Zid: zid}
 	}
 	return zettel.Meta, nil
@@ -142,8 +164,8 @@ func (mp *memPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 
 func (mp *memPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
 	mp.mx.RLock()
-	defer mp.mx.RUnlock()
 	if !mp.started {
+		mp.mx.RUnlock()
 		return nil, place.ErrStopped
 	}
 	filterFunc := place.CreateFilterFunc(f)
@@ -152,6 +174,14 @@ func (mp *memPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.So
 		if filterFunc(zettel.Meta) {
 			result = append(result, zettel.Meta)
 		}
+	}
+	mp.mx.RUnlock()
+	if mp.next != nil {
+		other, err := mp.next.SelectMeta(ctx, f, nil)
+		if err != nil {
+			return nil, err
+		}
+		return place.MergeSorted(place.ApplySorter(result, nil), other, s), nil
 	}
 	return place.ApplySorter(result, s), nil
 }
@@ -212,6 +242,9 @@ func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 func (mp *memPlace) Reload(ctx context.Context) error {
 	if !mp.started {
 		return place.ErrStopped
+	}
+	if mp.next != nil {
+		return mp.next.Reload(ctx)
 	}
 	return nil
 }

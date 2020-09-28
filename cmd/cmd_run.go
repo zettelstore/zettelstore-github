@@ -30,7 +30,6 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
-	"zettelstore.de/z/place/chainplace"
 	"zettelstore.de/z/place/policyplace"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
@@ -41,12 +40,12 @@ import (
 // ---------- Subcommand: run ------------------------------------------------
 
 func runFunc(cfg *domain.Meta) (int, error) {
-	cp, exitCode, err := setupPlaces(cfg)
-	if cp == nil {
+	p, exitCode, err := setupPlaces(cfg)
+	if p == nil {
 		return exitCode, err
 	}
 	readonly := cfg.GetBool("readonly")
-	router := setupRouting(cp, readonly)
+	router := setupRouting(p, readonly)
 
 	listenAddr, _ := cfg.Get("listen-addr")
 	v := config.GetVersion()
@@ -56,7 +55,7 @@ func runFunc(cfg *domain.Meta) (int, error) {
 		cfg.Write(os.Stderr)
 	} else {
 		log.Printf("Listening on %v", listenAddr)
-		log.Printf("Zettel location %q", cp.Location())
+		log.Printf("Zettel location [%v]", fullLocation(p))
 		if readonly {
 			log.Println("Read-only mode")
 		}
@@ -66,47 +65,63 @@ func runFunc(cfg *domain.Meta) (int, error) {
 }
 
 func setupPlaces(cfg *domain.Meta) (place.Place, int, error) {
-	var places []place.Place = nil
+	p, err := connectPlaces(getPlaceURIs(cfg))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to connect to specified places")
+		return nil, 2, err
+	}
+	if err := p.Start(context.Background()); err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to start zettel store")
+		return nil, 2, err
+	}
+	config.SetupConfiguration(p)
+	return p, 0, nil
+}
+
+func getPlaceURIs(cfg *domain.Meta) []string {
 	hasGlobals := false
+	var result []string = nil
 	for cnt := 1; ; cnt++ {
 		key := fmt.Sprintf("place-%v-uri", cnt)
 		uri, ok := cfg.Get(key)
 		if !ok || uri == "" {
 			break
 		}
-		s, err := place.Connect(uri)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to use place with URI %q\n", uri)
-			return nil, 2, err
-		}
-		places = append(places, s)
-		if s.Location() == "globals:" {
+		result = append(result, uri)
+		if uri == "globals:" {
 			hasGlobals = true
 		}
 	}
-
 	if !hasGlobals {
-		globals, err := place.Connect("globals:")
-		if err != nil {
-			return nil, 2, err
-		}
-		places = append(places, globals)
+		result = append(result, "globals:")
 	}
-	cp := chainplace.NewPlace(places...)
-	if err := cp.Start(context.Background()); err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to start zettel store")
-		return nil, 2, err
-	}
-	config.SetupConfiguration(cp)
-	return cp, 0, nil
+	return result
 }
 
+func connectPlaces(placeURIs []string) (place.Place, error) {
+	if len(placeURIs) == 0 {
+		return nil, nil
+	}
+	next, err := connectPlaces(placeURIs[1:])
+	if err != nil {
+		return nil, err
+	}
+	p, err := place.Connect(placeURIs[0], next)
+	return p, err
+}
+
+func wrapPolicyPlace(p place.Place, pol policy.Policy) place.Place {
+	if n := p.Next(); n != nil {
+		return policyplace.NewPlace(p, pol, wrapPolicyPlace(n, pol))
+	}
+	return policyplace.NewPlace(p, pol, nil)
+}
 func setupRouting(up place.Place, readonly bool) http.Handler {
 	pp := up
 	var pol policy.Policy
 	if config.WithAuth() || readonly {
 		pol = policy.NewPolicy("default")
-		pp = policyplace.NewPlace(up, pol)
+		pp = wrapPolicyPlace(up, pol)
 	} else {
 		pol = policy.NewPolicy("all")
 	}
@@ -146,4 +161,11 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler(te, usecase.NewListMeta(pp)))
 	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler(te, ucGetZettel, ucGetMeta))
 	return session.NewHandler(router, usecase.NewGetUserByZid(up))
+}
+
+func fullLocation(p place.Place) string {
+	if n := p.Next(); n != nil {
+		return p.Location() + ", " + fullLocation(n)
+	}
+	return p.Location()
 }

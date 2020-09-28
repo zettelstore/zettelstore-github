@@ -33,15 +33,19 @@ import (
 type polPlace struct {
 	place  place.Place
 	policy policy.Policy
+	next   place.Place
 }
 
 // NewPlace creates a new policy place.
-func NewPlace(place place.Place, policy policy.Policy) place.Place {
+func NewPlace(place place.Place, policy policy.Policy, next place.Place) place.Place {
 	return &polPlace{
 		place:  place,
 		policy: policy,
+		next:   next,
 	}
 }
+
+func (pp *polPlace) Next() place.Place { return pp.next }
 
 func (pp *polPlace) Location() string {
 	return pp.place.Location()

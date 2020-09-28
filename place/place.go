@@ -39,6 +39,9 @@ type ObserverFunc func(bool, domain.ZettelID)
 
 // Place is implemented by all Zettel places.
 type Place interface {
+	// Next returns the next place or nil if there is no next place.
+	Next() Place
+
 	// Location returns some information where the place is located.
 	// Format is dependent of the place.
 	Location() string
@@ -160,7 +163,7 @@ type Sorter struct {
 }
 
 // Connect returns a handle to the specified place
-func Connect(rawURL string) (Place, error) {
+func Connect(rawURL string, next Place) (Place, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
@@ -169,7 +172,7 @@ func Connect(rawURL string) (Place, error) {
 		u.Scheme = "dir"
 	}
 	if create, ok := registry[u.Scheme]; ok {
-		return create(u)
+		return create(u, next)
 	}
 	return nil, &ErrInvalidScheme{u.Scheme}
 }
@@ -179,7 +182,7 @@ type ErrInvalidScheme struct{ Scheme string }
 
 func (err *ErrInvalidScheme) Error() string { return "Invalid scheme: " + err.Scheme }
 
-type createFunc func(*url.URL) (Place, error)
+type createFunc func(*url.URL, Place) (Place, error)
 
 var registry = map[string]createFunc{}
 

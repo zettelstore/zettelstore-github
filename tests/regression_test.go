@@ -56,7 +56,7 @@ func getFilePlaces(wd string, kind string) (root string, places []place.Place) {
 
 	for _, info := range infos {
 		if info.Mode().IsDir() {
-			place, err := place.Connect("dir://" + filepath.Join(root, info.Name()))
+			place, err := place.Connect("dir://"+filepath.Join(root, info.Name()), nil)
 			if err != nil {
 				panic(err)
 			}
