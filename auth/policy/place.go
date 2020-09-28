@@ -17,13 +17,12 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package policyplace provides a place that checks for authorization policies.
-package policyplace
+// Package policy provides some interfaces and implementation for authorizsation policies.
+package policy
 
 import (
 	"context"
 
-	"zettelstore.de/z/auth/policy"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/web/session"
@@ -32,12 +31,12 @@ import (
 // pol implements a policy place.
 type polPlace struct {
 	place  place.Place
-	policy policy.Policy
+	policy Policy
 	next   place.Place
 }
 
 // NewPlace creates a new policy place.
-func NewPlace(place place.Place, policy policy.Policy, next place.Place) place.Place {
+func NewPlace(place place.Place, policy Policy, next place.Place) place.Place {
 	return &polPlace{
 		place:  place,
 		policy: policy,

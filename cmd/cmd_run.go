@@ -30,7 +30,6 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
-	"zettelstore.de/z/place/policyplace"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/router"
@@ -112,9 +111,9 @@ func connectPlaces(placeURIs []string) (place.Place, error) {
 
 func wrapPolicyPlace(p place.Place, pol policy.Policy) place.Place {
 	if n := p.Next(); n != nil {
-		return policyplace.NewPlace(p, pol, wrapPolicyPlace(n, pol))
+		return policy.NewPlace(p, pol, wrapPolicyPlace(n, pol))
 	}
-	return policyplace.NewPlace(p, pol, nil)
+	return policy.NewPlace(p, pol, nil)
 }
 func setupRouting(up place.Place, readonly bool) http.Handler {
 	pp := up
