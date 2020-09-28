@@ -28,7 +28,7 @@ import (
 	"zettelstore.de/z/place"
 )
 
-// Service specifies a directory service.
+// Service specifies a directory scan service.
 type Service struct {
 	dirPath     string
 	ticker      *time.Ticker
@@ -38,10 +38,10 @@ type Service struct {
 }
 
 // NewService creates a new directory service.
-func NewService(directoryPath string, reloadTime time.Duration) *Service {
+func NewService(directoryPath string, rescanTime time.Duration) *Service {
 	srv := &Service{
 		dirPath: directoryPath,
-		ticker:  time.NewTicker(reloadTime),
+		ticker:  time.NewTicker(rescanTime),
 		cmds:    make(chan dirCmd),
 	}
 	return srv

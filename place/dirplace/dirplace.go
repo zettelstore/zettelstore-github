@@ -25,6 +25,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -36,7 +37,46 @@ import (
 )
 
 func init() {
-	place.Register("dir", connectPlace)
+	place.Register("dir", func(u *url.URL, next place.Place) (place.Place, error) {
+		path := getDirPath(u)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			return nil, err
+		}
+		dp := dirPlace{
+			u:         u,
+			next:      next,
+			dir:       path,
+			dirRescan: time.Duration(getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
+			fSrvs:     uint32(getQueryInt(u, "worker", 1, 17, 1499)),
+		}
+		dp.cacheChange(true, domain.InvalidZettelID)
+		return &dp, nil
+	})
+}
+
+func getDirPath(u *url.URL) string {
+	if u.Opaque != "" {
+		return filepath.Clean(u.Opaque)
+	}
+	return filepath.Clean(u.Path)
+}
+
+func getQueryInt(u *url.URL, key string, min, def, max int) int {
+	sVal := u.Query().Get(key)
+	if sVal == "" {
+		return def
+	}
+	iVal, err := strconv.Atoi(sVal)
+	if err != nil {
+		return def
+	}
+	if iVal < min {
+		return min
+	}
+	if iVal > max {
+		return max
+	}
+	return iVal
 }
 
 // dirPlace uses a directory to store zettel as files.
@@ -46,35 +86,13 @@ type dirPlace struct {
 	observers  []place.ObserverFunc
 	mxObserver sync.RWMutex
 	dir        string
-	dirReload  time.Duration
+	dirRescan  time.Duration
 	dirSrv     *directory.Service
 	fSrvs      uint32
 	fCmds      []chan fileCmd
 	mxCmds     sync.RWMutex
 	metaCache  map[domain.ZettelID]*domain.Meta
 	mxCache    sync.RWMutex
-}
-
-func connectPlace(u *url.URL, next place.Place) (place.Place, error) {
-	var path string
-	if u.Opaque != "" {
-		path = u.Opaque
-	} else {
-		path = u.Path
-	}
-	path = filepath.Clean(path)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, err
-	}
-	dp := &dirPlace{
-		u:         u,
-		next:      next,
-		dir:       path,
-		dirReload: 600 * time.Second, // TODO: make configurable
-		fSrvs:     17,                // TODO: make configurable
-	}
-	dp.cacheChange(true, domain.InvalidZettelID)
-	return dp, nil
 }
 
 func (dp *dirPlace) isStopped() bool {
@@ -103,7 +121,7 @@ func (dp *dirPlace) Start(ctx context.Context) error {
 		go fileService(i, cc)
 		dp.fCmds = append(dp.fCmds, cc)
 	}
-	dp.dirSrv = directory.NewService(dp.dir, dp.dirReload)
+	dp.dirSrv = directory.NewService(dp.dir, dp.dirRescan)
 	dp.mxCmds.Unlock()
 	dp.dirSrv.Subscribe(dp.notifyChanged)
 	dp.dirSrv.Start()
