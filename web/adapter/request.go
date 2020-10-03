@@ -34,14 +34,24 @@ func getFormat(r *http.Request, defFormat string) string {
 	if len(format) > 0 {
 		return format
 	}
-	if accepts, ok := r.Header["Accept"]; ok {
-		for _, acc := range accepts {
-			if format, ok := contentType2format(acc); ok {
-				return format
+	if format, ok := getOneFormat(r, "Accept"); ok {
+		return format
+	}
+	if format, ok := getOneFormat(r, "Content-Type"); ok {
+		return format
+	}
+	return defFormat
+}
+
+func getOneFormat(r *http.Request, key string) (string, bool) {
+	if values, ok := r.Header[key]; ok {
+		for _, value := range values {
+			if format, ok := contentType2format(value); ok {
+				return format, true
 			}
 		}
 	}
-	return defFormat
+	return "", false
 }
 
 func getFilterSorter(r *http.Request) (filter *place.Filter, sorter *place.Sorter) {
