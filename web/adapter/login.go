@@ -75,7 +75,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 			return
 		}
 		htmlDur, apiDur := config.TokenLifetime()
-		switch format := getFormat(r, "html"); format {
+		switch format := getFormat(r, "json"); format {
 		case "html":
 			authenticateViaHTML(te, auth, w, r, htmlDur)
 		case "json":

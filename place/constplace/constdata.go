@@ -123,7 +123,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{- if .Retry}}
 <div class="zs-indication zs-error">Wrong user name / password. Try again.</div>
 {{- end}}
-<form method="POST">
+<form method="POST" action="?_format=html">
 <div>
 <label for="username">User name</label>
 <input class="zs-input" type="text" id="username" name="username" placeholder="Your user name..">
