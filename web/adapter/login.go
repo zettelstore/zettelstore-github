@@ -36,19 +36,13 @@ import (
 	"zettelstore.de/z/web/session"
 )
 
+type jsonResponse struct {
+	Token string `json:"token"`
+}
+
 // MakeGetLoginHandler creates a new HTTP handler to display the HTML login view.
 func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if format := getFormat(r, "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Login not possible in format %q", format), http.StatusBadRequest)
-			return
-		}
-
-		if !config.WithAuth() {
-			http.Error(w, "Login not available", http.StatusForbidden)
-			return
-		}
-
 		renderLoginForm(session.ClearToken(r.Context(), w), w, te, false)
 	}
 }
@@ -70,12 +64,24 @@ func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEng
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
 func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		format := getFormat(r, "json")
 		if !config.WithAuth() {
-			http.Error(w, "Authentication not available", http.StatusForbidden)
+			switch format {
+			case "html":
+				http.Redirect(w, r, urlForList('/'), http.StatusFound)
+			case "json":
+				w.Header().Set("Content-Type", format2ContentType("json"))
+				je := json.NewEncoder(w)
+				je.Encode(jsonResponse{
+					Token: "freeaccess",
+				})
+			default:
+				http.Error(w, "Unknown format", http.StatusBadRequest)
+			}
 			return
 		}
 		htmlDur, apiDur := config.TokenLifetime()
-		switch format := getFormat(r, "json"); format {
+		switch format {
 		case "html":
 			authenticateViaHTML(te, auth, w, r, htmlDur)
 		case "json":
@@ -121,9 +127,7 @@ func authenticateViaJSON(auth usecase.Authenticate, w http.ResponseWriter, r *ht
 
 	w.Header().Set("Content-Type", format2ContentType("json"))
 	je := json.NewEncoder(w)
-	je.Encode(struct {
-		Token string `json:"token"`
-	}{
+	je.Encode(jsonResponse{
 		Token: string(token),
 	})
 }
