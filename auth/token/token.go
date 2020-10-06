@@ -86,33 +86,51 @@ func GetToken(ident *domain.Meta, d time.Duration, kind Kind) ([]byte, error) {
 // ErrTokenExpired signals an exired token
 var ErrTokenExpired = errors.New("auth: token expired")
 
+// Data contains some important elements from a token.
+type Data struct {
+	Token   []byte
+	Now     time.Time
+	Issued  time.Time
+	Expires time.Time
+	Ident   string
+	Zid     domain.ZettelID
+}
+
 // CheckToken checks the validity of the token and returns relevant data.
-func CheckToken(token []byte, k Kind) (string, domain.ZettelID, error) {
+func CheckToken(token []byte, k Kind) (Data, error) {
 	h, err := jwt.NewHMAC(reqHash, config.Secret())
 	if err != nil {
-		return "", domain.InvalidZettelID, err
+		return Data{}, err
 	}
 	claims, err := h.Check(token)
 	if err != nil {
-		return "", domain.InvalidZettelID, err
+		return Data{}, err
 	}
 	now := time.Now().Round(time.Second)
-	if claims.Expires.Time().Before(now) {
-		return "", domain.InvalidZettelID, ErrTokenExpired
+	expires := claims.Expires.Time()
+	if expires.Before(now) {
+		return Data{}, ErrTokenExpired
 	}
 	ident := claims.Subject
 	if len(ident) == 0 {
-		return "", domain.InvalidZettelID, ErrNoIdent
+		return Data{}, ErrNoIdent
 	}
 	if zidS, ok := claims.Set["zid"].(string); ok {
 		if zid, err := domain.ParseZettelID(zidS); err == nil {
 			if kind, ok := claims.Set["_tk"].(float64); ok {
 				if Kind(kind) == k {
-					return ident, zid, nil
+					return Data{
+						Token:   token,
+						Now:     now,
+						Issued:  claims.Issued.Time(),
+						Expires: expires,
+						Ident:   ident,
+						Zid:     zid,
+					}, nil
 				}
 			}
-			return "", domain.InvalidZettelID, ErrOtherKind
+			return Data{}, ErrOtherKind
 		}
 	}
-	return "", domain.InvalidZettelID, ErrNoZid
+	return Data{}, ErrNoZid
 }

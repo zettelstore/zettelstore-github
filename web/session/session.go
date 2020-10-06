@@ -55,7 +55,7 @@ func ClearToken(ctx context.Context, w http.ResponseWriter) context.Context {
 	if w != nil {
 		SetToken(w, nil, 0)
 	}
-	return updateContext(ctx, nil)
+	return updateContext(ctx, nil, nil)
 }
 
 // Handler enriches the request context with optional user information.
@@ -72,21 +72,42 @@ func NewHandler(next http.Handler, getUserByZid usecase.GetUserByZid) *Handler {
 	}
 }
 
-type contextUser struct{}
+type ctxKeyType struct{}
 
-var contextKey contextUser
+var ctxKey ctxKeyType
+
+// AuthData stores all relevant authentication data for a context.
+type AuthData struct {
+	User    *domain.Meta
+	Token   []byte
+	Now     time.Time
+	Issued  time.Time
+	Expires time.Time
+}
+
+// GetAuthData returns the full authentication data from the context.
+func GetAuthData(ctx context.Context) *AuthData {
+	data, ok := ctx.Value(ctxKey).(*AuthData)
+	if ok {
+		return data
+	}
+	return nil
+
+}
 
 // GetUser returns the user meta data from the context, if there is one. Else return nil.
 func GetUser(ctx context.Context) *domain.Meta {
-	user, ok := ctx.Value(contextKey).(*domain.Meta)
-	if ok {
-		return user
+	if data := GetAuthData(ctx); data != nil {
+		return data.User
 	}
 	return nil
 }
 
-func updateContext(ctx context.Context, user *domain.Meta) context.Context {
-	return context.WithValue(ctx, contextKey, user)
+func updateContext(ctx context.Context, user *domain.Meta, data *token.Data) context.Context {
+	if data == nil {
+		return context.WithValue(ctx, ctxKey, &AuthData{User: user})
+	}
+	return context.WithValue(ctx, ctxKey, &AuthData{User: user, Token: data.Token, Now: data.Now, Issued: data.Issued, Expires: data.Expires})
 }
 
 // ServeHTTP processes one HTTP request.
@@ -101,18 +122,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.next.ServeHTTP(w, r)
 		return
 	}
-	ident, zid, err := token.CheckToken(t, k)
+	tokenData, err := token.CheckToken(t, k)
 	if err != nil {
 		h.next.ServeHTTP(w, r)
 		return
 	}
 	ctx := r.Context()
-	user, err := h.getUserByZid.Run(ctx, zid, ident)
+	user, err := h.getUserByZid.Run(ctx, tokenData.Zid, tokenData.Ident)
 	if err != nil {
 		h.next.ServeHTTP(w, r)
 		return
 	}
-	h.next.ServeHTTP(w, r.WithContext(updateContext(ctx, user)))
+	h.next.ServeHTTP(w, r.WithContext(updateContext(ctx, user, &tokenData)))
 }
 
 func getSessionToken(r *http.Request) []byte {
