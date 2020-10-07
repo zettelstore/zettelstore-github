@@ -36,10 +36,6 @@ import (
 	"zettelstore.de/z/web/session"
 )
 
-type jsonResponse struct {
-	Token string `json:"token"`
-}
-
 // MakeGetLoginHandler creates a new HTTP handler to display the HTML login view.
 func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -71,10 +67,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 				http.Redirect(w, r, urlForList('/'), http.StatusFound)
 			case "json":
 				w.Header().Set("Content-Type", format2ContentType("json"))
-				je := json.NewEncoder(w)
-				je.Encode(jsonResponse{
-					Token: "freeaccess",
-				})
+				writeJSONToken(w, "freeaccess")
 			default:
 				http.Error(w, "Unknown format", http.StatusBadRequest)
 			}
@@ -126,10 +119,7 @@ func authenticateViaJSON(auth usecase.Authenticate, w http.ResponseWriter, r *ht
 	}
 
 	w.Header().Set("Content-Type", format2ContentType("json"))
-	je := json.NewEncoder(w)
-	je.Encode(jsonResponse{
-		Token: string(token),
-	})
+	writeJSONToken(w, string(token))
 }
 
 func authenticateForJSON(auth usecase.Authenticate, w http.ResponseWriter, r *http.Request, authDuration time.Duration) ([]byte, error) {
@@ -162,6 +152,15 @@ func getCredentialsViaBasicAuth(r *http.Request) (ident, cred string, ok bool) {
 	return r.BasicAuth()
 }
 
+func writeJSONToken(w http.ResponseWriter, token string) {
+	je := json.NewEncoder(w)
+	je.Encode(struct {
+		Token string `json:"token"`
+	}{
+		Token: token,
+	})
+}
+
 // MakeGetLogoutHandler creates a new HTTP handler to log out the current user
 func MakeGetLogoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -172,5 +171,35 @@ func MakeGetLogoutHandler() http.HandlerFunc {
 
 		session.ClearToken(r.Context(), w)
 		http.Redirect(w, r, urlForList('/'), http.StatusFound)
+	}
+}
+
+// MakeRenewAuthHandler creates a new HTTP handler to renew the authenticate of a user.
+func MakeRenewAuthHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		auth := session.GetAuthData(ctx)
+		if auth == nil || auth.Token == nil || auth.User == nil {
+			http.Error(w, "Not authenticated", http.StatusBadRequest)
+			return
+		}
+		totalLifetime := auth.Expires.Sub(auth.Issued)
+		currentLifetime := auth.Now.Sub(auth.Issued)
+		// If we are in the first quarter of the tokens lifetime, return the token
+		if currentLifetime*4 < totalLifetime {
+			w.Header().Set("Content-Type", format2ContentType("json"))
+			writeJSONToken(w, string(auth.Token))
+			return
+		}
+
+		// Toke is a little bit aged. Create a new one
+		_, apiDur := config.TokenLifetime()
+		token, err := token.GetToken(auth.User, apiDur, token.KindJSON)
+		if err != nil {
+			checkUsecaseError(w, err)
+			return
+		}
+		w.Header().Set("Content-Type", format2ContentType("json"))
+		writeJSONToken(w, string(token))
 	}
 }

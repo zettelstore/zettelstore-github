@@ -135,6 +135,7 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.Handle("/", adapter.MakeGetRootHandler(pp, listHTMLMetaHandler, getHTMLZettelHandler))
 	router.AddListRoute('a', http.MethodGet, adapter.MakeGetLoginHandler(te))
 	router.AddListRoute('a', http.MethodPost, adapter.MakePostLoginHandler(te, usecase.NewAuthenticate(up)))
+	router.AddListRoute('a', http.MethodPut, adapter.MakeRenewAuthHandler())
 	router.AddZettelRoute('a', http.MethodGet, adapter.MakeGetLogoutHandler())
 	router.AddListRoute('c', http.MethodGet, adapter.MakeReloadHandler(usecase.NewReload(pp)))
 	if !readonly {
