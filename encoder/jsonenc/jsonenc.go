@@ -30,7 +30,10 @@ import (
 )
 
 func init() {
-	encoder.Register("json", func() encoder.Encoder { return &jsonEncoder{} })
+	encoder.Register("json", encoder.Info{
+		Create:  func() encoder.Encoder { return &jsonEncoder{} },
+		Default: true,
+	})
 }
 
 type jsonEncoder struct{}

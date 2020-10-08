@@ -33,7 +33,9 @@ import (
 )
 
 func init() {
-	encoder.Register("html", func() encoder.Encoder { return &htmlEncoder{} })
+	encoder.Register("html", encoder.Info{
+		Create: func() encoder.Encoder { return &htmlEncoder{} },
+	})
 }
 
 type htmlEncoder struct {

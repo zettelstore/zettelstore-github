@@ -55,8 +55,8 @@ type Option interface {
 
 // Create builds a new encoder with the given options.
 func Create(format string, options ...Option) Encoder {
-	if create, ok := registry[format]; ok {
-		enc := create()
+	if info, ok := registry[format]; ok {
+		enc := info.Create()
 		for _, opt := range options {
 			enc.SetOption(opt)
 		}
@@ -65,16 +65,27 @@ func Create(format string, options ...Option) Encoder {
 	return nil
 }
 
-type createFunc func() Encoder
+// Info stores some data about an encoder.
+type Info struct {
+	Create  func() Encoder
+	Default bool
+}
 
-var registry = map[string]createFunc{}
+var registry = map[string]Info{}
+var defFormat string
 
 // Register the encoder for later retrieval.
-func Register(format string, create createFunc) {
+func Register(format string, info Info) {
 	if _, ok := registry[format]; ok {
 		log.Fatalf("Writer with format %q already registered", format)
 	}
-	registry[format] = create
+	if info.Default {
+		if defFormat != "" && defFormat != format {
+			log.Fatalf("Default format already set: %q, new format: %q", defFormat, format)
+		}
+		defFormat = format
+	}
+	registry[format] = info
 }
 
 // GetFormats returns all registered formats, ordered by format name.
@@ -85,4 +96,16 @@ func GetFormats() []string {
 	}
 	sort.Strings(result)
 	return result
+}
+
+// GetDefaultFormat returns the format that should be used as default.
+func GetDefaultFormat() string {
+	if defFormat != "" {
+		return defFormat
+	}
+	if _, ok := registry["json"]; ok {
+		return "json"
+	}
+	log.Fatalf("No default format given")
+	return ""
 }

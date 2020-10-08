@@ -29,7 +29,9 @@ import (
 )
 
 func init() {
-	encoder.Register("raw", func() encoder.Encoder { return &rawEncoder{} })
+	encoder.Register("raw", encoder.Info{
+		Create: func() encoder.Encoder { return &rawEncoder{} },
+	})
 }
 
 type rawEncoder struct{}

@@ -33,7 +33,9 @@ import (
 )
 
 func init() {
-	encoder.Register("djson", func() encoder.Encoder { return &jsonDetailEncoder{} })
+	encoder.Register("djson", encoder.Info{
+		Create: func() encoder.Encoder { return &jsonDetailEncoder{} },
+	})
 }
 
 type jsonDetailEncoder struct {

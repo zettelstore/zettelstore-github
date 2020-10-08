@@ -32,7 +32,9 @@ import (
 )
 
 func init() {
-	encoder.Register("native", func() encoder.Encoder { return &nativeEncoder{} })
+	encoder.Register("native", encoder.Info{
+		Create: func() encoder.Encoder { return &nativeEncoder{} },
+	})
 }
 
 type nativeEncoder struct {

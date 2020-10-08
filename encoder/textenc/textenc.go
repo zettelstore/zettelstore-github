@@ -29,7 +29,9 @@ import (
 )
 
 func init() {
-	encoder.Register("text", func() encoder.Encoder { return &textEncoder{} })
+	encoder.Register("text", encoder.Info{
+		Create: func() encoder.Encoder { return &textEncoder{} },
+	})
 }
 
 type textEncoder struct{}

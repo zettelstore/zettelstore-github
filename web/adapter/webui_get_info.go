@@ -94,23 +94,25 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}
 
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
-			Lang     string
-			Title    string
-			User     userWrapper
-			Meta     metaWrapper
-			IntLinks []internalReference
-			ExtLinks []string
-			Formats  []string
-			Parts    []string
+			Lang      string
+			Title     string
+			User      userWrapper
+			Meta      metaWrapper
+			IntLinks  []internalReference
+			ExtLinks  []string
+			Formats   []string
+			DefFormat string
+			Parts     []string
 		}{
-			Lang:     langOption.Value,
-			Title:    textTitle, // TODO: merge with site-title?
-			User:     wrapUser(session.GetUser(ctx)),
-			Meta:     wrapMeta(z.Meta),
-			IntLinks: intLinks,
-			ExtLinks: extLinks,
-			Formats:  encoder.GetFormats(),
-			Parts:    []string{"zettel", "meta", "content"},
+			Lang:      langOption.Value,
+			Title:     textTitle, // TODO: merge with site-title?
+			User:      wrapUser(session.GetUser(ctx)),
+			Meta:      wrapMeta(z.Meta),
+			IntLinks:  intLinks,
+			ExtLinks:  extLinks,
+			Formats:   encoder.GetFormats(),
+			DefFormat: encoder.GetDefaultFormat(),
+			Parts:     []string{"zettel", "meta", "content"},
 		})
 	}
 }

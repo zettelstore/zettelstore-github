@@ -227,7 +227,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <h2>Parts and format</h3>
 <table>
 {{range $p := .Parts}}
-<tr><th>{{$p}}</th>{{range $f := $.Formats}}<td><a href="{{urlZettel 'z' $.Meta.Zid}}?_part={{$p}}&_format={{$f}}">{{$f}}</a></td>{{end}}</tr>
+<tr><th>{{$p}}</th>{{range $f := $.Formats}}<td><a href="{{urlZettel 'z' $.Meta.Zid}}?_part={{$p}}{{if ne $f $.DefFormat}}&_format={{$f}}{{end}}">{{$f}}</a></td>{{end}}</tr>
 {{end}}
 </table>
 </article>
