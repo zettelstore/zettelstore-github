@@ -23,6 +23,7 @@ package adapter
 import (
 	"net/http"
 
+	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
 )
 
@@ -35,12 +36,12 @@ func MakeReloadHandler(reload usecase.Reload) http.HandlerFunc {
 			return
 		}
 
-		if format := getFormat(r, "html"); format != "html" {
-			w.Header().Set("Content-Type", format2ContentType(format))
-			w.WriteHeader(http.StatusNoContent)
+		format := getFormat(r, encoder.GetDefaultFormat())
+		if format == "html" {
+			http.Redirect(w, r, urlForList('/'), http.StatusFound)
 			return
 		}
-
-		http.Redirect(w, r, urlForList('/'), http.StatusFound)
+		w.Header().Set("Content-Type", format2ContentType(format))
+		w.WriteHeader(http.StatusNoContent)
 	}
 }

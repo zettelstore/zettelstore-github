@@ -87,7 +87,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <a href="{{urlList 'a'}}">Login</a>
 {{- end}}
 {{- if CanReload .User}}
-<a href="{{urlList 'c'}}">Reload</a>
+<a href="{{urlList 'c'}}?_format=html">Reload</a>
 {{- end}}
 </nav>
 </div>

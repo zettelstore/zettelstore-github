@@ -43,7 +43,7 @@ func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.Han
 			return
 		}
 
-		format := getFormat(r, "json")
+		format := getFormat(r, encoder.GetDefaultFormat())
 		w.Header().Set("Content-Type", format2ContentType(format))
 		switch format {
 		case "html":

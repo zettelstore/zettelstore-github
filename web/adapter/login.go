@@ -32,6 +32,7 @@ import (
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
@@ -60,7 +61,7 @@ func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEng
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
 func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		format := getFormat(r, "json")
+		format := getFormat(r, encoder.GetDefaultFormat())
 		if !config.WithAuth() {
 			switch format {
 			case "html":

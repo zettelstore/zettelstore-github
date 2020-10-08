@@ -53,7 +53,7 @@ func MakeGetZettelHandler(
 		syntax := r.URL.Query().Get("syntax")
 		z, meta := parser.ParseZettel(zettel, syntax)
 
-		format := getFormat(r, "json")
+		format := getFormat(r, encoder.GetDefaultFormat())
 		part := r.URL.Query().Get("_part")
 
 		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
