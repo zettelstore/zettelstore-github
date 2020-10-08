@@ -84,6 +84,7 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, enc enco
 	if enc == nil {
 		return
 	}
+	addFormat := format != encoder.GetDefaultFormat()
 	detail := format == "djson"
 	buf := encoder.NewBufWriter(w)
 	buf.WriteString("{\"list\":[")
@@ -91,9 +92,11 @@ func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, enc enco
 		if i > 0 {
 			buf.WriteByte(',')
 		}
-		buf.WriteStrings(
-			"{\"id\":\"", meta.Zid.Format(), "\",\"url\":\"", urlForZettel('z', meta.Zid),
-			"?_format=", format, "\",\"meta\":")
+		buf.WriteStrings("{\"id\":\"", meta.Zid.Format(), "\",\"url\":\"", urlForZettel('z', meta.Zid))
+		if addFormat {
+			buf.WriteStrings("?_format=", format)
+		}
+		buf.WriteString("\",\"meta\":")
 		var title ast.InlineSlice
 		if detail {
 			title = parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
