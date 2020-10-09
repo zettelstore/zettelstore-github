@@ -69,8 +69,8 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <button>Lists</button>
 <nav class="zs-dropdown-content">
 <a href="{{urlList 'h'}}">List Zettel</a>
-<a href="{{urlList 'r'}}">List Roles</a>
-<a href="{{urlList 't'}}">List Tags</a>
+<a href="{{urlList 'r'}}?_format=html">List Roles</a>
+<a href="{{urlList 't'}}?_format=html">List Tags</a>
 </nav>
 </div>
 {{- if CanCreate .User }}
