@@ -92,6 +92,8 @@ func (cp *constPlace) RegisterChangeObserver(f place.ObserverFunc) {
 	}
 }
 
+func (cp *constPlace) CanCreateZettel(ctx context.Context) bool { return false }
+
 func (cp *constPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	return domain.InvalidZettelID, errReadOnly
 }
@@ -140,17 +142,50 @@ func (cp *constPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.
 
 var errReadOnly = errors.New("Read-only place")
 
+func (cp *constPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
+	if _, ok := cp.zettel[zettel.Meta.Zid]; !ok && cp.next != nil {
+		return cp.next.CanUpdateZettel(ctx, zettel)
+	}
+	return false
+}
+
 func (cp *constPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
+	if _, ok := cp.zettel[zettel.Meta.Zid]; !ok && cp.next != nil {
+		return cp.next.UpdateZettel(ctx, zettel)
+	}
 	return errReadOnly
+}
+
+func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
+	if _, ok := cp.zettel[zid]; !ok && cp.next != nil {
+		return cp.next.CanDeleteZettel(ctx, zid)
+	}
+	return false
 }
 
 // DeleteZettel removes the zettel from the place.
 func (cp *constPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
+	if _, ok := cp.zettel[zid]; !ok && cp.next != nil {
+		return cp.next.DeleteZettel(ctx, zid)
+	}
 	return errReadOnly
+}
+
+func (cp *constPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
+	if _, ok := cp.zettel[zid]; !ok {
+		return cp.next == nil || cp.next.CanRenameZettel(ctx, zid)
+	}
+	return false
 }
 
 // Rename changes the current id to a new id.
 func (cp *constPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
+	if _, ok := cp.zettel[curZid]; !ok {
+		if cp.next != nil {
+			return cp.next.RenameZettel(ctx, curZid, newZid)
+		}
+		return nil
+	}
 	return errReadOnly
 }
 

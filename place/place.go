@@ -57,6 +57,9 @@ type Place interface {
 	// if one or all zettel are found to be changed.
 	RegisterChangeObserver(ObserverFunc)
 
+	// CanCreateZettel returns true, if place could possibly create a new zettel.
+	CanCreateZettel(ctx context.Context) bool
+
 	// CreateZettel creates a new zettel.
 	// Returns the new zettel id (and an error indication).
 	CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error)
@@ -71,13 +74,22 @@ type Place interface {
 	// TODO: more docs
 	SelectMeta(ctx context.Context, f *Filter, s *Sorter) ([]*domain.Meta, error)
 
+	// CanUpdateZettel returns true, if place could possibly update the given zettel.
+	CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool
+
 	// UpdateZettel updates an existing zettel.
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
+
+	// CanDeleteZettel returns true, if place could possibly delete the given zettel.
+	CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool
 
 	// DeleteZettel removes the zettel from the place.
 	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 
-	// Rename changes the current Zid to a new Zid.
+	// CanRenameZettel returns true, if place could possibly rename the given zettel.
+	CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool
+
+	// RenameZettel changes the current Zid to a new Zid.
 	RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error
 
 	// Reload clears all caches, reloads all internal data to reflect changes

@@ -67,6 +67,10 @@ func (pp *polPlace) RegisterChangeObserver(f place.ObserverFunc) {
 	pp.place.RegisterChangeObserver(f)
 }
 
+func (pp *polPlace) CanCreateZettel(ctx context.Context) bool {
+	return pp.place.CanCreateZettel(ctx)
+}
+
 func (pp *polPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	user := session.GetUser(ctx)
 	if pp.policy.CanCreate(user, zettel.Meta) {
@@ -117,6 +121,10 @@ func (pp *polPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.So
 	return result, nil
 }
 
+func (pp *polPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
+	return pp.place.CanUpdateZettel(ctx, zettel)
+}
+
 func (pp *polPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	zid := zettel.Meta.Zid
 	user := session.GetUser(ctx)
@@ -134,6 +142,10 @@ func (pp *polPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	return place.NewErrNotAuthorized("Write", user, zid)
 }
 
+func (pp *polPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
+	return pp.place.CanRenameZettel(ctx, zid)
+}
+
 // Rename changes the current zid to a new zid.
 func (pp *polPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
 	meta, err := pp.place.GetMeta(ctx, curZid)
@@ -145,6 +157,10 @@ func (pp *polPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 		return pp.place.RenameZettel(ctx, curZid, newZid)
 	}
 	return place.NewErrNotAuthorized("Rename", user, curZid)
+}
+
+func (pp *polPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
+	return pp.place.CanDeleteZettel(ctx, zid)
 }
 
 // DeleteZettel removes the zettel from the place.

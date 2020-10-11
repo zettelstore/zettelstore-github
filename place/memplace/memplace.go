@@ -98,6 +98,10 @@ func (mp *memPlace) RegisterChangeObserver(f place.ObserverFunc) {
 	mp.mx.Unlock()
 }
 
+func (mp *memPlace) CanCreateZettel(ctx context.Context) bool {
+	return mp.started
+}
+
 func (mp *memPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	mp.mx.Lock()
 	defer mp.mx.Unlock()
@@ -186,6 +190,10 @@ func (mp *memPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.So
 	return place.ApplySorter(result, s), nil
 }
 
+func (mp *memPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
+	return mp.started
+}
+
 func (mp *memPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	mp.mx.Lock()
 	defer mp.mx.Unlock()
@@ -204,15 +212,41 @@ func (mp *memPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	return nil
 }
 
+func (mp *memPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
+	mp.mx.RLock()
+	defer mp.mx.Unlock()
+	if !mp.started {
+		return false
+	}
+	_, ok := mp.zettel[zid]
+	return ok || (mp.next != nil && mp.next.CanDeleteZettel(ctx, zid))
+}
+
 func (mp *memPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
 	mp.mx.Lock()
 	defer mp.mx.Unlock()
 	if !mp.started {
 		return place.ErrStopped
 	}
+	if _, ok := mp.zettel[zid]; !ok {
+		if mp.next != nil {
+			return mp.next.DeleteZettel(ctx, zid)
+		}
+		return &place.ErrUnknownID{Zid: zid}
+	}
 	delete(mp.zettel, zid)
 	mp.notifyChanged(false, zid)
 	return nil
+}
+
+func (mp *memPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
+	mp.mx.RLock()
+	defer mp.mx.Unlock()
+	if !mp.started {
+		return false
+	}
+	_, ok := mp.zettel[zid]
+	return ok || (mp.next != nil && mp.next.CanRenameZettel(ctx, zid))
 }
 
 func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
@@ -223,7 +257,10 @@ func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 	}
 	zettel, ok := mp.zettel[curZid]
 	if !ok {
-		return &place.ErrUnknownID{Zid: curZid}
+		if mp.next != nil {
+			return mp.next.RenameZettel(ctx, curZid, newZid)
+		}
+		return nil
 	}
 	_, ok = mp.zettel[newZid]
 	if ok {

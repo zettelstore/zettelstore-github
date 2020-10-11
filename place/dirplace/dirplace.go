@@ -178,13 +178,16 @@ func (dp *dirPlace) RegisterChangeObserver(f place.ObserverFunc) {
 	dp.mxObserver.Unlock()
 }
 
+func (dp *dirPlace) CanCreateZettel(ctx context.Context) bool {
+	return !dp.isStopped()
+}
+
 func (dp *dirPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	if dp.isStopped() {
 		return domain.InvalidZettelID, place.ErrStopped
 	}
 
 	meta := zettel.Meta
-
 	entry := dp.dirSrv.GetNew()
 	meta.Zid = entry.Zid
 	dp.updateEntryFromMeta(&entry, meta)
@@ -306,6 +309,13 @@ func (dp *dirPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.So
 	return place.ApplySorter(res, s), nil
 }
 
+func (dp *dirPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
+	if dp.isStopped() {
+		return false
+	}
+	return true
+}
+
 func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	if dp.isStopped() {
 		return place.ErrStopped
@@ -357,35 +367,58 @@ func calcSpecExt(meta *domain.Meta) (directory.MetaSpec, string) {
 	return directory.MetaSpecFile, syntax
 }
 
+func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
+	if dp.isStopped() {
+		return false
+	}
+	entry := dp.dirSrv.GetEntry(zid)
+	canLocalRename := entry.IsValid()
+	return canLocalRename && (dp.next == nil || dp.next.CanRenameZettel(ctx, zid))
+}
+
 // Rename changes the current id to a new id.
 func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
 	if dp.isStopped() {
 		return place.ErrStopped
 	}
-	curEntry := dp.dirSrv.GetEntry(curZid)
-	if !curEntry.IsValid() {
-		return &place.ErrUnknownID{Zid: curZid}
-	}
 	if curZid == newZid {
 		return nil
 	}
-	newEntry := directory.Entry{
-		Zid:         newZid,
-		MetaSpec:    curEntry.MetaSpec,
-		MetaPath:    renamePath(curEntry.MetaPath, curZid, newZid),
-		ContentPath: renamePath(curEntry.ContentPath, curZid, newZid),
-		ContentExt:  curEntry.ContentExt,
-	}
-	dp.notifyChanged(false, curZid)
-	if err := dp.dirSrv.RenameEntry(&curEntry, &newEntry); err != nil {
-		return err
+	curEntry := dp.dirSrv.GetEntry(curZid)
+	if curEntry.IsValid() {
+		newEntry := directory.Entry{
+			Zid:         newZid,
+			MetaSpec:    curEntry.MetaSpec,
+			MetaPath:    renamePath(curEntry.MetaPath, curZid, newZid),
+			ContentPath: renamePath(curEntry.ContentPath, curZid, newZid),
+			ContentExt:  curEntry.ContentExt,
+		}
+		dp.notifyChanged(false, curZid)
+		if err := dp.dirSrv.RenameEntry(&curEntry, &newEntry); err != nil {
+			return err
+		}
+
+		rc := make(chan resRenameZettel)
+		dp.getFileChan(newZid) <- &fileRenameZettel{&curEntry, &newEntry, rc}
+		err := <-rc
+		close(rc)
+		if err != nil {
+			return err
+		}
 	}
 
-	rc := make(chan resRenameZettel)
-	dp.getFileChan(newZid) <- &fileRenameZettel{&curEntry, &newEntry, rc}
-	err := <-rc
-	close(rc)
-	return err
+	if dp.next != nil {
+		return dp.next.RenameZettel(ctx, curZid, newZid)
+	}
+	return nil
+}
+
+func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
+	if dp.isStopped() {
+		return false
+	}
+	entry := dp.dirSrv.GetEntry(zid)
+	return entry.IsValid() || (dp.next != nil && dp.next.CanDeleteZettel(ctx, zid))
 }
 
 // DeleteZettel removes the zettel from the place.
