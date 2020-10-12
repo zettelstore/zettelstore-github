@@ -21,14 +21,12 @@
 package adapter
 
 import (
+	"fmt"
 	"net/http"
 
-	"zettelstore.de/z/config"
-	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/encoder/jsonenc"
 	"zettelstore.de/z/usecase"
-	"zettelstore.de/z/web/session"
 )
 
 // MakeListRoleHandler creates a new HTTP handler for the use case "list some zettel".
@@ -41,27 +39,15 @@ func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.Han
 			return
 		}
 
-		user := session.GetUser(ctx)
-		if format := getFormat(r, encoder.GetDefaultFormat()); format != "html" {
+		format := getFormat(r, encoder.GetDefaultFormat())
+		switch format {
+		case "json":
 			w.Header().Set("Content-Type", format2ContentType(format))
-			switch format {
-			case "json":
-				renderListRoleJSON(w, roleList)
-				return
-			}
+			renderListRoleJSON(w, roleList)
+		default:
+			http.Error(w, fmt.Sprintf("Role list not available in format %q", format), http.StatusBadRequest)
 		}
 
-		te.renderTemplate(ctx, w, domain.RolesTemplateID, struct {
-			Lang  string
-			Title string
-			User  userWrapper
-			Roles []string
-		}{
-			Lang:  config.GetDefaultLang(),
-			Title: config.GetSiteName(),
-			User:  wrapUser(user),
-			Roles: roleList,
-		})
 	}
 }
 

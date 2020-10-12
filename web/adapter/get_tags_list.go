@@ -21,25 +21,15 @@
 package adapter
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
 
-	"zettelstore.de/z/config"
-	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/encoder/jsonenc"
 	"zettelstore.de/z/usecase"
-	"zettelstore.de/z/web/session"
 )
-
-type tagInfo struct {
-	Name  string
-	Count int
-	Size  int
-}
-
-var fontSizes = [...]int{75, 83, 100, 117, 150, 200}
 
 // MakeListTagsHandler creates a new HTTP handler for the use case "list some zettel".
 func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.HandlerFunc {
@@ -52,50 +42,14 @@ func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.Han
 			return
 		}
 
-		user := session.GetUser(ctx)
-		if format := getFormat(r, encoder.GetDefaultFormat()); format != "html" {
+		format := getFormat(r, encoder.GetDefaultFormat())
+		switch format {
+		case "json":
 			w.Header().Set("Content-Type", format2ContentType(format))
-			switch format {
-			case "json":
-				renderListTagsJSON(w, tagData)
-				return
-			}
+			renderListTagsJSON(w, tagData)
+		default:
+			http.Error(w, fmt.Sprintf("Tags list not available in format %q", format), http.StatusBadRequest)
 		}
-
-		tagsList := make([]tagInfo, 0, len(tagData))
-		countMap := make(map[int]int)
-		for tag, ml := range tagData {
-			count := len(ml)
-			countMap[count]++
-			tagsList = append(tagsList, tagInfo{tag, count, 100})
-		}
-		sort.Slice(tagsList, func(i, j int) bool { return tagsList[i].Name < tagsList[j].Name })
-
-		countList := make([]int, 0, len(countMap))
-		for count := range countMap {
-			countList = append(countList, count)
-		}
-		sort.Ints(countList)
-		for pos, count := range countList {
-			countMap[count] = fontSizes[(pos*len(fontSizes))/len(countList)]
-		}
-		for i := 0; i < len(tagsList); i++ {
-			tagsList[i].Size = countMap[tagsList[i].Count]
-		}
-
-		te.renderTemplate(ctx, w, domain.TagsTemplateID, struct {
-			Lang   string
-			Title  string
-			User   userWrapper
-			Tags   []tagInfo
-			Counts []int
-		}{
-			Lang:   config.GetDefaultLang(),
-			Title:  config.GetSiteName(),
-			User:   wrapUser(user),
-			Tags:   tagsList,
-			Counts: countList,
-		})
 	}
 }
 

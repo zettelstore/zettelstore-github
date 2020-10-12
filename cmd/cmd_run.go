@@ -128,7 +128,10 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 
 	ucGetMeta := usecase.NewGetMeta(pp)
 	ucGetZettel := usecase.NewGetZettel(pp)
-	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler(te, usecase.NewListMeta(pp))
+	ucListMeta := usecase.NewListMeta(pp)
+	ucListRoles := usecase.NewListRole(pp)
+	ucListTags := usecase.NewListTags(pp)
+	listHTMLMetaHandler := adapter.MakeListHTMLMetaHandler(te, ucListMeta)
 	getHTMLZettelHandler := adapter.MakeGetHTMLZettelHandler(te, ucGetZettel, ucGetMeta)
 
 	router := router.NewRouter()
@@ -147,16 +150,17 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.AddListRoute('h', http.MethodGet, listHTMLMetaHandler)
 	router.AddZettelRoute('h', http.MethodGet, getHTMLZettelHandler)
 	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, ucGetZettel, ucGetMeta))
+	router.AddZettelRoute('k', http.MethodGet, adapter.MakeWebUIListsHandler(te, ucListMeta, ucListRoles, ucListTags))
 	if !readonly {
 		router.AddZettelRoute('n', http.MethodGet, adapter.MakeGetNewZettelHandler(te, ucGetZettel))
 		router.AddZettelRoute('n', http.MethodPost, adapter.MakePostNewZettelHandler(usecase.NewNewZettel(pp)))
 	}
-	router.AddListRoute('r', http.MethodGet, adapter.MakeListRoleHandler(te, usecase.NewListRole(pp)))
+	router.AddListRoute('r', http.MethodGet, adapter.MakeListRoleHandler(te, ucListRoles))
 	if !readonly {
 		router.AddZettelRoute('r', http.MethodGet, adapter.MakeGetRenameZettelHandler(te, ucGetMeta))
 		router.AddZettelRoute('r', http.MethodPost, adapter.MakePostRenameZettelHandler(usecase.NewRenameZettel(pp)))
 	}
-	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, usecase.NewListTags(pp)))
+	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, ucListTags))
 	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, usecase.NewSearch(pp)))
 	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler(te, usecase.NewListMeta(pp)))
 	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler(te, ucGetZettel, ucGetMeta))
