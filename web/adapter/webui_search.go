@@ -101,17 +101,21 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 			return
 		}
 		te.renderTemplate(ctx, w, domain.ListTemplateID, struct {
-			Lang  string
-			Title string
-			User  userWrapper
-			Metas []metaInfo
-			Key   byte
+			Lang      string
+			Title     string
+			CanCreate bool
+			CanReload bool
+			User      userWrapper
+			Metas     []metaInfo
+			Key       byte
 		}{
-			Lang:  config.GetDefaultLang(),
-			Title: config.GetSiteName(),
-			User:  wrapUser(user),
-			Metas: metas,
-			Key:   'h',
+			Lang:      config.GetDefaultLang(),
+			Title:     config.GetSiteName(),
+			CanCreate: te.canCreate(ctx, user),
+			CanReload: te.canReload(ctx, user),
+			User:      wrapUser(user),
+			Metas:     metas,
+			Key:       'h',
 		})
 	}
 }

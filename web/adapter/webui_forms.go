@@ -29,11 +29,13 @@ import (
 )
 
 type formZettelData struct {
-	Lang    string
-	Title   string
-	User    userWrapper
-	Meta    metaWrapper
-	Content string
+	Lang      string
+	Title     string
+	CanCreate bool
+	CanReload bool
+	User      userWrapper
+	Meta      metaWrapper
+	Content   string
 }
 
 func parseZettelForm(r *http.Request, zid domain.ZettelID) (domain.Zettel, error) {

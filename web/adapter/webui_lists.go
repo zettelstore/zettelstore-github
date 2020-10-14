@@ -83,15 +83,19 @@ func renderWebUIZettelList(w http.ResponseWriter, r *http.Request, te *TemplateE
 		return
 	}
 	te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
-		Lang  string
-		Title string
-		User  userWrapper
-		Metas []metaInfo
+		Lang      string
+		Title     string
+		CanCreate bool
+		CanReload bool
+		User      userWrapper
+		Metas     []metaInfo
 	}{
-		Lang:  config.GetDefaultLang(),
-		Title: config.GetSiteName(),
-		User:  wrapUser(user),
-		Metas: metas,
+		Lang:      config.GetDefaultLang(),
+		Title:     config.GetSiteName(),
+		CanCreate: te.canCreate(ctx, user),
+		CanReload: te.canReload(ctx, user),
+		User:      wrapUser(user),
+		Metas:     metas,
 	})
 }
 
@@ -105,15 +109,19 @@ func renderWebUIRolesList(w http.ResponseWriter, r *http.Request, te *TemplateEn
 
 	user := session.GetUser(ctx)
 	te.renderTemplate(ctx, w, domain.RolesTemplateID, struct {
-		Lang  string
-		Title string
-		User  userWrapper
-		Roles []string
+		Lang      string
+		Title     string
+		CanCreate bool
+		CanReload bool
+		User      userWrapper
+		Roles     []string
 	}{
-		Lang:  config.GetDefaultLang(),
-		Title: config.GetSiteName(),
-		User:  wrapUser(user),
-		Roles: roleList,
+		Lang:      config.GetDefaultLang(),
+		Title:     config.GetSiteName(),
+		CanCreate: te.canCreate(ctx, user),
+		CanReload: te.canReload(ctx, user),
+		User:      wrapUser(user),
+		Roles:     roleList,
 	})
 }
 
@@ -149,16 +157,20 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 	}
 
 	te.renderTemplate(ctx, w, domain.TagsTemplateID, struct {
-		Lang   string
-		Title  string
-		User   userWrapper
-		Tags   []tagInfo
-		Counts []int
+		Lang      string
+		Title     string
+		CanCreate bool
+		CanReload bool
+		User      userWrapper
+		Tags      []tagInfo
+		Counts    []int
 	}{
-		Lang:   config.GetDefaultLang(),
-		Title:  config.GetSiteName(),
-		User:   wrapUser(user),
-		Tags:   tagsList,
-		Counts: countList,
+		Lang:      config.GetDefaultLang(),
+		Title:     config.GetSiteName(),
+		CanCreate: te.canCreate(ctx, user),
+		CanReload: te.canReload(ctx, user),
+		User:      wrapUser(user),
+		Tags:      tagsList,
+		Counts:    countList,
 	})
 }

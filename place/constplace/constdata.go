@@ -73,7 +73,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <a href="{{urlZettel 'k' 3}}">List Tags</a>
 </nav>
 </div>
-{{- if CanCreate .User }}
+{{- if .CanCreate}}
 <a href="{{urlZettel 'n' %d}}">New</a>
 {{- end}}
 {{- if config.WithAuth}}
@@ -86,7 +86,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{- else}}
 <a href="{{urlList 'a'}}">Login</a>
 {{- end}}
-{{- if CanReload .User}}
+{{- if .CanReload}}
 <a href="{{urlList 'c'}}?_format=html">Reload</a>
 {{- end}}
 </nav>
@@ -170,14 +170,14 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <header>
 <h1>{{.HTMLTitle}}</h1>
 <div class="zs-meta">
-{{if CanWrite .User .Meta}}<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
+{{if .CanWrite}}<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
 {{ .Meta.Zid.Format}} &#183;{{end}}
 <a href="{{urlZettel 'i' .Meta.Zid}}">Info</a> &#183;
 {{- with .Meta.GetRole "*"}} (<a href="{{urlList 'h'}}?role={{.}}">{{.}}</a>){{end}}
 {{- with .Meta.GetTags}}
 {{- if .}}:{{range .}} <a href="{{urlList 'h'}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
 {{- end}}
-{{if CanWrite .User .Meta}}&#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{end}}
+{{if .CanWrite}}&#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{end}}
 {{with .Meta.GetURL}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{HTML config.GetIconMaterial}}{{end}}{{end}}
 </div>
 </header>
@@ -198,10 +198,10 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <header>
 <h1>Information for Zettel {{.Meta.Zid.Format}}</h1>
 <a href="{{urlZettel 'h' $.Meta.Zid}}">Web</a>
-{{ if CanWrite .User .Meta}} &#183; <a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a>{{ end}}
-{{ if CanCreate .User}} &#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{ end}}
-{{ if CanRename .User .Meta}}&#183; <a href="{{urlZettel 'r' .Meta.Zid}}">Rename</a>{{end}}
-{{ if CanDelete .User .Meta}}&#183; <a href="{{urlZettel 'd' .Meta.Zid}}">Delete</a>{{end}}
+{{ if .CanWrite}} &#183; <a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a>{{ end}}
+{{ if .CanCreate}} &#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{ end}}
+{{ if .CanRename}}&#183; <a href="{{urlZettel 'r' .Meta.Zid}}">Rename</a>{{end}}
+{{ if .CanDelete}}&#183; <a href="{{urlZettel 'd' .Meta.Zid}}">Delete</a>{{end}}
 </header>
 <h2>Interpreted Meta Data</h2>
 <table>

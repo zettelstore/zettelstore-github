@@ -50,12 +50,15 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 		}
 		zettel := &domain.Zettel{Meta: oldZettel.Meta.Clone(), Content: oldZettel.Content}
 
+		user := session.GetUser(ctx)
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
-			Lang:    config.GetLang(zettel.Meta),
-			Title:   "New Zettel",
-			User:    wrapUser(session.GetUser(ctx)),
-			Meta:    wrapMeta(zettel.Meta),
-			Content: zettel.Content.AsString(),
+			Lang:      config.GetLang(zettel.Meta),
+			Title:     "New Zettel",
+			CanCreate: te.canCreate(ctx, user),
+			CanReload: te.canReload(ctx, user),
+			User:      wrapUser(user),
+			Meta:      wrapMeta(zettel.Meta),
+			Content:   zettel.Content.AsString(),
 		})
 	}
 }

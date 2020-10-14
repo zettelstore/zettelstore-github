@@ -93,10 +93,16 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			return
 		}
 
+		user := session.GetUser(ctx)
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
 			Lang      string
 			Title     string
+			CanCreate bool
+			CanReload bool
 			User      userWrapper
+			CanWrite  bool
+			CanRename bool
+			CanDelete bool
 			Meta      metaWrapper
 			IntLinks  []internalReference
 			ExtLinks  []string
@@ -106,7 +112,12 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}{
 			Lang:      langOption.Value,
 			Title:     textTitle, // TODO: merge with site-title?
-			User:      wrapUser(session.GetUser(ctx)),
+			CanCreate: te.canCreate(ctx, user),
+			CanReload: te.canReload(ctx, user),
+			User:      wrapUser(user),
+			CanWrite:  te.canWrite(ctx, user, zettel),
+			CanRename: te.canRename(ctx, user, zettel.Meta),
+			CanDelete: te.canDelete(ctx, user, zettel.Meta),
 			Meta:      wrapMeta(z.Meta),
 			IntLinks:  intLinks,
 			ExtLinks:  extLinks,

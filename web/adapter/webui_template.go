@@ -40,11 +40,23 @@ import (
 )
 
 type templatePlace interface {
+	// CanCreateZettel returns true, if place could possibly create a new zettel.
+	CanCreateZettel(ctx context.Context) bool
+
 	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
 
 	// GetMeta retrieves just the meta data of a specific zettel.
 	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
+
+	// CanUpdateZettel returns true, if place could possibly update the given zettel.
+	CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool
+
+	// CanDeleteZettel returns true, if place could possibly delete the given zettel.
+	CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool
+
+	// CanRenameZettel returns true, if place could possibly rename the given zettel.
+	CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool
 }
 
 // TemplateEngine is the way to render HTML templates.
@@ -205,33 +217,25 @@ var funcMap = template.FuncMap{
 	"join":          join,
 }
 
-func createPolicyFuncs(p policy.Policy) template.FuncMap {
-	result := template.FuncMap{
-		"CanReload": func(user userWrapper) bool {
-			return p.CanReload(user.original)
-		},
-		"CanCreate": func(user userWrapper) bool {
-			meta := domain.NewMeta(domain.InvalidZettelID)
-			return p.CanCreate(user.original, meta)
-		},
-		"CanRead": func(user userWrapper, meta metaWrapper) bool {
-			return p.CanRead(user.original, meta.original)
-		},
-		"CanWrite": func(user userWrapper, meta metaWrapper) bool {
-			return p.CanWrite(user.original, meta.original, meta.original)
-		},
-		"CanRename": func(user userWrapper, meta metaWrapper) bool {
-			return p.CanRename(user.original, meta.original)
-		},
-		"CanDelete": func(user userWrapper, meta metaWrapper) bool {
-			return p.CanDelete(user.original, meta.original)
-		},
-	}
+func (te *TemplateEngine) canReload(ctx context.Context, user *domain.Meta) bool {
+	return te.policy.CanReload(user)
+}
 
-	for k, v := range funcMap {
-		result[k] = v
-	}
-	return result
+func (te *TemplateEngine) canCreate(ctx context.Context, user *domain.Meta) bool {
+	meta := domain.NewMeta(domain.InvalidZettelID)
+	return te.policy.CanCreate(user, meta) && te.place.CanCreateZettel(ctx)
+}
+
+func (te *TemplateEngine) canWrite(ctx context.Context, user *domain.Meta, zettel domain.Zettel) bool {
+	return te.policy.CanWrite(user, zettel.Meta, zettel.Meta) && te.place.CanUpdateZettel(ctx, zettel)
+}
+
+func (te *TemplateEngine) canRename(ctx context.Context, user *domain.Meta, meta *domain.Meta) bool {
+	return te.policy.CanRename(user, meta) && te.place.CanRenameZettel(ctx, meta.Zid)
+}
+
+func (te *TemplateEngine) canDelete(ctx context.Context, user *domain.Meta, meta *domain.Meta) bool {
+	return te.policy.CanDelete(user, meta) && te.place.CanDeleteZettel(ctx, meta.Zid)
 }
 
 func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.ZettelID) (*template.Template, error) {
@@ -244,7 +248,7 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 		if err != nil {
 			return nil, err
 		}
-		baseTemplate, err = template.New("base").Funcs(createPolicyFuncs(te.policy)).Parse(baseTemplateZettel.Content.AsString())
+		baseTemplate, err = template.New("base").Funcs(funcMap).Parse(baseTemplateZettel.Content.AsString())
 		if err != nil {
 			return nil, err
 		}
