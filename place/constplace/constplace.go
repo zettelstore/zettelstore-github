@@ -22,7 +22,6 @@ package constplace
 
 import (
 	"context"
-	"errors"
 	"net/url"
 
 	"zettelstore.de/z/domain"
@@ -95,7 +94,7 @@ func (cp *constPlace) RegisterChangeObserver(f place.ObserverFunc) {
 func (cp *constPlace) CanCreateZettel(ctx context.Context) bool { return false }
 
 func (cp *constPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
-	return domain.InvalidZettelID, errReadOnly
+	return domain.InvalidZettelID, place.ErrReadOnly
 }
 
 // GetZettel retrieves a specific zettel.
@@ -140,8 +139,6 @@ func (cp *constPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.
 	return place.ApplySorter(res, s), nil
 }
 
-var errReadOnly = errors.New("Read-only place")
-
 func (cp *constPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
 	if _, ok := cp.zettel[zettel.Meta.Zid]; !ok && cp.next != nil {
 		return cp.next.CanUpdateZettel(ctx, zettel)
@@ -153,7 +150,7 @@ func (cp *constPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) er
 	if _, ok := cp.zettel[zettel.Meta.Zid]; !ok && cp.next != nil {
 		return cp.next.UpdateZettel(ctx, zettel)
 	}
-	return errReadOnly
+	return place.ErrReadOnly
 }
 
 func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
@@ -168,7 +165,7 @@ func (cp *constPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) err
 	if _, ok := cp.zettel[zid]; !ok && cp.next != nil {
 		return cp.next.DeleteZettel(ctx, zid)
 	}
-	return errReadOnly
+	return place.ErrReadOnly
 }
 
 func (cp *constPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
@@ -186,7 +183,7 @@ func (cp *constPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Ze
 		}
 		return nil
 	}
-	return errReadOnly
+	return place.ErrReadOnly
 }
 
 // Reload clears all caches, reloads all internal data to reflect changes

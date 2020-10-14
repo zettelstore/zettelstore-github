@@ -147,6 +147,9 @@ func IsAuthError(err error) bool {
 // ErrStopped is returned if calling methods on a place that was not started.
 var ErrStopped = errors.New("Place is stopped")
 
+// ErrReadOnly is returned if there is an attepmt to write to a read-only place.
+var ErrReadOnly = errors.New("Read-only place")
+
 // ErrUnknownID is returned if the zettel id is unknown to the place.
 type ErrUnknownID struct{ Zid domain.ZettelID }
 

@@ -44,6 +44,7 @@ func init() {
 		}
 		dp := dirPlace{
 			u:         u,
+			readonly:  getQueryBool(u, "readonly"),
 			next:      next,
 			dir:       path,
 			dirRescan: time.Duration(getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
@@ -59,6 +60,11 @@ func getDirPath(u *url.URL) string {
 		return filepath.Clean(u.Opaque)
 	}
 	return filepath.Clean(u.Path)
+}
+
+func getQueryBool(u *url.URL, key string) bool {
+	_, ok := u.Query()[key]
+	return ok
 }
 
 func getQueryInt(u *url.URL, key string, min, def, max int) int {
@@ -82,6 +88,7 @@ func getQueryInt(u *url.URL, key string, min, def, max int) int {
 // dirPlace uses a directory to store zettel as files.
 type dirPlace struct {
 	u          *url.URL
+	readonly   bool
 	next       place.Place
 	observers  []place.ObserverFunc
 	mxObserver sync.RWMutex
@@ -173,18 +180,22 @@ func (dp *dirPlace) RegisterChangeObserver(f place.ObserverFunc) {
 	if dp.next != nil {
 		dp.next.RegisterChangeObserver(f)
 	}
+
 	dp.mxObserver.Lock()
 	dp.observers = append(dp.observers, f)
 	dp.mxObserver.Unlock()
 }
 
 func (dp *dirPlace) CanCreateZettel(ctx context.Context) bool {
-	return !dp.isStopped()
+	return !dp.isStopped() && !dp.readonly
 }
 
 func (dp *dirPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	if dp.isStopped() {
 		return domain.InvalidZettelID, place.ErrStopped
+	}
+	if dp.readonly {
+		return domain.InvalidZettelID, place.ErrReadOnly
 	}
 
 	meta := zettel.Meta
@@ -310,15 +321,15 @@ func (dp *dirPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.So
 }
 
 func (dp *dirPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
-	if dp.isStopped() {
-		return false
-	}
-	return true
+	return !dp.isStopped() && !dp.readonly
 }
 
 func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	if dp.isStopped() {
 		return place.ErrStopped
+	}
+	if dp.readonly {
+		return place.ErrReadOnly
 	}
 
 	meta := zettel.Meta
@@ -368,7 +379,7 @@ func calcSpecExt(meta *domain.Meta) (directory.MetaSpec, string) {
 }
 
 func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
-	if dp.isStopped() {
+	if dp.isStopped() || dp.readonly {
 		return false
 	}
 	entry := dp.dirSrv.GetEntry(zid)
@@ -380,6 +391,9 @@ func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bo
 func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
 	if dp.isStopped() {
 		return place.ErrStopped
+	}
+	if dp.readonly {
+		return place.ErrReadOnly
 	}
 	if curZid == newZid {
 		return nil
@@ -414,7 +428,7 @@ func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 }
 
 func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
-	if dp.isStopped() {
+	if dp.isStopped() || dp.readonly {
 		return false
 	}
 	entry := dp.dirSrv.GetEntry(zid)
@@ -425,6 +439,9 @@ func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bo
 func (dp *dirPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
 	if dp.isStopped() {
 		return place.ErrStopped
+	}
+	if dp.readonly {
+		return place.ErrReadOnly
 	}
 
 	entry := dp.dirSrv.GetEntry(zid)
