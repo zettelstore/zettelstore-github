@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
@@ -108,7 +109,13 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 		case "p":
 			cfg.Set("listen-addr", "127.0.0.1:"+flg.Value.String())
 		case "d":
-			cfg.Set("place-1-uri", "dir://"+flg.Value.String())
+			val := flg.Value.String()
+			if strings.HasPrefix(val, "/") {
+				val = "dir://" + val
+			} else {
+				val = "dir:" + val
+			}
+			cfg.Set("place-1-uri", val)
 		case "r":
 			cfg.Set("readonly", flg.Value.String())
 		case "v":
@@ -120,6 +127,9 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 
 	if _, ok := cfg.Get("listen-addr"); !ok {
 		cfg.Set("listen-addr", "127.0.0.1:23123")
+	}
+	if _, ok := cfg.Get("place-1-uri"); !ok {
+		cfg.Set("place-1-uri", "dir:./zettel")
 	}
 	if _, ok := cfg.Get("readonly"); !ok {
 		cfg.Set("readonly", "false")
@@ -167,7 +177,7 @@ func Main(progName, buildVersion string) {
 			fmt.Fprintf(os.Stderr, "Unable to create zettel directory %q (%s)\n", dir, err)
 			return
 		}
-		executeCommand("run", "-d", "dir:"+dir)
+		executeCommand("run", "-d", dir)
 	} else {
 		executeCommand(os.Args[1], os.Args[2:]...)
 	}
