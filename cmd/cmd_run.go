@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"zettelstore.de/z/auth/policy"
@@ -78,6 +79,7 @@ func setupPlaces(cfg *domain.Meta) (place.Place, int, error) {
 }
 
 func getPlaceURIs(cfg *domain.Meta) []string {
+	readonly := cfg.GetBool("readonly")
 	hasGlobals := false
 	var result []string = nil
 	for cnt := 1; ; cnt++ {
@@ -86,10 +88,19 @@ func getPlaceURIs(cfg *domain.Meta) []string {
 		if !ok || uri == "" {
 			break
 		}
-		result = append(result, uri)
 		if uri == "globals:" {
 			hasGlobals = true
 		}
+		if readonly {
+			if u, err := url.Parse(uri); err == nil {
+				if len(u.Query()) == 0 {
+					uri += "?readonly"
+				} else {
+					uri += "&readonly"
+				}
+			}
+		}
+		result = append(result, uri)
 	}
 	if !hasGlobals {
 		result = append(result, "globals:")
