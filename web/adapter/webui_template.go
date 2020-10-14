@@ -269,6 +269,25 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 	return t, err
 }
 
+type baseData struct {
+	Lang      string
+	Title     string
+	CanCreate bool
+	CanReload bool
+	User      userWrapper
+}
+
+func (te *TemplateEngine) makeBaseData(
+	ctx context.Context, lang string, title string, user *domain.Meta) baseData {
+	return baseData{
+		Lang:      lang,
+		Title:     title,
+		CanCreate: te.canCreate(ctx, user),
+		CanReload: te.canReload(ctx, user),
+		User:      wrapUser(user),
+	}
+}
+
 func (te *TemplateEngine) renderTemplate(
 	ctx context.Context,
 	w http.ResponseWriter,

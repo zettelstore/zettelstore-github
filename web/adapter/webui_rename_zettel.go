@@ -54,19 +54,11 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 
 		user := session.GetUser(ctx)
 		te.renderTemplate(ctx, w, domain.RenameTemplateID, struct {
-			Title     string
-			Lang      string
-			CanCreate bool
-			CanReload bool
-			User      userWrapper
-			Meta      metaWrapper
+			baseData
+			Meta metaWrapper
 		}{
-			Title:     "Rename Zettel " + zid.Format(),
-			Lang:      config.GetLang(meta),
-			CanCreate: te.canCreate(ctx, user),
-			CanReload: te.canReload(ctx, user),
-			User:      wrapUser(user),
-			Meta:      wrapMeta(meta),
+			baseData: te.makeBaseData(ctx, config.GetLang(meta), "Rename Zettel "+zid.Format(), user),
+			Meta:     wrapMeta(meta),
 		})
 	}
 }

@@ -96,23 +96,15 @@ func MakeGetHTMLZettelHandler(
 		}
 		user := session.GetUser(ctx)
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
-			Lang       string
-			Title      string
-			CanCreate  bool
-			CanReload  bool
+			baseData
 			HTMLTitle  template.HTML
-			User       userWrapper
 			CanWrite   bool
 			Meta       metaWrapper
 			MetaHeader template.HTML
 			Content    template.HTML
 		}{
-			Lang:       langOption.Value,
-			Title:      textTitle, // TODO: merge with site-title?
-			CanCreate:  te.canCreate(ctx, user),
-			CanReload:  te.canReload(ctx, user),
+			baseData:   te.makeBaseData(ctx, langOption.Value, textTitle, user),
 			HTMLTitle:  template.HTML(htmlTitle),
-			User:       wrapUser(user),
 			CanWrite:   te.canWrite(ctx, user, zettel),
 			Meta:       wrapMeta(z.Meta),
 			MetaHeader: template.HTML(metaHeader),
