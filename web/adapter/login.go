@@ -21,7 +21,6 @@
 package adapter
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -31,36 +30,10 @@ import (
 
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
-	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
-
-// MakeGetLoginHandler creates a new HTTP handler to display the HTML login view.
-func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		renderLoginForm(session.ClearToken(r.Context(), w), w, te, false)
-	}
-}
-
-func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEngine, retry bool) {
-	te.renderTemplate(ctx, w, domain.LoginTemplateID, struct {
-		Lang      string
-		Title     string
-		CanCreate bool
-		CanReload bool
-		User      userWrapper
-		Retry     bool
-	}{
-		Lang:      config.GetDefaultLang(),
-		Title:     "Login",
-		CanCreate: te.canCreate(ctx, nil),
-		CanReload: te.canReload(ctx, nil),
-		User:      wrapUser(nil),
-		Retry:     retry,
-	})
-}
 
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
 func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
