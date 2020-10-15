@@ -21,8 +21,6 @@
 package constplace
 
 import (
-	"fmt"
-
 	"zettelstore.de/z/domain"
 )
 
@@ -49,51 +47,51 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 		},
-		domain.NewContent(fmt.Sprintf(
+		domain.NewContent(
 			`<!DOCTYPE html>
 <html{{if .Lang}} lang="{{.Lang}}"{{end}}>
 <head>
 <meta charset="utf-8">
 <meta name="referrer" content="same-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Zettelstore, build {{config.GetVersion.Build}}">
+<meta name="generator" content="Zettelstore, build {{.Version}}">
 {{- block "meta-header" .}}{{end}}
-<link rel="stylesheet" href="{{urlZettel 'z' %d}}?_format=raw&_part=content">
+<link rel="stylesheet" href="{{.StylesheetURL}}">
 {{- block "header" .}}{{end}}
 <title>{{.Title}}</title>
 </head>
 <body>
 <nav class="zs-menu">
-<a href="{{urlList '/'}}">Home</a>
+<a href="{{.HomeURL}}">Home</a>
 <div class="zs-dropdown">
 <button>Lists</button>
 <nav class="zs-dropdown-content">
-<a href="{{urlList 'h'}}">List Zettel</a>
-<a href="{{urlZettel 'k' 2}}">List Roles</a>
-<a href="{{urlZettel 'k' 3}}">List Tags</a>
+<a href="{{.ListZettelURL}}">List Zettel</a>
+<a href="{{.ListRolesURL}}">List Roles</a>
+<a href="{{.ListTagsURL}}">List Tags</a>
 </nav>
 </div>
 {{- if .CanCreate}}
-<a href="{{urlZettel 'n' %d}}">New</a>
+<a href="{{.NewZettelURL}}">New</a>
 {{- end}}
-{{- if config.WithAuth}}
+{{- if .WithAuth}}
 <div class="zs-dropdown">
 <button>User</button>
 <nav class="zs-dropdown-content">
-{{- if .User.IsValid}}
-<a href="{{urlZettel 'h' .User.Zid}}">{{.User.Ident}}</a>
-<a href="{{urlZettel 'a' .User.Zid}}">Logout</a>
+{{- if .UserIsValid}}
+<a href="{{.UserZettelURL}}">{{.UserIdent}}</a>
+<a href="{{.UserLogoutURL}}">Logout</a>
 {{- else}}
-<a href="{{urlList 'a'}}">Login</a>
+<a href="{{.LoginURL}}">Login</a>
 {{- end}}
 {{- if .CanReload}}
-<a href="{{urlList 'c'}}?_format=html">Reload</a>
+<a href="{{.ReloadURL}}">Reload</a>
 {{- end}}
 </nav>
 </div>
 {{- end}}
 {{- block "menu" .}}{{end -}}
-<form action="{{urlList 's'}}">
+<form action="{{.SearchURL}}">
 <input type="text" placeholder="Search.." name="s">
 </form>
 </nav>
@@ -102,9 +100,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 </main>
 </body>
 </html>`,
-			domain.BaseCSSID,
-			domain.TemplateZettelID,
-		)),
+		),
 	},
 
 	domain.LoginTemplateID: constZettel{

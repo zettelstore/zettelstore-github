@@ -191,14 +191,8 @@ type configType struct{}
 // Config is the global configuration object.
 var configVar configType
 
-// GetVersion returns the current software version data.
-func (c configType) GetVersion() config.Version { return config.GetVersion() }
-
 // GetIconMaterial returns the current value of the "icon-material" key.
 func (c configType) GetIconMaterial() string { return config.GetIconMaterial() }
-
-// WithAuth returns true if user authentication is enabled.
-func (c configType) WithAuth() bool { return config.WithAuth() }
 
 func htmlify(s string) template.HTML {
 	return template.HTML(s)
@@ -270,21 +264,59 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 }
 
 type baseData struct {
-	Lang      string
-	Title     string
-	CanCreate bool
-	CanReload bool
-	User      userWrapper
+	Lang          string
+	Version       string
+	StylesheetURL template.URL
+	Title         string
+	HomeURL       template.URL
+	ListZettelURL template.URL
+	ListRolesURL  template.URL
+	ListTagsURL   template.URL
+	CanCreate     bool
+	NewZettelURL  template.URL
+	WithAuth      bool
+	UserIsValid   bool
+	UserZettelURL template.URL
+	UserIdent     string
+	UserLogoutURL template.URL
+	LoginURL      template.URL
+	CanReload     bool
+	ReloadURL     template.URL
+	SearchURL     template.URL
 }
 
 func (te *TemplateEngine) makeBaseData(
 	ctx context.Context, lang string, title string, user *domain.Meta) baseData {
+	var (
+		userZettelURL template.URL
+		userIdent     string
+		userLogoutURL template.URL
+	)
+	if user != nil {
+		userZettelURL = template.URL(urlForZettel('h', user.Zid))
+		userIdent = user.GetDefault(domain.MetaKeyIdent, "")
+		userLogoutURL = template.URL(urlForZettel('a', user.Zid))
+	}
 	return baseData{
-		Lang:      lang,
-		Title:     title,
-		CanCreate: te.canCreate(ctx, user),
-		CanReload: te.canReload(ctx, user),
-		User:      wrapUser(user),
+		Lang:          lang,
+		Version:       config.GetVersion().Build,
+		StylesheetURL: template.URL(urlForZettel('z', domain.BaseCSSID) + "?_format=raw&_part=content"),
+		Title:         title,
+		HomeURL:       template.URL(urlForList('/')),
+		ListZettelURL: template.URL(urlForList('h')),
+		ListRolesURL:  template.URL(urlForZettel('k', 2)),
+		ListTagsURL:   template.URL(urlForZettel('k', 3)),
+		CanCreate:     te.canCreate(ctx, user),
+		NewZettelURL:  template.URL(urlForZettel('n', domain.TemplateZettelID)),
+		WithAuth:      config.WithAuth(),
+		UserIsValid:   user != nil,
+		UserZettelURL: userZettelURL,
+		UserIdent:     userIdent,
+		UserLogoutURL: userLogoutURL,
+		LoginURL:      template.URL(urlForList('a')),
+		CanReload:     te.canReload(ctx, user),
+		ReloadURL:     template.URL(urlForList('c') + "?_format=html"),
+		SearchURL:     template.URL(urlForList('s')),
 	}
 }
 
