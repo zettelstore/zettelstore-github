@@ -279,13 +279,11 @@ func (te *TemplateEngine) makeBaseData(
 		userZettelURL template.URL
 		userIdent     string
 		userLogoutURL template.URL
-		footerHTML    template.HTML
 	)
 	if user != nil {
 		userZettelURL = template.URL(urlForZettel('h', user.Zid))
 		userIdent = user.GetDefault(domain.MetaKeyIdent, "")
 		userLogoutURL = template.URL(urlForZettel('a', user.Zid))
-		footerHTML = template.HTML(config.GetFooterHTML())
 	}
 	return baseData{
 		Lang:          lang,
@@ -307,7 +305,7 @@ func (te *TemplateEngine) makeBaseData(
 		CanReload:     te.canReload(ctx, user),
 		ReloadURL:     template.URL(urlForList('c') + "?_format=html"),
 		SearchURL:     template.URL(urlForList('s')),
-		FooterHTML:    footerHTML,
+		FooterHTML:    template.HTML(config.GetFooterHTML()),
 	}
 }
 
