@@ -182,18 +182,6 @@ func writeLink(b *strings.Builder, key, value string) {
 	b.WriteString("</a>")
 }
 
-func configObj() configType {
-	return configVar
-}
-
-type configType struct{}
-
-// Config is the global configuration object.
-var configVar configType
-
-// GetIconMaterial returns the current value of the "icon-material" key.
-func (c configType) GetIconMaterial() string { return config.GetIconMaterial() }
-
 func htmlify(s string) template.HTML {
 	return template.HTML(s)
 }
@@ -206,7 +194,6 @@ var funcMap = template.FuncMap{
 	"urlList":       urlForList,
 	"urlZettel":     urlForZettel,
 	"htmlMetaValue": htmlMetaValue,
-	"config":        configObj,
 	"HTML":          htmlify,
 	"join":          join,
 }
