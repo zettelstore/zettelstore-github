@@ -96,8 +96,13 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 </form>
 </nav>
 <main class="content">
-{{- block "content" .}}TODO{{end -}}
+{{- block "content" .}}TODO{{end}}
 </main>
+{{- if .FooterHTML}}
+<footer>
+{{.FooterHTML}}
+</footer>
+{{- end}}
 </body>
 </html>`,
 		),
@@ -397,7 +402,6 @@ nav.zs-menu {
   white-space: nowrap;
   font-family: sans-serif;
 }
-
 nav.zs-menu > a {
   float:left;
   display: inline-block;
@@ -633,6 +637,9 @@ kbd {
 }
 h1+.zs-meta {
   margin-top:-1rem;
+}
+footer {
+  padding: 0 1rem;
 }
 @media (prefers-reduced-motion: reduce) {
   * {

@@ -172,3 +172,13 @@ func GetIconMaterial() string {
 		URLPrefix(),
 		domain.MaterialIconID.Format())
 }
+
+// GetFooterHTML returns HTML code tht should be embedded into the footer of each WebUI page
+func GetFooterHTML() string {
+	if config := getConfigurationMeta(); config != nil {
+		if data, ok := config.Get(domain.MetaKeyFooterHTML); ok {
+			return data
+		}
+	}
+	return ""
+}

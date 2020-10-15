@@ -80,6 +80,7 @@ const (
 	MetaKeyDefaultRole      = "default-role"
 	MetaKeyDefaultSyntax    = "default-syntax"
 	MetaKeyDefaultTitle     = "default-title"
+	MetaKeyFooterHTML       = "footer-html"
 	MetaKeyIconMaterial     = "icon-material"
 	MetaKeyIdent            = "ident"
 	MetaKeyLang             = "lang"
@@ -129,6 +130,7 @@ var keyTypeMap = map[string]byte{
 	MetaKeyDefaultRole:      MetaTypeWord,
 	MetaKeyDefaultSyntax:    MetaTypeWord,
 	MetaKeyDefaultTitle:     MetaTypeString,
+	MetaKeyFooterHTML:       MetaTypeString,
 	MetaKeyIdent:            MetaTypeWord,
 	MetaKeyLang:             MetaTypeWord,
 	MetaKeyLicense:          MetaTypeEmpty,
