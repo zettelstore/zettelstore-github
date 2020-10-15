@@ -97,23 +97,23 @@ type Place interface {
 	Reload(ctx context.Context) error
 }
 
-// ErrNotAuthorized is returned if the caller has no authorization to perform the operation.
-type ErrNotAuthorized struct {
+// ErrNotAllowed is returned if the caller is not allowed to perform the operation.
+type ErrNotAllowed struct {
 	Op   string
 	User *domain.Meta
 	Zid  domain.ZettelID
 }
 
-// NewErrNotAuthorized creates an new authorization error.
-func NewErrNotAuthorized(op string, user *domain.Meta, zid domain.ZettelID) error {
-	return &ErrNotAuthorized{
+// NewErrNotAllowed creates an new authorization error.
+func NewErrNotAllowed(op string, user *domain.Meta, zid domain.ZettelID) error {
+	return &ErrNotAllowed{
 		Op:   op,
 		User: user,
 		Zid:  zid,
 	}
 }
 
-func (err *ErrNotAuthorized) Error() string {
+func (err *ErrNotAllowed) Error() string {
 	if err.User == nil {
 		if err.Zid.IsValid() {
 			return fmt.Sprintf(
@@ -138,9 +138,9 @@ func (err *ErrNotAuthorized) Error() string {
 		err.User.Zid.Format())
 }
 
-// IsAuthError return true, if the error is of type ErrNotAuthorized.
-func IsAuthError(err error) bool {
-	_, ok := err.(*ErrNotAuthorized)
+// IsErrNotAllowed return true, if the error is of type ErrNotAllowed.
+func IsErrNotAllowed(err error) bool {
+	_, ok := err.(*ErrNotAllowed)
 	return ok
 }
 

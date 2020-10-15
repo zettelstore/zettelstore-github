@@ -76,7 +76,7 @@ func (pp *polPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (dom
 	if pp.policy.CanCreate(user, zettel.Meta) {
 		return pp.place.CreateZettel(ctx, zettel)
 	}
-	return domain.InvalidZettelID, place.NewErrNotAuthorized("Create", user, domain.InvalidZettelID)
+	return domain.InvalidZettelID, place.NewErrNotAllowed("Create", user, domain.InvalidZettelID)
 }
 
 func (pp *polPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
@@ -88,7 +88,7 @@ func (pp *polPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.
 	if pp.policy.CanRead(user, zettel.Meta) {
 		return zettel, nil
 	}
-	return domain.Zettel{}, place.NewErrNotAuthorized("GetZettel", user, zid)
+	return domain.Zettel{}, place.NewErrNotAllowed("GetZettel", user, zid)
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
@@ -101,7 +101,7 @@ func (pp *polPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 	if pp.policy.CanRead(user, meta) {
 		return meta, nil
 	}
-	return nil, place.NewErrNotAuthorized("GetMeta", user, zid)
+	return nil, place.NewErrNotAllowed("GetMeta", user, zid)
 }
 
 // SelectMeta returns all zettel meta data that match the selection
@@ -139,7 +139,7 @@ func (pp *polPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	if pp.policy.CanWrite(user, oldMeta, zettel.Meta) {
 		return pp.place.UpdateZettel(ctx, zettel)
 	}
-	return place.NewErrNotAuthorized("Write", user, zid)
+	return place.NewErrNotAllowed("Write", user, zid)
 }
 
 func (pp *polPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
@@ -156,7 +156,7 @@ func (pp *polPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 	if pp.policy.CanRename(user, meta) {
 		return pp.place.RenameZettel(ctx, curZid, newZid)
 	}
-	return place.NewErrNotAuthorized("Rename", user, curZid)
+	return place.NewErrNotAllowed("Rename", user, curZid)
 }
 
 func (pp *polPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
@@ -173,7 +173,7 @@ func (pp *polPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 	if pp.policy.CanDelete(user, meta) {
 		return pp.place.DeleteZettel(ctx, zid)
 	}
-	return place.NewErrNotAuthorized("Delete", user, zid)
+	return place.NewErrNotAllowed("Delete", user, zid)
 }
 
 // Reload clears all caches, reloads all internal data to reflect changes
@@ -183,5 +183,5 @@ func (pp *polPlace) Reload(ctx context.Context) error {
 	if pp.policy.CanReload(user) {
 		return pp.place.Reload(ctx)
 	}
-	return place.NewErrNotAuthorized("Reload", user, domain.InvalidZettelID)
+	return place.NewErrNotAllowed("Reload", user, domain.InvalidZettelID)
 }

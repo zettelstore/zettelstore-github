@@ -33,8 +33,8 @@ func checkUsecaseError(w http.ResponseWriter, err error) {
 		http.Error(w, fmt.Sprintf("Zettel %q not found", err.Zid.Format()), http.StatusNotFound)
 		return
 	}
-	if err, ok := err.(*place.ErrNotAuthorized); ok {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+	if err, ok := err.(*place.ErrNotAllowed); ok {
+		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 	if err, ok := err.(*place.ErrInvalidID); ok {

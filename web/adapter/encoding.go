@@ -139,7 +139,7 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, par
 			newLink.Ref = newRef
 			return &newLink
 		}
-		if place.IsAuthError(err) {
+		if place.IsErrNotAllowed(err) {
 			return &ast.FormatNode{
 				Code:    ast.FormatSpan,
 				Attrs:   origLink.Attrs,

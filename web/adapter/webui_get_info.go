@@ -70,7 +70,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		getTitle := func(zid domain.ZettelID) (string, int) {
 			meta, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
-				if place.IsAuthError(err) {
+				if place.IsErrNotAllowed(err) {
 					return "", -1
 				}
 				return "", 0
