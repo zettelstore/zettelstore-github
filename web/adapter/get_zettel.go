@@ -54,15 +54,26 @@ func MakeGetZettelHandler(
 		z, meta := parser.ParseZettel(zettel, syntax)
 
 		format := getFormat(r, encoder.GetDefaultFormat())
-		part := r.URL.Query().Get("_part")
+		part := getPart(r, "zettel")
+		switch format {
+		case "json", "djson":
+			switch part {
+			case "zettel", "meta", "content", "id":
+			default:
+				http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
+				return
+			}
+			if err := writeJSONZettel(ctx, w, z, meta, format, part, getMeta); err != nil {
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+				log.Println(err)
+			}
+			return
+		}
 
 		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
 		linkAdapter := encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta, part, format)}
 		imageAdapter := encoder.AdaptImageOption{Adapter: makeImageAdapter()}
 
-		if len(part) == 0 {
-			part = "zettel"
-		}
 		switch part {
 		case "zettel":
 			if format != "raw" {

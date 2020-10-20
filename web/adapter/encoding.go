@@ -60,7 +60,7 @@ func formatMeta(meta *domain.Meta, format string, options ...encoder.Option) (st
 	}
 
 	var content strings.Builder
-	_, err := enc.WriteMeta(&content, meta, nil)
+	_, err := enc.WriteMeta(&content, meta)
 	if err != nil {
 		return "", err
 	}
@@ -107,7 +107,7 @@ func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder
 		return errNoSuchFormat
 	}
 
-	_, err := enc.WriteMeta(w, meta, nil)
+	_, err := enc.WriteMeta(w, meta)
 	return err
 }
 

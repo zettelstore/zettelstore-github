@@ -54,7 +54,7 @@ func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
+func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	b := encoder.NewBufWriter(w)
 	writeMeta(&b, meta)
 	length, err := b.Flush()

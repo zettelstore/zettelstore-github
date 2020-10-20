@@ -73,7 +73,7 @@ func (ne *nativeEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, erro
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (ne *nativeEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
+func (ne *nativeEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	v := newVisitor(w, ne)
 	v.acceptMeta(meta, true)
 	length, err := v.b.Flush()

@@ -54,6 +54,14 @@ func getOneFormat(r *http.Request, key string) (string, bool) {
 	return "", false
 }
 
+func getPart(r *http.Request, defPart string) string {
+	part := r.URL.Query().Get("_part")
+	if len(part) == 0 {
+		part = defPart
+	}
+	return part
+}
+
 func getFilterSorter(r *http.Request) (filter *place.Filter, sorter *place.Sorter) {
 	for key, values := range r.URL.Query() {
 		switch key {

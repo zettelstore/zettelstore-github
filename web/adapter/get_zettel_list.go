@@ -25,7 +25,6 @@ import (
 	"log"
 	"net/http"
 
-	"zettelstore.de/z/ast"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
@@ -34,7 +33,7 @@ import (
 )
 
 // MakeListMetaHandler creates a new HTTP handler for the use case "list some zettel".
-func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.HandlerFunc {
+func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filter, sorter := getFilterSorter(r)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
@@ -44,13 +43,13 @@ func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http.Han
 		}
 
 		format := getFormat(r, encoder.GetDefaultFormat())
+		part := getPart(r, "meta")
 		w.Header().Set("Content-Type", format2ContentType(format))
 		switch format {
 		case "html":
 			renderListMetaHTML(w, metaList)
 		case "json", "djson":
-			enc := encoder.Create(format)
-			renderListMetaJSON(w, metaList, enc, format)
+			renderListMetaJSON(r.Context(), w, metaList, format, part, getMeta, getZettel)
 		case "native", "raw", "text", "zmk":
 			http.Error(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format), http.StatusNotImplemented)
 			log.Println(format)
@@ -77,33 +76,5 @@ func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
 			htmlTitle, "</a></li>\n")
 	}
 	buf.WriteString("</ul>\n</body>\n</html>")
-	buf.Flush()
-}
-
-func renderListMetaJSON(w http.ResponseWriter, metaList []*domain.Meta, enc encoder.Encoder, format string) {
-	if enc == nil {
-		return
-	}
-	addFormat := format != encoder.GetDefaultFormat()
-	detail := format == "djson"
-	buf := encoder.NewBufWriter(w)
-	buf.WriteString("{\"list\":[")
-	for i, meta := range metaList {
-		if i > 0 {
-			buf.WriteByte(',')
-		}
-		buf.WriteStrings("{\"id\":\"", meta.Zid.Format(), "\",\"url\":\"", urlForZettel('z', meta.Zid))
-		if addFormat {
-			buf.WriteStrings("?_format=", format)
-		}
-		buf.WriteString("\",\"meta\":")
-		var title ast.InlineSlice
-		if detail {
-			title = parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
-		}
-		enc.WriteMeta(&buf, meta, title)
-		buf.WriteByte('}')
-	}
-	buf.WriteString("]}")
 	buf.Flush()
 }

@@ -50,7 +50,7 @@ func (re *rawEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) 
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (re *rawEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
+func (re *rawEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	b := encoder.NewBufWriter(w)
 	meta.Write(&b)
 	length, err := b.Flush()

@@ -27,14 +27,13 @@ import (
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
 
 // MakeSearchHandler creates a new HTTP handler for the use case "search".
-func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFunc {
+func MakeSearchHandler(te *TemplateEngine, search usecase.Search, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 		var filter *place.Filter
@@ -86,10 +85,10 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search) http.HandlerFu
 		user := session.GetUser(ctx)
 		if format := getFormat(r, "html"); format != "html" {
 			w.Header().Set("Content-Type", format2ContentType(format))
+			part := getPart(r, "meta")
 			switch format {
 			case "json", "djson":
-				enc := encoder.Create(format)
-				renderListMetaJSON(w, metaList, enc, format)
+				renderListMetaJSON(ctx, w, metaList, format, part, getMeta, getZettel)
 				return
 			}
 		}

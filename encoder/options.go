@@ -52,6 +52,14 @@ type MetaOption struct {
 // Name returns the visible name of this option.
 func (mo *MetaOption) Name() string { return "meta" }
 
+// TitleOption is an option to give the title as a AST inline slice
+type TitleOption struct {
+	Inline ast.InlineSlice
+}
+
+// Name returns the visible name of this option.
+func (mo *TitleOption) Name() string { return "title" }
+
 // StringsOption is an option that have a sequence of strings as the value.
 type StringsOption struct {
 	Key   string

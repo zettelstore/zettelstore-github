@@ -42,6 +42,7 @@ type jsonDetailEncoder struct {
 	adaptLink  func(*ast.LinkNode) ast.InlineNode
 	adaptImage func(*ast.ImageNode) ast.InlineNode
 	meta       *domain.Meta
+	title      ast.InlineSlice
 }
 
 // SetOption sets an option for the encoder
@@ -49,6 +50,8 @@ func (je *jsonDetailEncoder) SetOption(option encoder.Option) {
 	switch opt := option.(type) {
 	case *encoder.MetaOption:
 		je.meta = opt.Meta
+	case *encoder.TitleOption:
+		je.title = opt.Inline
 	case *encoder.AdaptLinkOption:
 		je.adaptLink = opt.Adapter
 	case *encoder.AdaptImageOption:
@@ -75,14 +78,14 @@ func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, 
 }
 
 // WriteMeta encodes meta data as JSON.
-func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta, title ast.InlineSlice) (int, error) {
+func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	v := newDetailVisitor(w, je)
 	v.b.WriteByte('{')
-	if title == nil {
+	if je.title == nil {
 		v.writeMeta(meta, true)
 	} else {
 		v.b.WriteString("\"title\":")
-		v.acceptInlineSlice(title)
+		v.acceptInlineSlice(je.title)
 		v.writeMeta(meta, false)
 	}
 	v.b.WriteByte('}')

@@ -59,12 +59,18 @@ const digits = "0123456789"
 // Format converts the zettel identification to a string of 14 digits.
 // Only defined for valid ids.
 func (zid ZettelID) Format() string {
-	var result [14]byte
+	return string(zid.FormatBytes())
+}
+
+// FormatBytes converts the zettel identification to a byte slice of 14 digits.
+// Only defined for valid ids.
+func (zid ZettelID) FormatBytes() []byte {
+	result := make([]byte, 14)
 	for i := 13; i >= 0; i-- {
 		result[i] = digits[zid%10]
 		zid /= 10
 	}
-	return string(result[0:])
+	return result
 }
 
 // IsValid determines if zettel id is a valid one, e.g. consists of max. 14 digits.
