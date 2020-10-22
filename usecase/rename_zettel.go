@@ -34,15 +34,15 @@ type RenameZettelPort interface {
 
 // RenameZettel is the data for this use case.
 type RenameZettel struct {
-	store RenameZettelPort
+	port RenameZettelPort
 }
 
 // NewRenameZettel creates a new use case.
 func NewRenameZettel(port RenameZettelPort) RenameZettel {
-	return RenameZettel{store: port}
+	return RenameZettel{port: port}
 }
 
 // Run executes the use case.
 func (uc RenameZettel) Run(ctx context.Context, curID, newID domain.ZettelID) error {
-	return uc.store.RenameZettel(ctx, curID, newID)
+	return uc.port.RenameZettel(ctx, curID, newID)
 }

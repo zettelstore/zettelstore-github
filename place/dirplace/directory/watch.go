@@ -17,7 +17,7 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package directory manages the directory part of a file store.
+// Package directory manages the directory part of a directory place.
 package directory
 
 import (

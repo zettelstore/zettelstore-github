@@ -35,12 +35,12 @@ type NewZettelPort interface {
 
 // NewZettel is the data for this use case.
 type NewZettel struct {
-	store NewZettelPort
+	port NewZettelPort
 }
 
 // NewNewZettel creates a new use case.
 func NewNewZettel(port NewZettelPort) NewZettel {
-	return NewZettel{store: port}
+	return NewZettel{port: port}
 }
 
 // Run executes the use case.
@@ -61,5 +61,5 @@ func (uc NewZettel) Run(ctx context.Context, zettel domain.Zettel) (domain.Zette
 	}
 	meta.YamlSep = config.GetYAMLHeader()
 
-	return uc.store.CreateZettel(ctx, zettel)
+	return uc.port.CreateZettel(ctx, zettel)
 }

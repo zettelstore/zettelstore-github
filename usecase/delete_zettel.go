@@ -28,21 +28,21 @@ import (
 
 // DeleteZettelPort is the interface used by this use case.
 type DeleteZettelPort interface {
-	// DeleteZettel removes the zettel from the store.
+	// DeleteZettel removes the zettel from the place.
 	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
 }
 
 // DeleteZettel is the data for this use case.
 type DeleteZettel struct {
-	store DeleteZettelPort
+	port DeleteZettelPort
 }
 
 // NewDeleteZettel creates a new use case.
 func NewDeleteZettel(port DeleteZettelPort) DeleteZettel {
-	return DeleteZettel{store: port}
+	return DeleteZettel{port: port}
 }
 
 // Run executes the use case.
 func (uc DeleteZettel) Run(ctx context.Context, zid domain.ZettelID) error {
-	return uc.store.DeleteZettel(ctx, zid)
+	return uc.port.DeleteZettel(ctx, zid)
 }

@@ -37,18 +37,18 @@ type UpdateZettelPort interface {
 
 // UpdateZettel is the data for this use case.
 type UpdateZettel struct {
-	store UpdateZettelPort
+	port UpdateZettelPort
 }
 
 // NewUpdateZettel creates a new use case.
 func NewUpdateZettel(port UpdateZettelPort) UpdateZettel {
-	return UpdateZettel{store: port}
+	return UpdateZettel{port: port}
 }
 
 // Run executes the use case.
 func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel) error {
 	meta := zettel.Meta
-	oldZettel, err := uc.store.GetZettel(ctx, meta.Zid)
+	oldZettel, err := uc.port.GetZettel(ctx, meta.Zid)
 	if err != nil {
 		return err
 	}
@@ -59,5 +59,5 @@ func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel) error {
 	if meta.Zid == domain.ConfigurationID {
 		meta.Set(domain.MetaKeySyntax, "meta")
 	}
-	return uc.store.UpdateZettel(ctx, zettel)
+	return uc.port.UpdateZettel(ctx, zettel)
 }

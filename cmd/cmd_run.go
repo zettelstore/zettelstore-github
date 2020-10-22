@@ -71,7 +71,7 @@ func setupPlaces(cfg *domain.Meta) (place.Place, int, error) {
 		return nil, 2, err
 	}
 	if err := p.Start(context.Background()); err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to start zettel store")
+		fmt.Fprintln(os.Stderr, "Unable to start zettel place")
 		return nil, 2, err
 	}
 	config.SetupConfiguration(p)

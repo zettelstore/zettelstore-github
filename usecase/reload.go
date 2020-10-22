@@ -33,15 +33,15 @@ type ReloadPort interface {
 
 // Reload is the data for this use case.
 type Reload struct {
-	store ReloadPort
+	port ReloadPort
 }
 
 // NewReload creates a new use case.
 func NewReload(port ReloadPort) Reload {
-	return Reload{store: port}
+	return Reload{port: port}
 }
 
 // Run executes the use case.
 func (uc Reload) Run(ctx context.Context) error {
-	return uc.store.Reload(ctx)
+	return uc.port.Reload(ctx)
 }

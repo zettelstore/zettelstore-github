@@ -34,15 +34,15 @@ type GetZettelPort interface {
 
 // GetZettel is the data for this use case.
 type GetZettel struct {
-	store GetZettelPort
+	port GetZettelPort
 }
 
 // NewGetZettel creates a new use case.
 func NewGetZettel(port GetZettelPort) GetZettel {
-	return GetZettel{store: port}
+	return GetZettel{port: port}
 }
 
 // Run executes the use case.
 func (uc GetZettel) Run(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
-	return uc.store.GetZettel(ctx, zid)
+	return uc.port.GetZettel(ctx, zid)
 }

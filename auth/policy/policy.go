@@ -27,7 +27,7 @@ import (
 
 // Policy is an interface for checking access authorization.
 type Policy interface {
-	// User is allowed to reload a store.
+	// User is allowed to reload a place.
 	CanReload(user *domain.Meta) bool
 
 	// User is allowed to create a new zettel.

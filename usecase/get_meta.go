@@ -34,15 +34,15 @@ type GetMetaPort interface {
 
 // GetMeta is the data for this use case.
 type GetMeta struct {
-	store GetMetaPort
+	port GetMetaPort
 }
 
 // NewGetMeta creates a new use case.
 func NewGetMeta(port GetMetaPort) GetMeta {
-	return GetMeta{store: port}
+	return GetMeta{port: port}
 }
 
 // Run executes the use case.
 func (uc GetMeta) Run(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
-	return uc.store.GetMeta(ctx, zid)
+	return uc.port.GetMeta(ctx, zid)
 }
