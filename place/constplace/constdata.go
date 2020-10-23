@@ -127,7 +127,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <form method="POST" action="?_format=html">
 <div>
 <label for="username">User name</label>
-<input class="zs-input" type="text" id="username" name="username" placeholder="Your user name..">
+<input class="zs-input" type="text" id="username" name="username" placeholder="Your user name.." autofocus>
 </div>
 <div>
 <label for="password">Password</label>
@@ -250,7 +250,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <form method="POST">
 <div>
 <label for="title">Title</label>
-<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.Meta.GetTitle ""}}">
+<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.Meta.GetTitle ""}}" autofocus>
 </div>
 <div>
 <label for="tags">Tags</label>
@@ -300,7 +300,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <form method="POST">
 <div>
 <label for="newid">New zettel id</label>
-<input class="zs-input" type="text" id="newzid" name="newzid" placeholder="ZID.." value="{{.Meta.Zid.Format}}">
+<input class="zs-input" type="text" id="newzid" name="newzid" placeholder="ZID.." value="{{.Meta.Zid.Format}}" autofocus>
 </div>
 <input type="hidden" id="curzid" name="curzid" value="{{.Meta.Zid.Format}}">
 <input class="zs-button" type="submit" value="Rename">
