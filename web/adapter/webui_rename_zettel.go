@@ -55,10 +55,12 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 		user := session.GetUser(ctx)
 		te.renderTemplate(ctx, w, domain.RenameTemplateID, struct {
 			baseData
-			Meta metaWrapper
+			Zid       string
+			MetaPairs []domain.MetaPair
 		}{
-			baseData: te.makeBaseData(ctx, config.GetLang(meta), "Rename Zettel "+zid.Format(), user),
-			Meta:     wrapMeta(meta),
+			baseData:  te.makeBaseData(ctx, config.GetLang(meta), "Rename Zettel "+zid.Format(), user),
+			Zid:       zid.Format(),
+			MetaPairs: meta.Pairs(),
 		})
 	}
 }

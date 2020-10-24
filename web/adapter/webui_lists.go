@@ -23,6 +23,7 @@ package adapter
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 
@@ -38,14 +39,6 @@ func MakeListHTMLMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta) http
 		renderWebUIZettelList(w, r, te, listMeta)
 	}
 }
-
-type tagInfo struct {
-	Name  string
-	Count int
-	Size  int
-}
-
-var fontSizes = [...]int{75, 83, 100, 117, 150, 200}
 
 // MakeWebUIListsHandler creates a new HTTP handler for the use case "list some zettel".
 func MakeWebUIListsHandler(te *TemplateEngine, listMeta usecase.ListMeta, listRole usecase.ListRole, listTags usecase.ListTags) http.HandlerFunc {
@@ -84,12 +77,16 @@ func renderWebUIZettelList(w http.ResponseWriter, r *http.Request, te *TemplateE
 	}
 	te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
 		baseData
-
 		Metas []metaInfo
 	}{
 		baseData: te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user),
 		Metas:    metas,
 	})
+}
+
+type roleInfo struct {
+	Text string
+	URL  string
 }
 
 func renderWebUIRolesList(w http.ResponseWriter, r *http.Request, te *TemplateEngine, listRole usecase.ListRole) {
@@ -100,15 +97,35 @@ func renderWebUIRolesList(w http.ResponseWriter, r *http.Request, te *TemplateEn
 		return
 	}
 
+	roleInfos := make([]roleInfo, 0, len(roleList))
+	for _, r := range roleList {
+		roleInfos = append(roleInfos, roleInfo{r, urlForList('h') + "?role=" + url.QueryEscape(r)})
+	}
+
 	user := session.GetUser(ctx)
 	te.renderTemplate(ctx, w, domain.RolesTemplateID, struct {
 		baseData
-		Roles []string
+		Roles []roleInfo
 	}{
 		baseData: te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user),
-		Roles:    roleList,
+		Roles:    roleInfos,
 	})
 }
+
+type countInfo struct {
+	Count string
+	URL   string
+}
+
+type tagInfo struct {
+	Name  string
+	URL   string
+	count int
+	Count string
+	Size  string
+}
+
+var fontSizes = [...]int{75, 83, 100, 117, 150, 200}
 
 func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEngine, listTags usecase.ListTags) {
 	ctx := r.Context()
@@ -122,10 +139,11 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 	user := session.GetUser(ctx)
 	tagsList := make([]tagInfo, 0, len(tagData))
 	countMap := make(map[int]int)
+	baseTagListURL := urlForList('h') + "?tags="
 	for tag, ml := range tagData {
 		count := len(ml)
 		countMap[count]++
-		tagsList = append(tagsList, tagInfo{tag, count, 100})
+		tagsList = append(tagsList, tagInfo{tag, baseTagListURL + url.QueryEscape(tag), count, "", ""})
 	}
 	sort.Slice(tagsList, func(i, j int) bool { return tagsList[i].Name < tagsList[j].Name })
 
@@ -138,16 +156,25 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 		countMap[count] = fontSizes[(pos*len(fontSizes))/len(countList)]
 	}
 	for i := 0; i < len(tagsList); i++ {
-		tagsList[i].Size = countMap[tagsList[i].Count]
+		count := tagsList[i].count
+		tagsList[i].Count = strconv.Itoa(count)
+		tagsList[i].Size = strconv.Itoa(countMap[count])
+	}
+
+	base := te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user)
+	minCounts := make([]countInfo, 0, len(countList))
+	for _, c := range countList {
+		sCount := strconv.Itoa(c)
+		minCounts = append(minCounts, countInfo{sCount, base.ListTagsURL + "?min=" + sCount})
 	}
 
 	te.renderTemplate(ctx, w, domain.TagsTemplateID, struct {
 		baseData
-		Tags   []tagInfo
-		Counts []int
+		MinCounts []countInfo
+		Tags      []tagInfo
 	}{
-		baseData: te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user),
-		Tags:     tagsList,
-		Counts:   countList,
+		baseData:  base,
+		MinCounts: minCounts,
+		Tags:      tagsList,
 	})
 }

@@ -30,8 +30,12 @@ import (
 
 type formZettelData struct {
 	baseData
-	Meta    metaWrapper
-	Content string
+	MetaTitle     string
+	MetaTags      string
+	MetaRole      string
+	MetaSyntax    string
+	MetaPairsRest []domain.MetaPair
+	Content       string
 }
 
 func parseZettelForm(r *http.Request, zid domain.ZettelID) (domain.Zettel, error) {

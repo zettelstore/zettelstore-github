@@ -52,8 +52,26 @@ func AddDefaultValues(meta *domain.Meta) *domain.Meta {
 	return result
 }
 
+// GetTitle returns the value of the "title" key of the given meta. If there
+// is no such value, GetDefaultTitle is returned.
+func GetTitle(meta *domain.Meta) string {
+	if syntax, ok := meta.Get(domain.MetaKeyTitle); ok && len(syntax) > 0 {
+		return syntax
+	}
+	return GetDefaultTitle()
+}
+
+// GetRole returns the value of the "role" key of the given meta. If there
+// is no such value, GetDefaultRole is returned.
+func GetRole(meta *domain.Meta) string {
+	if syntax, ok := meta.Get(domain.MetaKeyRole); ok && len(syntax) > 0 {
+		return syntax
+	}
+	return GetDefaultRole()
+}
+
 // GetSyntax returns the value of the "syntax" key of the given meta. If there
-// is no such value, GetDefaultLang is returned.
+// is no such value, GetDefaultSyntax is returned.
 func GetSyntax(meta *domain.Meta) string {
 	if syntax, ok := meta.Get(domain.MetaKeySyntax); ok && len(syntax) > 0 {
 		return syntax

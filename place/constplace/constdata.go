@@ -150,7 +150,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 			`{{define "content"}}
 <h1>{{.Title}}</h1>
 <ul>
-{{range .Metas}}<li><a href="{{urlZettel 'h' .Meta.Zid}}">{{.Title}}</a><span class="zs-meta">{{range .Meta.GetTags}} <a href="{{urlList 'h'}}?tags={{.}}">{{.}}</a>{{end}}</span></li>{{end}}
+{{range .Metas}}<li><a href="{{.URL}}">{{.Title}}</a><span class="zs-meta">{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}</span></li>{{end}}
 </ul>
 <p>Items: {{len .Metas}}</p>
 {{end}}`)},
@@ -171,15 +171,13 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <header>
 <h1>{{.HTMLTitle}}</h1>
 <div class="zs-meta">
-{{if .CanWrite}}<a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a> &#183;
-{{ .Meta.Zid.Format}} &#183;{{end}}
-<a href="{{urlZettel 'i' .Meta.Zid}}">Info</a> &#183;
-{{- with .Meta.GetRole "*"}} (<a href="{{urlList 'h'}}?role={{.}}">{{.}}</a>){{end}}
-{{- with .Meta.GetTags}}
-{{- if .}}:{{range .}} <a href="{{urlList 'h'}}?tags={{.}}">{{.}}</a>{{end}}{{end}}
-{{- end}}
-{{if .CanWrite}}&#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{end}}
-{{with .Meta.GetURL}}{{if .}}<br>URL: <a href="{{.}}" target="_blank">{{.}}</a>{{end}}{{end}}
+{{if .CanWrite}}<a href="{{.EditURL}}">Edit</a> &#183;
+{{.Zid}} &#183;{{end}}
+<a href="{{.InfoURL}}">Info</a> &#183;
+(<a href="{{.RoleURL}}">{{.RoleText}}</a>)
+{{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
+{{if .CanWrite}}&#183; <a href="{{.CloneURL}}">Clone</a>{{end}}
+{{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}" target="_blank">{{.ExtURL}}</a>{{end}}
 </div>
 </header>
 {{- .Content -}}
@@ -197,28 +195,24 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 			`{{define "content"}}
 <article>
 <header>
-<h1>Information for Zettel {{.Meta.Zid.Format}}</h1>
-<a href="{{urlZettel 'h' $.Meta.Zid}}">Web</a>
-{{ if .CanWrite}} &#183; <a href="{{urlZettel 'e' .Meta.Zid}}">Edit</a>{{ end}}
-{{ if .CanCreate}} &#183; <a href="{{urlZettel 'n' .Meta.Zid}}">Clone</a>{{ end}}
-{{ if .CanRename}}&#183; <a href="{{urlZettel 'r' .Meta.Zid}}">Rename</a>{{end}}
-{{ if .CanDelete}}&#183; <a href="{{urlZettel 'd' .Meta.Zid}}">Delete</a>{{end}}
+<h1>Information for Zettel {{.Zid}}</h1>
+<a href="{{.WebURL}}">Web</a>
+{{ if .CanWrite}} &#183; <a href="{{.EditURL}}">Edit</a>{{ end}}
+{{ if .CanCreate}} &#183; <a href="{{.CloneURL}}">Clone</a>{{ end}}
+{{ if .CanRename}}&#183; <a href="{{.RenameURL}}">Rename</a>{{end}}
+{{ if .CanDelete}}&#183; <a href="{{.DeleteURL}}">Delete</a>{{end}}
 </header>
 <h2>Interpreted Meta Data</h2>
-<table>
-{{- range .Meta.Pairs}}
-<tr><td>{{.Key}}</td><td>{{htmlMetaValue $.Meta .Key}}</td></tr>
-{{- end -}}
-</table>
-{{if or .IntLinks .ExtLinks}}
+<table>{{- range .MetaData}}<tr><td>{{.Key}}</td><td>{{.Value}}</td></tr>{{- end}}</table>
+{{- if .HasLinks}}
 <h2>Outgoing Links</h2>
-{{if .IntLinks}}
+{{if .HasIntLinks}}
 <h3>Internal</h3>
 <ul>
-{{range .IntLinks}}<li>{{if .Found}}<a href="{{urlZettel 'h' .Zid}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
+{{range .IntLinks}}<li>{{if .HasURL}}<a href="{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
 </ul>
 {{end}}
-{{if .ExtLinks}}
+{{if .HasExtLinks}}
 <h3>External</h3>
 <ul>
 {{range .ExtLinks}}<li><a href="{{.}}" target="_blank">{{.}}</a></li>{{end}}
@@ -227,9 +221,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{end}}
 <h2>Parts and format</h3>
 <table>
-{{range $p := .Parts}}
-<tr><th>{{$p}}</th>{{range $f := $.Formats}}<td><a href="{{urlZettel 'z' $.Meta.Zid}}?_part={{$p}}{{if ne $f $.DefFormat}}&_format={{$f}}{{end}}">{{$f}}</a></td>{{end}}</tr>
-{{end}}
+{{- range .Matrix}}
+<tr>
+{{- range .}}{{if .HasURL}}<td><a href="{{.URL}}">{{.Text}}</td>{{else}}<th>{{.Text}}</th>{{end}}
+{{end -}}
+</tr>
+{{- end}}
 </table>
 </article>
 {{- end}}`),
@@ -250,24 +247,24 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <form method="POST">
 <div>
 <label for="title">Title</label>
-<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.Meta.GetTitle ""}}" autofocus>
+<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.MetaTitle}}" autofocus>
 </div>
 <div>
 <label for="tags">Tags</label>
-<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{join .Meta.GetTags}}">
+<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{.MetaTags}}">
 </div>
 <div>
 <label for="role">Role</label>
-<input class="zs-input" type="text" id="role" name="role" placeholder="role.." value="{{.Meta.GetRole ""}}">
+<input class="zs-input" type="text" id="role" name="role" placeholder="role.." value="{{.MetaRole}}">
 </div>
 <div>
 <label for="syntax">Syntax</label>
-<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{.Meta.GetSyntax ""}}">
+<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{.MetaSyntax}}">
 </div>
 <div>
 <label for="meta">Meta</label>
 <textarea class="zs-input" id="meta" name="meta" rows="4" placeholder="key: value">
-{{- range .Meta.PairsRest}}
+{{- range .MetaPairsRest}}
 {{.Key}}: {{.Value}}
 {{- end -}}
 </textarea>
@@ -294,19 +291,19 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 		`{{define "content"}}
 <article>
 <header>
-<h1>Rename Zettel {{.Meta.Zid.Format}}</h1>
+<h1>Rename Zettel {{.Zid}}</h1>
 </header>
 <p>Do you really want to rename this zettel?</p>
 <form method="POST">
 <div>
 <label for="newid">New zettel id</label>
-<input class="zs-input" type="text" id="newzid" name="newzid" placeholder="ZID.." value="{{.Meta.Zid.Format}}" autofocus>
+<input class="zs-input" type="text" id="newzid" name="newzid" placeholder="ZID.." value="{{.Zid}}" autofocus>
 </div>
-<input type="hidden" id="curzid" name="curzid" value="{{.Meta.Zid.Format}}">
+<input type="hidden" id="curzid" name="curzid" value="{{.Zid}}">
 <input class="zs-button" type="submit" value="Rename">
 </form>
 <dl>
-{{- range .Meta.Pairs}}
+{{- range .MetaPairs}}
 <dt>{{.Key}}:</dt><dd>{{.Value}}</dd>
 {{- end -}}
 </dl>
@@ -324,11 +321,11 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 		`{{define "content"}}
 <article>
 <header>
-<h1>Delete Zettel {{.Meta.Zid.Format}}</h1>
+<h1>Delete Zettel {{.Zid}}</h1>
 </header>
 <p>Do you really want to delete this zettel?</p>
 <dl>
-{{- range .Meta.Pairs}}
+{{- range .MetaPairs}}
 <dt>{{.Key}}:</dt><dd>{{.Value}}</dd>
 {{- end -}}
 </dl>
@@ -349,7 +346,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 		`{{define "content"}}
 <h1>Currently used roles</h1>
 <ul>
-{{range .Roles}}<li><a href="{{urlList 'h'}}?role={{.}}">{{.}}</a></li>{{end}}
+{{range .Roles}}<li><a href="{{.URL}}">{{.Text}}</a></li>{{end}}
 </ul>
 {{end}}`,
 	},
@@ -364,9 +361,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 		`{{define "content"}}
 <h1>Currently used tags</h1>
 <div class="zs-meta">
-<a href="{{urlList 't'}}">All</a>{{range .Counts}}, <a href="{{urlList 't'}}?min={{.}}">{{.}}</a>{{end}}
+<a href="{{.ListTagsURL}}">All</a>{{range .MinCounts}}, <a href="{{.URL}}">{{.Count}}</a>{{end}}
 </div>
-{{range .Tags}} <a href="{{urlList 'h'}}?tags={{.Name}}" style="font-size:{{.Size}}%">{{.Name}}</a><sup>{{.Count}}</sup>{{end}}
+{{range .Tags}} <a href="{{.URL}}" style="font-size:{{.Size}}%">{{.Name}}</a><sup>{{.Count}}</sup>{{end}}
 {{end}}`,
 	},
 

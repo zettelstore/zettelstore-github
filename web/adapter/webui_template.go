@@ -23,12 +23,9 @@ package adapter
 import (
 	"context"
 	"fmt"
-	"html"
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
-	"strings"
 	"sync"
 
 	"zettelstore.de/z/auth/policy"
@@ -101,107 +98,6 @@ func (te *TemplateEngine) cacheGetTemplate(zid domain.ZettelID) (*template.Templ
 	return t, ok
 }
 
-func urlForList(key byte) string {
-	prefix := config.URLPrefix()
-	if key == '/' {
-		return prefix
-	}
-	return prefix + string(rune(key))
-}
-
-func urlForZettel(key byte, zid domain.ZettelID) string {
-	var sb strings.Builder
-
-	sb.WriteString(config.URLPrefix())
-	sb.WriteByte(key)
-	sb.WriteByte('/')
-	sb.WriteString(zid.Format())
-	return sb.String()
-}
-
-func htmlMetaValue(metaW metaWrapper, key string) template.HTML {
-	meta := metaW.original
-	switch meta.Type(key) {
-	case domain.MetaTypeBool:
-		var b strings.Builder
-		if meta.GetBool(key) {
-			writeLink(&b, key, "True")
-		} else {
-			writeLink(&b, key, "False")
-		}
-		return template.HTML(b.String())
-
-	case domain.MetaTypeID:
-		value, _ := meta.Get(key)
-		zid, err := domain.ParseZettelID(value)
-		if err != nil {
-			return template.HTML(value)
-		}
-		return template.HTML("<a href=\"" + urlForZettel('h', zid) + "\">" + value + "</a>")
-
-	case domain.MetaTypeTagSet, domain.MetaTypeWordSet:
-		values, _ := meta.GetList(key)
-		var b strings.Builder
-		for i, tag := range values {
-			if i > 0 {
-				b.WriteByte(' ')
-			}
-			writeLink(&b, key, tag)
-		}
-		return template.HTML(b.String())
-
-	case domain.MetaTypeURL:
-		value, _ := meta.Get(key)
-		url, err := url.Parse(value)
-		if err != nil {
-			return template.HTML(html.EscapeString(value))
-		}
-		return template.HTML("<a href=\"" + url.String() + "\">" + html.EscapeString(value) + "</a>")
-
-	case domain.MetaTypeWord:
-		value, _ := meta.Get(key)
-		var b strings.Builder
-		writeLink(&b, key, value)
-		return template.HTML(b.String())
-
-	default:
-		value, _ := meta.Get(key)
-		return template.HTML(html.EscapeString(value))
-	}
-}
-
-func writeLink(b *strings.Builder, key, value string) {
-	b.WriteString("<a href=\"")
-	b.WriteString(urlForList('h'))
-	b.WriteByte('?')
-	b.WriteString(template.URLQueryEscaper(key))
-	b.WriteByte('=')
-	b.WriteString(template.URLQueryEscaper(value))
-	b.WriteString("\">")
-	b.WriteString(html.EscapeString(value))
-	b.WriteString("</a>")
-}
-
-func htmlify(s string) template.HTML {
-	return template.HTML(s)
-}
-
-func join(sl []string) string {
-	return strings.Join(sl, " ")
-}
-
-var funcMap = template.FuncMap{
-	"urlList":       urlForList,
-	"urlZettel":     urlForZettel,
-	"htmlMetaValue": htmlMetaValue,
-	"HTML":          htmlify,
-	"join":          join,
-}
-
-func (te *TemplateEngine) canReload(ctx context.Context, user *domain.Meta) bool {
-	return te.policy.CanReload(user)
-}
-
 func (te *TemplateEngine) canCreate(ctx context.Context, user *domain.Meta) bool {
 	meta := domain.NewMeta(domain.InvalidZettelID)
 	return te.policy.CanCreate(user, meta) && te.place.CanCreateZettel(ctx)
@@ -229,7 +125,7 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 		if err != nil {
 			return nil, err
 		}
-		baseTemplate, err = template.New("base").Funcs(funcMap).Parse(baseTemplateZettel.Content.AsString())
+		baseTemplate, err = template.New("base").Parse(baseTemplateZettel.Content.AsString())
 		if err != nil {
 			return nil, err
 		}
@@ -253,58 +149,58 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 type baseData struct {
 	Lang          string
 	Version       string
-	StylesheetURL template.URL
+	StylesheetURL string
 	Title         string
-	HomeURL       template.URL
-	ListZettelURL template.URL
-	ListRolesURL  template.URL
-	ListTagsURL   template.URL
+	HomeURL       string
+	ListZettelURL string
+	ListRolesURL  string
+	ListTagsURL   string
 	CanCreate     bool
-	NewZettelURL  template.URL
+	NewZettelURL  string
 	WithAuth      bool
 	UserIsValid   bool
-	UserZettelURL template.URL
+	UserZettelURL string
 	UserIdent     string
-	UserLogoutURL template.URL
-	LoginURL      template.URL
+	UserLogoutURL string
+	LoginURL      string
 	CanReload     bool
-	ReloadURL     template.URL
-	SearchURL     template.URL
+	ReloadURL     string
+	SearchURL     string
 	FooterHTML    template.HTML
 }
 
 func (te *TemplateEngine) makeBaseData(
 	ctx context.Context, lang string, title string, user *domain.Meta) baseData {
 	var (
-		userZettelURL template.URL
+		userZettelURL string
 		userIdent     string
-		userLogoutURL template.URL
+		userLogoutURL string
 	)
 	if user != nil {
-		userZettelURL = template.URL(urlForZettel('h', user.Zid))
+		userZettelURL = urlForZettel('h', user.Zid)
 		userIdent = user.GetDefault(domain.MetaKeyIdent, "")
-		userLogoutURL = template.URL(urlForZettel('a', user.Zid))
+		userLogoutURL = urlForZettel('a', user.Zid)
 	}
 	return baseData{
 		Lang:          lang,
 		Version:       config.GetVersion().Build,
-		StylesheetURL: template.URL(urlForZettel('z', domain.BaseCSSID) + "?_format=raw&_part=content"),
+		StylesheetURL: urlForZettel('z', domain.BaseCSSID) + "?_format=raw&_part=content",
 		Title:         title,
-		HomeURL:       template.URL(urlForList('/')),
-		ListZettelURL: template.URL(urlForList('h')),
-		ListRolesURL:  template.URL(urlForZettel('k', 2)),
-		ListTagsURL:   template.URL(urlForZettel('k', 3)),
+		HomeURL:       urlForList('/'),
+		ListZettelURL: urlForList('h'),
+		ListRolesURL:  urlForZettel('k', 2),
+		ListTagsURL:   urlForZettel('k', 3),
 		CanCreate:     te.canCreate(ctx, user),
-		NewZettelURL:  template.URL(urlForZettel('n', domain.TemplateZettelID)),
+		NewZettelURL:  urlForZettel('n', domain.TemplateZettelID),
 		WithAuth:      config.WithAuth(),
 		UserIsValid:   user != nil,
 		UserZettelURL: userZettelURL,
 		UserIdent:     userIdent,
 		UserLogoutURL: userLogoutURL,
-		LoginURL:      template.URL(urlForList('a')),
-		CanReload:     te.canReload(ctx, user),
-		ReloadURL:     template.URL(urlForList('c') + "?_format=html"),
-		SearchURL:     template.URL(urlForList('s')),
+		LoginURL:      urlForList('a'),
+		CanReload:     te.policy.CanReload(user),
+		ReloadURL:     urlForList('c') + "?_format=html",
+		SearchURL:     urlForList('s'),
 		FooterHTML:    template.HTML(config.GetFooterHTML()),
 	}
 }

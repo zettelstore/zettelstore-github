@@ -52,12 +52,15 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		}
 
 		user := session.GetUser(ctx)
+		meta := zettel.Meta
 		te.renderTemplate(ctx, w, domain.DeleteTemplateID, struct {
 			baseData
-			Meta metaWrapper
+			Zid       string
+			MetaPairs []domain.MetaPair
 		}{
-			baseData: te.makeBaseData(ctx, config.GetLang(zettel.Meta), "Delete Zettel "+zettel.Meta.Zid.Format(), user),
-			Meta:     wrapMeta(zettel.Meta),
+			baseData:  te.makeBaseData(ctx, config.GetLang(meta), "Delete Zettel "+meta.Zid.Format(), user),
+			Zid:       zid.Format(),
+			MetaPairs: meta.Pairs(),
 		})
 	}
 }

@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net/url"
 	"strings"
 
 	"zettelstore.de/z/ast"
@@ -36,6 +37,24 @@ import (
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 )
+
+func urlForList(key byte) string {
+	prefix := config.URLPrefix()
+	if key == '/' {
+		return prefix
+	}
+	return prefix + string(rune(key))
+}
+
+func urlForZettel(key byte, zid domain.ZettelID) string {
+	var sb strings.Builder
+
+	sb.WriteString(config.URLPrefix())
+	sb.WriteByte(key)
+	sb.WriteByte('/')
+	sb.WriteString(zid.Format())
+	return sb.String()
+}
 
 var errNoSuchFormat = errors.New("no such format")
 
@@ -170,8 +189,14 @@ func makeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 }
 
 type metaInfo struct {
-	Meta  metaWrapper
 	Title template.HTML
+	URL   string
+	Tags  []metaTagInfo
+}
+
+type metaTagInfo struct {
+	Text string
+	URL  string
 }
 
 // buildHTMLMetaList builds a zettel list based on a meta list for HTML rendering.
@@ -190,7 +215,22 @@ func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		metas = append(metas, metaInfo{wrapMeta(meta), template.HTML(htmlTitle)})
+		metas = append(metas, metaInfo{
+			Title: template.HTML(htmlTitle),
+			URL:   urlForZettel('h', meta.Zid),
+			Tags:  buildTagInfos(meta),
+		})
 	}
 	return metas, nil
+}
+
+func buildTagInfos(meta *domain.Meta) []metaTagInfo {
+	var tagInfos []metaTagInfo
+	if tags, ok := meta.GetList(domain.MetaKeyTags); ok {
+		tagInfos = make([]metaTagInfo, 0, len(tags))
+		for _, t := range tags {
+			tagInfos = append(tagInfos, metaTagInfo{Text: t, URL: urlForList('h') + "?tags=" + url.QueryEscape(t)})
+		}
+	}
+	return tagInfos
 }

@@ -51,10 +51,15 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 		zettel := &domain.Zettel{Meta: oldZettel.Meta.Clone(), Content: oldZettel.Content}
 
 		user := session.GetUser(ctx)
+		meta := zettel.Meta
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
-			baseData: te.makeBaseData(ctx, config.GetLang(zettel.Meta), "New Zettel", user),
-			Meta:     wrapMeta(zettel.Meta),
-			Content:  zettel.Content.AsString(),
+			baseData:      te.makeBaseData(ctx, config.GetLang(meta), "New Zettel", user),
+			MetaTitle:     config.GetTitle(meta),
+			MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),
+			MetaRole:      config.GetRole(meta),
+			MetaSyntax:    config.GetSyntax(meta),
+			MetaPairsRest: meta.PairsRest(),
+			Content:       zettel.Content.AsString(),
 		})
 	}
 }

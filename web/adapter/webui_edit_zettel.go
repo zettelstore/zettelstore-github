@@ -52,10 +52,15 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 		}
 
 		user := session.GetUser(ctx)
+		meta := zettel.Meta
 		te.renderTemplate(ctx, w, domain.FormTemplateID, formZettelData{
-			baseData: te.makeBaseData(ctx, config.GetLang(zettel.Meta), "Edit Zettel", user),
-			Meta:     wrapMeta(zettel.Meta),
-			Content:  zettel.Content.AsString(),
+			baseData:      te.makeBaseData(ctx, config.GetLang(meta), "Edit Zettel", user),
+			MetaTitle:     meta.GetDefault(domain.MetaKeyTitle, ""),
+			MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),
+			MetaRole:      meta.GetDefault(domain.MetaKeyRole, ""),
+			MetaSyntax:    meta.GetDefault(domain.MetaKeySyntax, ""),
+			MetaPairsRest: meta.PairsRest(),
+			Content:       zettel.Content.AsString(),
 		})
 	}
 }

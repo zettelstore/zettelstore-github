@@ -24,6 +24,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
@@ -95,19 +96,40 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		user := session.GetUser(ctx)
+		roleText := z.Meta.GetDefault(domain.MetaKeyRole, "*")
+		tags := buildTagInfos(z.Meta)
+		extURL, hasExtURL := z.Meta.Get(domain.MetaKeyURL)
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
 			baseData
+			MetaHeader template.HTML
 			HTMLTitle  template.HTML
 			CanWrite   bool
-			Meta       metaWrapper
-			MetaHeader template.HTML
+			EditURL    string
+			Zid        string
+			InfoURL    string
+			RoleText   string
+			RoleURL    string
+			HasTags    bool
+			Tags       []metaTagInfo
+			CloneURL   string
+			HasExtURL  bool
+			ExtURL     string
 			Content    template.HTML
 		}{
 			baseData:   te.makeBaseData(ctx, langOption.Value, textTitle, user),
+			MetaHeader: template.HTML(metaHeader),
 			HTMLTitle:  template.HTML(htmlTitle),
 			CanWrite:   te.canWrite(ctx, user, zettel),
-			Meta:       wrapMeta(z.Meta),
-			MetaHeader: template.HTML(metaHeader),
+			EditURL:    urlForZettel('e', zid),
+			Zid:        zid.Format(),
+			InfoURL:    urlForZettel('i', zid),
+			RoleText:   roleText,
+			RoleURL:    urlForList('h') + "?role=" + url.QueryEscape(roleText),
+			HasTags:    len(tags) > 0,
+			Tags:       tags,
+			CloneURL:   urlForZettel('n', zid),
+			ExtURL:     extURL,
+			HasExtURL:  hasExtURL,
 			Content:    template.HTML(htmlContent),
 		})
 	}
