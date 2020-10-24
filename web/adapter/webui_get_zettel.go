@@ -24,7 +24,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
@@ -122,15 +121,15 @@ func MakeGetHTMLZettelHandler(
 			MetaHeader: template.HTML(metaHeader),
 			HTMLTitle:  template.HTML(htmlTitle),
 			CanWrite:   te.canWrite(ctx, user, zettel),
-			EditURL:    urlForZettel('e', zid),
+			EditURL:    newURLBuilder('e').SetZid(zid).String(),
 			Zid:        zid.Format(),
-			InfoURL:    urlForZettel('i', zid),
+			InfoURL:    newURLBuilder('i').SetZid(zid).String(),
 			RoleText:   roleText,
-			RoleURL:    urlForList('h') + "?role=" + url.QueryEscape(roleText),
+			RoleURL:    newURLBuilder('h').AppendQuery("role", roleText).String(),
 			HasTags:    len(tags) > 0,
 			Tags:       tags,
 			CanClone:   base.CanCreate && !zettel.Content.IsBinary(),
-			CloneURL:   urlForZettel('n', zid),
+			CloneURL:   newURLBuilder('n').SetZid(zid).String(),
 			ExtURL:     extURL,
 			HasExtURL:  hasExtURL,
 			Content:    template.HTML(htmlContent),

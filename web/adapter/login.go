@@ -42,7 +42,7 @@ func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.Ha
 		if !config.WithAuth() {
 			switch format {
 			case "html":
-				http.Redirect(w, r, urlForList('/'), http.StatusFound)
+				http.Redirect(w, r, newURLBuilder('/').String(), http.StatusFound)
 			case "json":
 				w.Header().Set("Content-Type", format2ContentType("json"))
 				writeJSONToken(w, "freeaccess", 24*366*10*time.Hour)
@@ -81,7 +81,7 @@ func authenticateViaHTML(te *TemplateEngine, auth usecase.Authenticate, w http.R
 	}
 
 	session.SetToken(w, token, authDuration)
-	http.Redirect(w, r, urlForList('/'), http.StatusFound)
+	http.Redirect(w, r, newURLBuilder('/').String(), http.StatusFound)
 }
 
 func authenticateViaJSON(auth usecase.Authenticate, w http.ResponseWriter, r *http.Request, authDuration time.Duration) {
@@ -152,7 +152,7 @@ func MakeGetLogoutHandler() http.HandlerFunc {
 		}
 
 		session.ClearToken(r.Context(), w)
-		http.Redirect(w, r, urlForList('/'), http.StatusFound)
+		http.Redirect(w, r, newURLBuilder('/').String(), http.StatusFound)
 	}
 }
 

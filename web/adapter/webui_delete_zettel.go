@@ -78,6 +78,6 @@ func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.Handler
 			checkUsecaseError(w, err)
 			return
 		}
-		http.Redirect(w, r, urlForList('/'), http.StatusFound)
+		http.Redirect(w, r, newURLBuilder('/').String(), http.StatusFound)
 	}
 }

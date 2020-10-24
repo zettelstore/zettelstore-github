@@ -118,15 +118,17 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		defFormat := encoder.GetDefaultFormat()
 		parts := []string{"zettel", "meta", "content"}
 		matrix := make([][]matrixElement, 0, len(parts))
+		u := newURLBuilder('z').SetZid(zid)
 		for _, part := range parts {
 			row := make([]matrixElement, 0, len(formats)+1)
 			row = append(row, matrixElement{part, false, ""})
 			for _, format := range formats {
-				u := urlForZettel('z', zid) + "?_part=" + url.QueryEscape(part)
+				u.AppendQuery("_part", part)
 				if format != defFormat {
-					u += "&_format=" + url.QueryEscape(format)
+					u.AppendQuery("_format", format)
 				}
-				row = append(row, matrixElement{format, true, u})
+				row = append(row, matrixElement{format, true, u.String()})
+				u.ClearQuery()
 			}
 			matrix = append(matrix, row)
 		}
@@ -153,15 +155,15 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}{
 			baseData:    base,
 			Zid:         zid.Format(),
-			WebURL:      urlForZettel('h', zid),
+			WebURL:      newURLBuilder('h').SetZid(zid).String(),
 			CanWrite:    te.canWrite(ctx, user, zettel),
-			EditURL:     urlForZettel('e', zid),
+			EditURL:     newURLBuilder('e').SetZid(zid).String(),
 			CanClone:    base.CanCreate && !zettel.Content.IsBinary(),
-			CloneURL:    urlForZettel('n', zid),
+			CloneURL:    newURLBuilder('n').SetZid(zid).String(),
 			CanRename:   te.canRename(ctx, user, zettel.Meta),
-			RenameURL:   urlForZettel('r', zid),
+			RenameURL:   newURLBuilder('r').SetZid(zid).String(),
 			CanDelete:   te.canDelete(ctx, user, zettel.Meta),
-			DeleteURL:   urlForZettel('d', zid),
+			DeleteURL:   newURLBuilder('d').SetZid(zid).String(),
 			MetaData:    metaData,
 			HasLinks:    len(intLinks) > 0 || len(extLinks) > 0,
 			HasIntLinks: len(intLinks) > 0,
@@ -190,7 +192,7 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 		if err != nil {
 			return template.HTML(value)
 		}
-		return template.HTML("<a href=\"" + urlForZettel('h', zid) + "\">" + value + "</a>")
+		return template.HTML("<a href=\"" + newURLBuilder('h').SetZid(zid).String() + "\">" + value + "</a>")
 
 	case domain.MetaTypeTagSet, domain.MetaTypeWordSet:
 		values, _ := meta.GetList(key)
@@ -225,7 +227,7 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 
 func writeLink(b *strings.Builder, key, value string) {
 	b.WriteString("<a href=\"")
-	b.WriteString(urlForList('h'))
+	b.WriteString(newURLBuilder('h').String())
 	b.WriteByte('?')
 	b.WriteString(template.URLQueryEscaper(key))
 	b.WriteByte('=')
@@ -254,7 +256,7 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast
 				}
 				var u string
 				if found == 1 {
-					u = urlForZettel('h', zid)
+					u = newURLBuilder('h').SetZid(zid).String()
 				}
 				intLinks = append(intLinks, internalReference{zid, template.HTML(title), len(u) > 0, u})
 			}

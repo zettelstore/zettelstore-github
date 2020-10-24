@@ -86,7 +86,7 @@ func writeJSONHeader(w http.ResponseWriter, meta *domain.Meta, format string) er
 		_, err = w.Write(jsonHeader2)
 	}
 	if err == nil {
-		_, err = w.Write([]byte(urlForZettel('z', meta.Zid)))
+		_, err = w.Write([]byte(newURLBuilder('z').SetZid(meta.Zid).String()))
 	}
 	if err == nil && format != encoder.GetDefaultFormat() {
 		_, err = w.Write(jsonHeader3)

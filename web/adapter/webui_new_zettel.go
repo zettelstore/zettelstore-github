@@ -81,7 +81,7 @@ func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
 		if newZid, err := newZettel.Run(r.Context(), zettel); err != nil {
 			checkUsecaseError(w, err)
 		} else {
-			http.Redirect(w, r, urlForZettel('h', newZid), http.StatusFound)
+			http.Redirect(w, r, newURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
 		}
 	}
 }

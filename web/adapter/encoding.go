@@ -23,10 +23,8 @@ package adapter
 import (
 	"context"
 	"errors"
-	"fmt"
 	"html/template"
 	"io"
-	"net/url"
 	"strings"
 
 	"zettelstore.de/z/ast"
@@ -37,24 +35,6 @@ import (
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 )
-
-func urlForList(key byte) string {
-	prefix := config.URLPrefix()
-	if key == '/' {
-		return prefix
-	}
-	return prefix + string(rune(key))
-}
-
-func urlForZettel(key byte, zid domain.ZettelID) string {
-	var sb strings.Builder
-
-	sb.WriteString(config.URLPrefix())
-	sb.WriteByte(key)
-	sb.WriteByte('/')
-	sb.WriteString(zid.Format())
-	return sb.String()
-}
 
 var errNoSuchFormat = errors.New("no such format")
 
@@ -143,17 +123,14 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, par
 		_, err = getMeta.Run(ctx, zid)
 		newLink := *origLink
 		if err == nil {
-			url := urlForZettel(key, zid)
+			url := newURLBuilder(key).SetZid(zid)
 			if part != "" {
-				if format != "" {
-					url = fmt.Sprintf("%v?_part=%v&_format=%v", url, part, format)
-				} else {
-					url = fmt.Sprintf("%v?_part=%v", url, part)
-				}
-			} else if format != "" {
-				url = fmt.Sprintf("%v?_format=%v", url, format)
+				url.AppendQuery("_part", part)
 			}
-			newRef := ast.ParseReference(url)
+			if format != "" {
+				url.AppendQuery("_format", format)
+			}
+			newRef := ast.ParseReference(url.String())
 			newRef.State = ast.RefStateZettelFound
 			newLink.Ref = newRef
 			return &newLink
@@ -182,7 +159,7 @@ func makeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 		if err != nil {
 			panic(err)
 		}
-		newImage.Ref = ast.ParseReference(urlForZettel('z', zid) + "?_part=content&_format=raw")
+		newImage.Ref = ast.ParseReference(newURLBuilder('z').SetZid(zid).AppendQuery("_part", "content").AppendQuery("_format", "raw").String())
 		newImage.Ref.State = ast.RefStateZettelFound
 		return &newImage
 	}
@@ -217,7 +194,7 @@ func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
 		}
 		metas = append(metas, metaInfo{
 			Title: template.HTML(htmlTitle),
-			URL:   urlForZettel('h', meta.Zid),
+			URL:   newURLBuilder('h').SetZid(meta.Zid).String(),
 			Tags:  buildTagInfos(meta),
 		})
 	}
@@ -228,8 +205,10 @@ func buildTagInfos(meta *domain.Meta) []metaTagInfo {
 	var tagInfos []metaTagInfo
 	if tags, ok := meta.GetList(domain.MetaKeyTags); ok {
 		tagInfos = make([]metaTagInfo, 0, len(tags))
+		ub := newURLBuilder('h')
 		for _, t := range tags {
-			tagInfos = append(tagInfos, metaTagInfo{Text: t, URL: urlForList('h') + "?tags=" + url.QueryEscape(t)})
+			tagInfos = append(tagInfos, metaTagInfo{Text: t, URL: ub.AppendQuery("tags", t).String()})
+			ub.ClearQuery()
 		}
 	}
 	return tagInfos

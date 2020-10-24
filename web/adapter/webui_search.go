@@ -71,7 +71,7 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search, getMeta usecas
 			}
 		}
 		if filter == nil || len(filter.Expr) == 0 {
-			http.Redirect(w, r, urlForList('h'), http.StatusFound)
+			http.Redirect(w, r, newURLBuilder('h').String(), http.StatusFound)
 			return
 		}
 

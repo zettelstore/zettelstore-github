@@ -72,7 +72,7 @@ func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
 			return
 		}
 		buf.WriteStrings(
-			"<li><a href=\"", urlForZettel('z', meta.Zid), "?_format=html", "\">",
+			"<li><a href=\"", newURLBuilder('z').SetZid(meta.Zid).AppendQuery("format", "html").String(), "\">",
 			htmlTitle, "</a></li>\n")
 	}
 	buf.WriteString("</ul>\n</body>\n</html>")

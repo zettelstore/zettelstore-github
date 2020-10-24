@@ -84,6 +84,6 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 			checkUsecaseError(w, err)
 			return
 		}
-		http.Redirect(w, r, urlForZettel('h', zid), http.StatusFound)
+		http.Redirect(w, r, newURLBuilder('h').SetZid(zid).String(), http.StatusFound)
 	}
 }

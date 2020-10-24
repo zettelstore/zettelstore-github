@@ -38,7 +38,7 @@ func MakeReloadHandler(reload usecase.Reload) http.HandlerFunc {
 
 		format := getFormat(r, encoder.GetDefaultFormat())
 		if format == "html" {
-			http.Redirect(w, r, urlForList('/'), http.StatusFound)
+			http.Redirect(w, r, newURLBuilder('/').String(), http.StatusFound)
 			return
 		}
 		w.Header().Set("Content-Type", format2ContentType(format))

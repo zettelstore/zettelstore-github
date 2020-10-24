@@ -177,30 +177,30 @@ func (te *TemplateEngine) makeBaseData(
 		userLogoutURL string
 	)
 	if user != nil {
-		userZettelURL = urlForZettel('h', user.Zid)
+		userZettelURL = newURLBuilder('h').SetZid(user.Zid).String()
 		userIdent = user.GetDefault(domain.MetaKeyIdent, "")
-		userLogoutURL = urlForZettel('a', user.Zid)
+		userLogoutURL = newURLBuilder('a').SetZid(user.Zid).String()
 	}
 	return baseData{
 		Lang:          lang,
 		Version:       config.GetVersion().Build,
-		StylesheetURL: urlForZettel('z', domain.BaseCSSID) + "?_format=raw&_part=content",
+		StylesheetURL: newURLBuilder('z').SetZid(domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery("_part", "content").String(),
 		Title:         title,
-		HomeURL:       urlForList('/'),
-		ListZettelURL: urlForList('h'),
-		ListRolesURL:  urlForZettel('k', 2),
-		ListTagsURL:   urlForZettel('k', 3),
+		HomeURL:       newURLBuilder('/').String(),
+		ListZettelURL: newURLBuilder('h').String(),
+		ListRolesURL:  newURLBuilder('k').SetZid(2).String(),
+		ListTagsURL:   newURLBuilder('k').SetZid(3).String(),
 		CanCreate:     te.canCreate(ctx, user),
-		NewZettelURL:  urlForZettel('n', domain.TemplateZettelID),
+		NewZettelURL:  newURLBuilder('n').SetZid(domain.TemplateZettelID).String(),
 		WithAuth:      config.WithAuth(),
 		UserIsValid:   user != nil,
 		UserZettelURL: userZettelURL,
 		UserIdent:     userIdent,
 		UserLogoutURL: userLogoutURL,
-		LoginURL:      urlForList('a'),
+		LoginURL:      newURLBuilder('a').String(),
 		CanReload:     te.policy.CanReload(user),
-		ReloadURL:     urlForList('c') + "?_format=html",
-		SearchURL:     urlForList('s'),
+		ReloadURL:     newURLBuilder('c').AppendQuery("_format", "html").String(),
+		SearchURL:     newURLBuilder('s').String(),
 		FooterHTML:    template.HTML(config.GetFooterHTML()),
 	}
 }

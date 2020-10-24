@@ -23,7 +23,6 @@ package adapter
 import (
 	"log"
 	"net/http"
-	"net/url"
 	"sort"
 	"strconv"
 
@@ -99,7 +98,7 @@ func renderWebUIRolesList(w http.ResponseWriter, r *http.Request, te *TemplateEn
 
 	roleInfos := make([]roleInfo, 0, len(roleList))
 	for _, r := range roleList {
-		roleInfos = append(roleInfos, roleInfo{r, urlForList('h') + "?role=" + url.QueryEscape(r)})
+		roleInfos = append(roleInfos, roleInfo{r, newURLBuilder('h').AppendQuery("role", r).String()})
 	}
 
 	user := session.GetUser(ctx)
@@ -139,11 +138,12 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 	user := session.GetUser(ctx)
 	tagsList := make([]tagInfo, 0, len(tagData))
 	countMap := make(map[int]int)
-	baseTagListURL := urlForList('h') + "?tags="
+	baseTagListURL := newURLBuilder('h')
 	for tag, ml := range tagData {
 		count := len(ml)
 		countMap[count]++
-		tagsList = append(tagsList, tagInfo{tag, baseTagListURL + url.QueryEscape(tag), count, "", ""})
+		tagsList = append(tagsList, tagInfo{tag, baseTagListURL.AppendQuery("tags", tag).String(), count, "", ""})
+		baseTagListURL.ClearQuery()
 	}
 	sort.Slice(tagsList, func(i, j int) bool { return tagsList[i].Name < tagsList[j].Name })
 
