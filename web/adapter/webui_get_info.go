@@ -130,12 +130,14 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			}
 			matrix = append(matrix, row)
 		}
+		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
 			baseData
 			Zid         string
 			WebURL      string
 			CanWrite    bool
 			EditURL     string
+			CanClone    bool
 			CloneURL    string
 			CanRename   bool
 			RenameURL   string
@@ -149,11 +151,12 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			ExtLinks    []string
 			Matrix      [][]matrixElement
 		}{
-			baseData:    te.makeBaseData(ctx, langOption.Value, textTitle, user),
+			baseData:    base,
 			Zid:         zid.Format(),
 			WebURL:      urlForZettel('h', zid),
 			CanWrite:    te.canWrite(ctx, user, zettel),
 			EditURL:     urlForZettel('e', zid),
+			CanClone:    base.CanCreate && !zettel.Content.IsBinary(),
 			CloneURL:    urlForZettel('n', zid),
 			CanRename:   te.canRename(ctx, user, zettel.Meta),
 			RenameURL:   urlForZettel('r', zid),

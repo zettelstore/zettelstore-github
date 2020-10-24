@@ -46,7 +46,7 @@ func NewUpdateZettel(port UpdateZettelPort) UpdateZettel {
 }
 
 // Run executes the use case.
-func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel) error {
+func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel, hasContent bool) error {
 	meta := zettel.Meta
 	oldZettel, err := uc.port.GetZettel(ctx, meta.Zid)
 	if err != nil {
@@ -58,6 +58,9 @@ func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel) error {
 	meta.YamlSep = oldZettel.Meta.YamlSep
 	if meta.Zid == domain.ConfigurationID {
 		meta.Set(domain.MetaKeySyntax, "meta")
+	}
+	if !hasContent {
+		zettel.Content = oldZettel.Content
 	}
 	return uc.port.UpdateZettel(ctx, zettel)
 }

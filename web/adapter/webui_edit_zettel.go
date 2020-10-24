@@ -60,6 +60,7 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 			MetaRole:      meta.GetDefault(domain.MetaKeyRole, ""),
 			MetaSyntax:    meta.GetDefault(domain.MetaKeySyntax, ""),
 			MetaPairsRest: meta.PairsRest(),
+			IsTextContent: !zettel.Content.IsBinary(),
 			Content:       zettel.Content.AsString(),
 		})
 	}
@@ -73,13 +74,13 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 			http.NotFound(w, r)
 			return
 		}
-		zettel, err := parseZettelForm(r, zid)
+		zettel, hasContent, err := parseZettelForm(r, zid)
 		if err != nil {
 			http.Error(w, "Unable to read zettel form", http.StatusBadRequest)
 			return
 		}
 
-		if err := updateZettel.Run(r.Context(), zettel); err != nil {
+		if err := updateZettel.Run(r.Context(), zettel, hasContent); err != nil {
 			checkUsecaseError(w, err)
 			return
 		}

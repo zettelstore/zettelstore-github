@@ -35,35 +35,49 @@ type formZettelData struct {
 	MetaRole      string
 	MetaSyntax    string
 	MetaPairsRest []domain.MetaPair
+	IsTextContent bool
 	Content       string
 }
 
-func parseZettelForm(r *http.Request, zid domain.ZettelID) (domain.Zettel, error) {
+func parseZettelForm(r *http.Request, zid domain.ZettelID) (domain.Zettel, bool, error) {
 	err := r.ParseForm()
 	if err != nil {
-		return domain.Zettel{}, err
+		return domain.Zettel{}, false, err
 	}
 
 	var meta *domain.Meta
-	if postMeta := strings.TrimSpace(r.PostFormValue("meta")); postMeta == "" {
-		meta = domain.NewMeta(zid)
-	} else {
+	if postMeta, ok := trimmedFormValue(r, "meta"); ok {
 		meta = domain.NewMetaFromInput(zid, input.NewInput(postMeta))
+	} else {
+		meta = domain.NewMeta(zid)
 	}
-	if postTitle := strings.TrimSpace(r.PostFormValue("title")); postTitle != "" {
+	if postTitle, ok := trimmedFormValue(r, "title"); ok {
 		meta.Set(domain.MetaKeyTitle, postTitle)
 	}
-	if postTags := strings.Fields(r.PostFormValue("tags")); len(postTags) > 0 {
-		meta.SetList(domain.MetaKeyTags, postTags)
+	if postTags, ok := trimmedFormValue(r, "tags"); ok {
+		if tags := strings.Fields(postTags); len(tags) > 0 {
+			meta.SetList(domain.MetaKeyTags, tags)
+		}
 	}
-	if postRole := strings.TrimSpace(r.PostFormValue("role")); postRole != "" {
+	if postRole, ok := trimmedFormValue(r, "role"); ok {
 		meta.Set(domain.MetaKeyRole, postRole)
 	}
-	if postSyntax := strings.TrimSpace(r.PostFormValue("syntax")); postSyntax != "" {
+	if postSyntax, ok := trimmedFormValue(r, "syntax"); ok {
 		meta.Set(domain.MetaKeySyntax, postSyntax)
 	}
+	postContent, hasContent := trimmedFormValue(r, "content")
 	return domain.Zettel{
 		Meta:    meta,
-		Content: domain.NewContent(strings.ReplaceAll(r.PostFormValue("content"), "\r\n", "\n")),
-	}, nil
+		Content: domain.NewContent(strings.ReplaceAll(postContent, "\r\n", "\n")),
+	}, hasContent, nil
+}
+
+func trimmedFormValue(r *http.Request, key string) (string, bool) {
+	if values, ok := r.PostForm[key]; ok && len(values) > 0 {
+		value := strings.TrimSpace(values[0])
+		if len(value) > 0 {
+			return value, true
+		}
+	}
+	return "", false
 }

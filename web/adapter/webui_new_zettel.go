@@ -59,6 +59,7 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 			MetaRole:      config.GetRole(meta),
 			MetaSyntax:    config.GetSyntax(meta),
 			MetaPairsRest: meta.PairsRest(),
+			IsTextContent: !zettel.Content.IsBinary(),
 			Content:       zettel.Content.AsString(),
 		})
 	}
@@ -67,9 +68,13 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 // MakePostNewZettelHandler creates a new HTTP handler to store content of an existing zettel.
 func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zettel, err := parseZettelForm(r, domain.InvalidZettelID)
+		zettel, hasContent, err := parseZettelForm(r, domain.InvalidZettelID)
 		if err != nil {
 			http.Error(w, "Unable to read form data", http.StatusBadRequest)
+			return
+		}
+		if !hasContent {
+			http.Error(w, "Content is missing", http.StatusBadRequest)
 			return
 		}
 

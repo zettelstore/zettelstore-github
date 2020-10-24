@@ -176,7 +176,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <a href="{{.InfoURL}}">Info</a> &#183;
 (<a href="{{.RoleURL}}">{{.RoleText}}</a>)
 {{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
-{{if .CanWrite}}&#183; <a href="{{.CloneURL}}">Clone</a>{{end}}
+{{if .CanClone}}&#183; <a href="{{.CloneURL}}">Clone</a>{{end}}
 {{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}" target="_blank">{{.ExtURL}}</a>{{end}}
 </div>
 </header>
@@ -198,7 +198,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <h1>Information for Zettel {{.Zid}}</h1>
 <a href="{{.WebURL}}">Web</a>
 {{ if .CanWrite}} &#183; <a href="{{.EditURL}}">Edit</a>{{ end}}
-{{ if .CanCreate}} &#183; <a href="{{.CloneURL}}">Clone</a>{{ end}}
+{{ if .CanClone}} &#183; <a href="{{.CloneURL}}">Clone</a>{{ end}}
 {{ if .CanRename}}&#183; <a href="{{.RenameURL}}">Rename</a>{{end}}
 {{ if .CanDelete}}&#183; <a href="{{.DeleteURL}}">Delete</a>{{end}}
 </header>
@@ -270,10 +270,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 </textarea>
 </div>
 <div>
+{{- if .IsTextContent}}
 <label for="content">Content</label>
 <textarea class="zs-input zs-content" id="meta" name="content" rows="20" placeholder="Your content..">
 {{- .Content -}}
 </textarea>
+{{- end}}
 </div>
 <input class="zs-button" type="submit" value="Submit">
 </form>
