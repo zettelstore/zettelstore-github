@@ -30,10 +30,10 @@ func TestContentIsBinary(t *testing.T) {
 		s   string
 		exp bool
 	}{
-		{"abc", true},
-		{"äöü", true},
-		{"", true},
-		{string([]byte{0}), false},
+		{"abc", false},
+		{"äöü", false},
+		{"", false},
+		{string([]byte{0}), true},
 	}
 	for i, tc := range td {
 		content := domain.NewContent(tc.s)
