@@ -47,7 +47,7 @@ func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 	b.WriteString("{\"meta\":")
 	writeMeta(&b, zettel.Meta)
 	b.WriteString(",\"content\":")
-	writeEscaped(&b, zettel.Content.AsString())
+	writeContent(&b, zettel.Content)
 	b.WriteByte('}')
 	length, err := b.Flush()
 	return length, err
@@ -63,7 +63,7 @@ func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 
 func (je *jsonEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
 	b := encoder.NewBufWriter(w)
-	writeEscaped(&b, zettel.Content.AsString())
+	writeContent(&b, zettel.Content)
 	length, err := b.Flush()
 	return length, err
 }
@@ -94,6 +94,16 @@ func writeMeta(b *encoder.BufWriter, meta *domain.Meta) {
 		b.WriteByte('"')
 	}
 	b.WriteByte('}')
+}
+
+func writeContent(b *encoder.BufWriter, content domain.Content) {
+	if content.IsBinary() {
+		b.WriteString("{\"encoding\":\"base64\",\"value\":\"")
+		b.WriteBase64(content.AsBytes())
+		b.WriteString("\"}")
+	} else {
+		writeEscaped(b, content.AsString())
+	}
 }
 
 var (

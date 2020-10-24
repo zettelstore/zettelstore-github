@@ -110,20 +110,6 @@ const (
 	TemplateZettelID = ZettelID(40001)
 )
 
-// Content -------------------------------------------------------------------
-
-// Content is just the uninterpreted content of a zettel.
-type Content string
-
-// NewContent creates a new content from a string.
-func NewContent(s string) Content { return Content(s) }
-
-// AsString returns the content itself is a string.
-func (zc Content) AsString() string { return string(zc) }
-
-// AsBytes returns the content itself is a byte slice.
-func (zc Content) AsBytes() []byte { return []byte(zc) }
-
 // Zettel --------------------------------------------------------------------
 
 // Zettel is the main data object of a zettelstore.
