@@ -209,7 +209,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{if .HasIntLinks}}
 <h3>Internal</h3>
 <ul>
-{{range .IntLinks}}<li>{{if .HasURL}}<a href="{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
+{{range .IntLinks}}<li>{{if .HasURL}}<a href="{{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
 </ul>
 {{end}}
 {{if .HasExtLinks}}
