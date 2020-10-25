@@ -60,7 +60,7 @@ func MakeWebUIListsHandler(te *TemplateEngine, listMeta usecase.ListMeta, listRo
 
 func renderWebUIZettelList(w http.ResponseWriter, r *http.Request, te *TemplateEngine, listMeta usecase.ListMeta) {
 	ctx := r.Context()
-	filter, sorter := getFilterSorter(r)
+	filter, sorter := getFilterSorter(r.URL.Query())
 	metaList, err := listMeta.Run(ctx, filter, sorter)
 	if err != nil {
 		checkUsecaseError(w, err)

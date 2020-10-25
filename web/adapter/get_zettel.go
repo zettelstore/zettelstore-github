@@ -50,11 +50,12 @@ func MakeGetZettelHandler(
 			checkUsecaseError(w, err)
 			return
 		}
-		syntax := r.URL.Query().Get("syntax")
+		q := r.URL.Query()
+		syntax := q.Get("syntax")
 		z, meta := parser.ParseZettel(zettel, syntax)
 
-		format := getFormat(r, encoder.GetDefaultFormat())
-		part := getPart(r, "zettel")
+		format := getFormat(r, q, encoder.GetDefaultFormat())
+		part := getPart(q, "zettel")
 		switch format {
 		case "json", "djson":
 			switch part {

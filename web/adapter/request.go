@@ -22,6 +22,7 @@ package adapter
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -29,8 +30,8 @@ import (
 	"zettelstore.de/z/place"
 )
 
-func getFormat(r *http.Request, defFormat string) string {
-	format := r.URL.Query().Get("_format")
+func getFormat(r *http.Request, q url.Values, defFormat string) string {
+	format := q.Get("_format")
 	if len(format) > 0 {
 		return format
 	}
@@ -54,16 +55,16 @@ func getOneFormat(r *http.Request, key string) (string, bool) {
 	return "", false
 }
 
-func getPart(r *http.Request, defPart string) string {
-	part := r.URL.Query().Get("_part")
+func getPart(q url.Values, defPart string) string {
+	part := q.Get("_part")
 	if len(part) == 0 {
 		part = defPart
 	}
 	return part
 }
 
-func getFilterSorter(r *http.Request) (filter *place.Filter, sorter *place.Sorter) {
-	for key, values := range r.URL.Query() {
+func getFilterSorter(q url.Values) (filter *place.Filter, sorter *place.Sorter) {
+	for key, values := range q {
 		switch key {
 		case "_sort":
 			if len(values) > 0 {

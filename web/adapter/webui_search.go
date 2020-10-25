@@ -83,9 +83,9 @@ func MakeSearchHandler(te *TemplateEngine, search usecase.Search, getMeta usecas
 
 		ctx := r.Context()
 		user := session.GetUser(ctx)
-		if format := getFormat(r, "html"); format != "html" {
+		if format := getFormat(r, query, "html"); format != "html" {
 			w.Header().Set("Content-Type", format2ContentType(format))
-			part := getPart(r, "meta")
+			part := getPart(query, "meta")
 			switch format {
 			case "json", "djson":
 				renderListMetaJSON(ctx, w, metaList, format, part, getMeta, getZettel)

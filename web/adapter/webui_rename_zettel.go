@@ -47,7 +47,7 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 			return
 		}
 
-		if format := getFormat(r, "html"); format != "html" {
+		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Rename zettel %q not possible in format %q", zid.Format(), format), http.StatusBadRequest)
 			return
 		}

@@ -61,7 +61,8 @@ type matrixElement struct {
 // MakeGetInfoHandler creates a new HTTP handler for the use case "get zettel".
 func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if format := getFormat(r, "html"); format != "html" {
+		q := r.URL.Query()
+		if format := getFormat(r, q, "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Zettel info not available in format %q", format), http.StatusBadRequest)
 			return
 		}
@@ -78,7 +79,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			checkUsecaseError(w, err)
 			return
 		}
-		syntax := r.URL.Query().Get("syntax")
+		syntax := q.Get("syntax")
 		z, meta := parser.ParseZettel(zettel, syntax)
 
 		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}

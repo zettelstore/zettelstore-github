@@ -39,7 +39,7 @@ func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.Han
 			return
 		}
 
-		format := getFormat(r, encoder.GetDefaultFormat())
+		format := getFormat(r, r.URL.Query(), encoder.GetDefaultFormat())
 		switch format {
 		case "json":
 			w.Header().Set("Content-Type", format2ContentType(format))

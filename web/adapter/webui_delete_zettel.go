@@ -33,7 +33,7 @@ import (
 // MakeGetDeleteZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
 func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if format := getFormat(r, "html"); format != "html" {
+		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Delete zettel not possible in format %q", format), http.StatusBadRequest)
 			return
 		}

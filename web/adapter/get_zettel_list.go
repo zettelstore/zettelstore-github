@@ -35,15 +35,16 @@ import (
 // MakeListMetaHandler creates a new HTTP handler for the use case "list some zettel".
 func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		filter, sorter := getFilterSorter(r)
+		q := r.URL.Query()
+		filter, sorter := getFilterSorter(q)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
 		if err != nil {
 			checkUsecaseError(w, err)
 			return
 		}
 
-		format := getFormat(r, encoder.GetDefaultFormat())
-		part := getPart(r, "meta")
+		format := getFormat(r, q, encoder.GetDefaultFormat())
+		part := getPart(q, "meta")
 		w.Header().Set("Content-Type", format2ContentType(format))
 		switch format {
 		case "html":

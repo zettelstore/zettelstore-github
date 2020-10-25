@@ -42,7 +42,7 @@ func MakeListTagsHandler(te *TemplateEngine, listTags usecase.ListTags) http.Han
 			return
 		}
 
-		format := getFormat(r, encoder.GetDefaultFormat())
+		format := getFormat(r, r.URL.Query(), encoder.GetDefaultFormat())
 		switch format {
 		case "json":
 			w.Header().Set("Content-Type", format2ContentType(format))

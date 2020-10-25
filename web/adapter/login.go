@@ -38,7 +38,7 @@ import (
 // MakePostLoginHandler creates a new HTTP handler to authenticate the given user.
 func MakePostLoginHandler(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		format := getFormat(r, encoder.GetDefaultFormat())
+		format := getFormat(r, r.URL.Query(), encoder.GetDefaultFormat())
 		if !config.WithAuth() {
 			switch format {
 			case "html":
@@ -146,7 +146,7 @@ func writeJSONToken(w http.ResponseWriter, token string, lifetime time.Duration)
 // MakeGetLogoutHandler creates a new HTTP handler to log out the current user
 func MakeGetLogoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if format := getFormat(r, "html"); format != "html" {
+		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Logout not possible in format %q", format), http.StatusBadRequest)
 			return
 		}

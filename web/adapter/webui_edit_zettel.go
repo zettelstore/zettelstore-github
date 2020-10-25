@@ -46,7 +46,7 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 			return
 		}
 
-		if format := getFormat(r, "html"); format != "html" {
+		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format), http.StatusBadRequest)
 			return
 		}
