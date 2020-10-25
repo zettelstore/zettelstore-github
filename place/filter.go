@@ -95,22 +95,22 @@ func createMatchFunc(key string, values []string) matchFunc {
 		return func(value string) bool {
 			bValue := domain.BoolValue(value)
 			for _, v := range preValues {
-				if bValue == v {
-					return true
+				if bValue != v {
+					return false
 				}
 			}
-			return false
+			return true
 		}
 	case domain.MetaTypeCred:
 		return matchNever
 	case domain.MetaTypeID:
 		return func(value string) bool {
 			for _, v := range values {
-				if strings.HasPrefix(value, v) {
-					return true
+				if !strings.HasPrefix(value, v) {
+					return false
 				}
 			}
-			return false
+			return true
 		}
 	case domain.MetaTypeTagSet:
 		tagValues := preprocessSet(values)
@@ -130,11 +130,11 @@ func createMatchFunc(key string, values []string) matchFunc {
 		return func(value string) bool {
 			value = strings.ToLower(value)
 			for _, v := range values {
-				if value == v {
-					return true
+				if value != v {
+					return false
 				}
 			}
-			return false
+			return true
 		}
 	case domain.MetaTypeWordSet:
 		wordValues := preprocessSet(sliceToLower(values))
@@ -155,11 +155,11 @@ func createMatchFunc(key string, values []string) matchFunc {
 	return func(value string) bool {
 		value = strings.ToLower(value)
 		for _, v := range values {
-			if strings.Contains(value, v) {
-				return true
+			if !strings.Contains(value, v) {
+				return false
 			}
 		}
-		return false
+		return true
 	}
 }
 
