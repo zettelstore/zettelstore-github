@@ -246,7 +246,7 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast
 	extLinks := make([]string, 0, len(links))
 	for _, ref := range links {
 		if ref.IsZettel() {
-			zid, err := domain.ParseZettelID(ref.Value)
+			zid, err := domain.ParseZettelID(ref.URL.Path)
 			if err != nil {
 				panic(err)
 			}
@@ -257,7 +257,11 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast
 				}
 				var u string
 				if found == 1 {
-					u = newURLBuilder('h').SetZid(zid).String()
+					ub := newURLBuilder('h').SetZid(zid)
+					if fragment := ref.URL.EscapedFragment(); len(fragment) > 0 {
+						ub.SetFragment(fragment)
+					}
+					u = ub.String()
 				}
 				intLinks = append(intLinks, internalReference{zid, template.HTML(title), len(u) > 0, u})
 			}
