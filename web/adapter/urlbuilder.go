@@ -30,16 +30,14 @@ import (
 
 type urlQuery struct{ key, val string }
 type urlBuilder struct {
-	key   byte
-	path  []string
-	query []urlQuery
+	key      byte
+	path     []string
+	query    []urlQuery
+	fragment string
 }
 
 func newURLBuilder(key byte) *urlBuilder {
-	return &urlBuilder{
-		key:  key,
-		path: nil,
-	}
+	return &urlBuilder{key: key}
 }
 
 func (ub *urlBuilder) Clone() *urlBuilder {
@@ -57,6 +55,7 @@ func (ub *urlBuilder) Clone() *urlBuilder {
 	for _, q := range ub.query {
 		copy.query = append(copy.query, q)
 	}
+	copy.fragment = ub.fragment
 	return copy
 }
 
@@ -80,6 +79,12 @@ func (ub *urlBuilder) AppendQuery(key string, value string) *urlBuilder {
 
 func (ub *urlBuilder) ClearQuery() *urlBuilder {
 	ub.query = nil
+	ub.fragment = ""
+	return ub
+}
+
+func (ub *urlBuilder) SetFragment(s string) *urlBuilder {
+	ub.fragment = s
 	return ub
 }
 
@@ -93,6 +98,10 @@ func (ub *urlBuilder) String() string {
 	for _, p := range ub.path {
 		sb.WriteByte('/')
 		sb.WriteString(url.PathEscape(p))
+	}
+	if len(ub.fragment) > 0 {
+		sb.WriteByte('#')
+		sb.WriteString(ub.fragment)
 	}
 	for i, q := range ub.query {
 		if i == 0 {

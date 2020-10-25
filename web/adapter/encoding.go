@@ -116,21 +116,24 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, par
 		if origRef == nil || origRef.State != ast.RefStateZettel {
 			return origLink
 		}
-		zid, err := domain.ParseZettelID(origRef.Value)
+		zid, err := domain.ParseZettelID(origRef.URL.Path)
 		if err != nil {
 			panic(err)
 		}
 		_, err = getMeta.Run(ctx, zid)
 		newLink := *origLink
 		if err == nil {
-			url := newURLBuilder(key).SetZid(zid)
+			u := newURLBuilder(key).SetZid(zid)
 			if part != "" {
-				url.AppendQuery("_part", part)
+				u.AppendQuery("_part", part)
 			}
 			if format != "" {
-				url.AppendQuery("_format", format)
+				u.AppendQuery("_format", format)
 			}
-			newRef := ast.ParseReference(url.String())
+			if fragment := origRef.URL.EscapedFragment(); len(fragment) > 0 {
+				u.SetFragment(fragment)
+			}
+			newRef := ast.ParseReference(u.String())
 			newRef.State = ast.RefStateZettelFound
 			newLink.Ref = newRef
 			return &newLink
