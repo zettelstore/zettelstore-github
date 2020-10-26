@@ -45,7 +45,7 @@ type metaDataInfo struct {
 	Value template.HTML
 }
 
-type internalReference struct {
+type zettelReference struct {
 	Zid    domain.ZettelID
 	Title  template.HTML
 	HasURL bool
@@ -99,7 +99,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			return "", 1
 		}
 		links, images := collect.References(z)
-		intLinks, extLinks := splitIntExtLinks(getTitle, append(links, images...))
+		zetLinks, locLinks, extLinks := splitIntExtLinks(getTitle, append(links, images...))
 
 		// Render as HTML
 		textTitle, err := formatInlines(z.Title, "text", nil, langOption)
@@ -148,8 +148,10 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			DeleteURL   string
 			MetaData    []metaDataInfo
 			HasLinks    bool
-			HasIntLinks bool
-			IntLinks    []internalReference
+			HasZetLinks bool
+			ZetLinks    []zettelReference
+			HasLocLinks bool
+			LocLinks    []string
 			HasExtLinks bool
 			ExtLinks    []string
 			Matrix      [][]matrixElement
@@ -166,9 +168,11 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			CanDelete:   te.canDelete(ctx, user, zettel.Meta),
 			DeleteURL:   newURLBuilder('d').SetZid(zid).String(),
 			MetaData:    metaData,
-			HasLinks:    len(intLinks) > 0 || len(extLinks) > 0,
-			HasIntLinks: len(intLinks) > 0,
-			IntLinks:    intLinks,
+			HasLinks:    len(zetLinks)+len(extLinks)+len(locLinks) > 0,
+			HasZetLinks: len(zetLinks) > 0,
+			ZetLinks:    zetLinks,
+			HasLocLinks: len(locLinks) > 0,
+			LocLinks:    locLinks,
 			HasExtLinks: len(extLinks) > 0,
 			ExtLinks:    extLinks,
 			Matrix:      matrix,
@@ -238,12 +242,10 @@ func writeLink(b *strings.Builder, key, value string) {
 	b.WriteString("</a>")
 }
 
-func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast.Reference) ([]internalReference, []string) {
+func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast.Reference) (zetLinks []zettelReference, locLinks []string, extLinks []string) {
 	if len(links) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
-	intLinks := make([]internalReference, 0, len(links))
-	extLinks := make([]string, 0, len(links))
 	for _, ref := range links {
 		if ref.IsZettel() {
 			zid, err := domain.ParseZettelID(ref.URL.Path)
@@ -263,11 +265,13 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast
 					}
 					u = ub.String()
 				}
-				intLinks = append(intLinks, internalReference{zid, template.HTML(title), len(u) > 0, u})
+				zetLinks = append(zetLinks, zettelReference{zid, template.HTML(title), len(u) > 0, u})
 			}
-		} else {
+		} else if ref.IsExternal() {
 			extLinks = append(extLinks, ref.String())
+		} else {
+			locLinks = append(locLinks, ref.String())
 		}
 	}
-	return intLinks, extLinks
+	return zetLinks, locLinks, extLinks
 }

@@ -52,7 +52,7 @@ func TestReferenceIsZettelMaterial(t *testing.T) {
 	testcases := []struct {
 		link       string
 		isZettel   bool
-		isMaterial bool
+		isExternal bool
 	}{
 		{"", false, false},
 		{"http://zettelstore.de/z/ast", false, true},
@@ -60,6 +60,8 @@ func TestReferenceIsZettelMaterial(t *testing.T) {
 		{"12345678901234#local", true, false},
 		{"http://12345678901234", false, true},
 		{"http://zettelstore.de/z/12345678901234", false, true},
+		{"http://zettelstore.de/12345678901234", false, true},
+		{"/12345678901234", false, false},
 	}
 
 	for i, tc := range testcases {
@@ -68,9 +70,9 @@ func TestReferenceIsZettelMaterial(t *testing.T) {
 		if isZettel != tc.isZettel {
 			t.Errorf("TC=%d, Reference %q isZettel=%v expected, but got %v", i, tc.link, tc.isZettel, isZettel)
 		}
-		isMaterial := ref.IsMaterial()
-		if isMaterial != tc.isMaterial {
-			t.Errorf("TC=%d, Reference %q isMaterial=%v expected, but got %v", i, tc.link, tc.isMaterial, isMaterial)
+		isExternal := ref.IsExternal()
+		if isExternal != tc.isExternal {
+			t.Errorf("TC=%d, Reference %q isExternal=%v expected, but got %v", i, tc.link, tc.isExternal, isExternal)
 		}
 	}
 }

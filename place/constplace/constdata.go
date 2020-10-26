@@ -205,11 +205,17 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <h2>Interpreted Meta Data</h2>
 <table>{{- range .MetaData}}<tr><td>{{.Key}}</td><td>{{.Value}}</td></tr>{{- end}}</table>
 {{- if .HasLinks}}
-<h2>Outgoing Links</h2>
-{{if .HasIntLinks}}
-<h3>Internal</h3>
+<h2>References</h2>
+{{if .HasZetLinks}}
+<h3>Zettel</h3>
 <ul>
-{{range .IntLinks}}<li>{{if .HasURL}}<a href="{{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
+{{range .ZetLinks}}<li>{{if .HasURL}}<a href="{{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
+</ul>
+{{end}}
+{{if .HasLocLinks}}
+<h3>Local</h3>
+<ul>
+{{range .LocLinks}}<li><a href="{{.}}">{{.}}</a></li>{{end}}
 </ul>
 {{end}}
 {{if .HasExtLinks}}

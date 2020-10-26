@@ -336,7 +336,8 @@ var mapRefState = map[ast.RefState]string{
 	ast.RefStateZettel:       "zettel",
 	ast.RefStateZettelFound:  "zettel",
 	ast.RefStateZettelBroken: "broken",
-	ast.RefStateMaterial:     "material",
+	ast.RefStateLocal:        "local",
+	ast.RefStateExternal:     "external",
 }
 
 // VisitLink writes JSON code for links.

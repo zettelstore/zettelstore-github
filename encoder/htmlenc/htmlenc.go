@@ -551,14 +551,14 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 		}
 	}
 	switch ln.Ref.State {
-	case ast.RefStateZettelFound:
+	case ast.RefStateZettelFound, ast.RefStateLocal:
 		v.writeAHref(ln.Ref, ln.Attrs, ln.Inlines)
 	case ast.RefStateZettelBroken:
 		attrs := ln.Attrs.Clone()
 		attrs = attrs.Set("class", "zs-broken")
 		attrs = attrs.Set("title", "Zettel not found") // l10n
 		v.writeAHref(ln.Ref, attrs, ln.Inlines)
-	case ast.RefStateMaterial:
+	case ast.RefStateExternal:
 		attrs := ln.Attrs.Clone()
 		attrs = attrs.Set("class", "zs-external")
 		if v.enc.newWindow {

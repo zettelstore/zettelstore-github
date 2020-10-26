@@ -93,7 +93,8 @@ const (
 	RefStateZettel                       // Valid reference to an internal zettel
 	RefStateZettelFound                  // Valid reference to an existing internal zettel
 	RefStateZettelBroken                 // Valid reference to a non-existing internal zettel
-	RefStateMaterial                     // Valid reference to external material
+	RefStateLocal                        // Valid reference to a non-zettel, but local hosted
+	RefStateExternal                     // Valid reference to external material
 )
 
 // ParseReference parses a string and returns a reference.
@@ -105,10 +106,15 @@ func ParseReference(s string) *Reference {
 	if err != nil {
 		return &Reference{URL: nil, Value: s, State: RefStateInvalid}
 	}
-	if _, err := domain.ParseZettelID(u.Path); err == nil {
-		return &Reference{URL: u, Value: s, State: RefStateZettel}
+	if len(u.Scheme)+len(u.Opaque)+len(u.Host) == 0 && u.User == nil {
+		if _, err := domain.ParseZettelID(u.Path); err == nil {
+			return &Reference{URL: u, Value: s, State: RefStateZettel}
+		}
+		if len(u.Path) > 1 && u.Path[0] == '/' {
+			return &Reference{URL: u, Value: s, State: RefStateLocal}
+		}
 	}
-	return &Reference{URL: u, Value: s, State: RefStateMaterial}
+	return &Reference{URL: u, Value: s, State: RefStateExternal}
 }
 
 // String returns the string representation of a reference.
@@ -131,5 +137,8 @@ func (r *Reference) IsZettel() bool {
 	return false
 }
 
-// IsMaterial returns true if it is a referencen to extrnal material.
-func (r *Reference) IsMaterial() bool { return r.State == RefStateMaterial }
+// IsLocal returns true if reference is local
+func (r *Reference) IsLocal() bool { return r.State == RefStateLocal }
+
+// IsExternal returns true if it is a referencen to external material.
+func (r *Reference) IsExternal() bool { return r.State == RefStateExternal }
