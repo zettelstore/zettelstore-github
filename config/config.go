@@ -21,8 +21,6 @@
 package config
 
 import (
-	"fmt"
-
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/place/stock"
@@ -167,10 +165,7 @@ func GetIconMaterial() string {
 			return html
 		}
 	}
-	return fmt.Sprintf(
-		"<img class=\"zs-text-icon\" src=\"%vz/%v?_part=content&_format=raw\">",
-		URLPrefix(),
-		domain.MaterialIconID.Format())
+	return "&#8280;"
 }
 
 // GetFooterHTML returns HTML code tht should be embedded into the footer of each WebUI page

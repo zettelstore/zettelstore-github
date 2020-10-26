@@ -106,7 +106,6 @@ const (
 	RolesTemplateID  = ZettelID(10500)
 	TagsTemplateID   = ZettelID(10600)
 	BaseCSSID        = ZettelID(20001)
-	MaterialIconID   = ZettelID(30001)
 	TemplateZettelID = ZettelID(40001)
 )
 
