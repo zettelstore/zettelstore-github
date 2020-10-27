@@ -30,8 +30,8 @@ import (
 	"zettelstore.de/z/web/session"
 )
 
-// MakeGetNewZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
-func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
+// MakeGetCloneZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
+func MakeGetCloneZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("New zettel not possible in format %q", format), http.StatusBadRequest)
@@ -53,7 +53,7 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 		user := session.GetUser(ctx)
 		meta := zettel.Meta
 		te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
-			baseData:      te.makeBaseData(ctx, config.GetLang(meta), "New Zettel", user),
+			baseData:      te.makeBaseData(ctx, config.GetLang(meta), "Clone Zettel", user),
 			MetaTitle:     config.GetTitle(meta),
 			MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),
 			MetaRole:      config.GetRole(meta),
@@ -65,8 +65,8 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) ht
 	}
 }
 
-// MakePostNewZettelHandler creates a new HTTP handler to store content of an existing zettel.
-func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
+// MakePostCloneZettelHandler creates a new HTTP handler to store content of an existing zettel.
+func MakePostCloneZettelHandler(cloneZettel usecase.CloneZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zettel, hasContent, err := parseZettelForm(r, domain.InvalidZettelID)
 		if err != nil {
@@ -78,7 +78,7 @@ func MakePostNewZettelHandler(newZettel usecase.NewZettel) http.HandlerFunc {
 			return
 		}
 
-		if newZid, err := newZettel.Run(r.Context(), zettel); err != nil {
+		if newZid, err := cloneZettel.Run(r.Context(), zettel); err != nil {
 			checkUsecaseError(w, err)
 		} else {
 			http.Redirect(w, r, newURLBuilder('h').SetZid(newZid).String(), http.StatusFound)

@@ -27,24 +27,24 @@ import (
 	"zettelstore.de/z/domain"
 )
 
-// NewZettelPort is the interface used by this use case.
-type NewZettelPort interface {
+// CloneZettelPort is the interface used by this use case.
+type CloneZettelPort interface {
 	// CreateZettel creates a new zettel.
 	CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error)
 }
 
-// NewZettel is the data for this use case.
-type NewZettel struct {
-	port NewZettelPort
+// CloneZettel is the data for this use case.
+type CloneZettel struct {
+	port CloneZettelPort
 }
 
-// NewNewZettel creates a new use case.
-func NewNewZettel(port NewZettelPort) NewZettel {
-	return NewZettel{port: port}
+// NewCloneZettel creates a new use case.
+func NewCloneZettel(port CloneZettelPort) CloneZettel {
+	return CloneZettel{port: port}
 }
 
 // Run executes the use case.
-func (uc NewZettel) Run(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+func (uc CloneZettel) Run(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	meta := zettel.Meta
 	if meta.Zid.IsValid() {
 		return meta.Zid, nil // TODO: new error: already exists

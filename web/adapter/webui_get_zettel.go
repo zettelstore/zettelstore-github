@@ -129,7 +129,7 @@ func MakeGetHTMLZettelHandler(
 			HasTags:    len(tags) > 0,
 			Tags:       tags,
 			CanClone:   base.CanCreate && !zettel.Content.IsBinary(),
-			CloneURL:   newURLBuilder('n').SetZid(zid).String(),
+			CloneURL:   newURLBuilder('c').SetZid(zid).String(),
 			ExtURL:     extURL,
 			HasExtURL:  hasExtURL,
 			Content:    template.HTML(htmlContent),

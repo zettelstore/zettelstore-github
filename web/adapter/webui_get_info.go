@@ -162,7 +162,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			CanWrite:    te.canWrite(ctx, user, zettel),
 			EditURL:     newURLBuilder('e').SetZid(zid).String(),
 			CanClone:    base.CanCreate && !zettel.Content.IsBinary(),
-			CloneURL:    newURLBuilder('n').SetZid(zid).String(),
+			CloneURL:    newURLBuilder('c').SetZid(zid).String(),
 			CanRename:   te.canRename(ctx, user, zettel.Meta),
 			RenameURL:   newURLBuilder('r').SetZid(zid).String(),
 			CanDelete:   te.canDelete(ctx, user, zettel.Meta),
