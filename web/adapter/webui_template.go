@@ -62,6 +62,17 @@ type TemplateEngine struct {
 	templateCache map[domain.ZettelID]*template.Template
 	mxCache       sync.RWMutex
 	policy        policy.Policy
+
+	version       string
+	stylesheetURL string
+	homeURL       string
+	listZettelURL string
+	listRolesURL  string
+	listTagsURL   string
+	withAuth      bool
+	loginURL      string
+	reloadURL     string
+	searchURL     string
 }
 
 // NewTemplateEngine creates a new TemplateEngine.
@@ -69,6 +80,17 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 	te := &TemplateEngine{
 		place:  p,
 		policy: pol,
+
+		version:       config.GetVersion().Build,
+		stylesheetURL: newURLBuilder('z').SetZid(domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery("_part", "content").String(),
+		homeURL:       newURLBuilder('/').String(),
+		listZettelURL: newURLBuilder('h').String(),
+		listRolesURL:  newURLBuilder('k').SetZid(2).String(),
+		listTagsURL:   newURLBuilder('k').SetZid(3).String(),
+		withAuth:      config.WithAuth(),
+		loginURL:      newURLBuilder('a').String(),
+		reloadURL:     newURLBuilder('c').AppendQuery("_format", "html").String(),
+		searchURL:     newURLBuilder('s').String(),
 	}
 	te.observe(true, domain.InvalidZettelID)
 	p.RegisterChangeObserver(te.observe)
@@ -172,35 +194,42 @@ type baseData struct {
 func (te *TemplateEngine) makeBaseData(
 	ctx context.Context, lang string, title string, user *domain.Meta) baseData {
 	var (
+		newZettelURL  string
 		userZettelURL string
 		userIdent     string
 		userLogoutURL string
 	)
-	if user != nil {
+	canCreate := te.canCreate(ctx, user)
+	if canCreate {
+		newZettelURL = newURLBuilder('n').SetZid(domain.TemplateZettelID).String()
+	}
+	userIsValid := user != nil
+	if userIsValid {
 		userZettelURL = newURLBuilder('h').SetZid(user.Zid).String()
 		userIdent = user.GetDefault(domain.MetaKeyIdent, "")
 		userLogoutURL = newURLBuilder('a').SetZid(user.Zid).String()
 	}
+
 	return baseData{
 		Lang:          lang,
-		Version:       config.GetVersion().Build,
-		StylesheetURL: newURLBuilder('z').SetZid(domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery("_part", "content").String(),
+		Version:       te.version,
+		StylesheetURL: te.stylesheetURL,
 		Title:         title,
-		HomeURL:       newURLBuilder('/').String(),
-		ListZettelURL: newURLBuilder('h').String(),
-		ListRolesURL:  newURLBuilder('k').SetZid(2).String(),
-		ListTagsURL:   newURLBuilder('k').SetZid(3).String(),
-		CanCreate:     te.canCreate(ctx, user),
-		NewZettelURL:  newURLBuilder('n').SetZid(domain.TemplateZettelID).String(),
-		WithAuth:      config.WithAuth(),
-		UserIsValid:   user != nil,
+		HomeURL:       te.homeURL,
+		ListZettelURL: te.listZettelURL,
+		ListRolesURL:  te.listRolesURL,
+		ListTagsURL:   te.listTagsURL,
+		CanCreate:     canCreate,
+		NewZettelURL:  newZettelURL,
+		WithAuth:      te.withAuth,
+		UserIsValid:   userIsValid,
 		UserZettelURL: userZettelURL,
 		UserIdent:     userIdent,
 		UserLogoutURL: userLogoutURL,
-		LoginURL:      newURLBuilder('a').String(),
+		LoginURL:      te.loginURL,
 		CanReload:     te.policy.CanReload(user),
-		ReloadURL:     newURLBuilder('c').AppendQuery("_format", "html").String(),
-		SearchURL:     newURLBuilder('s').String(),
+		ReloadURL:     te.reloadURL,
+		SearchURL:     te.searchURL,
 		FooterHTML:    template.HTML(config.GetFooterHTML()),
 	}
 }
