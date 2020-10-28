@@ -37,22 +37,12 @@ import (
 )
 
 type templatePlace interface {
-	// CanCreateZettel returns true, if place could possibly create a new zettel.
 	CanCreateZettel(ctx context.Context) bool
-
-	// GetZettel retrieves a specific zettel.
 	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
-
-	// GetMeta retrieves just the meta data of a specific zettel.
 	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
-
-	// CanUpdateZettel returns true, if place could possibly update the given zettel.
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
 	CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool
-
-	// CanDeleteZettel returns true, if place could possibly delete the given zettel.
 	CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool
-
-	// CanRenameZettel returns true, if place could possibly rename the given zettel.
 	CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool
 }
 
@@ -168,40 +158,46 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 	return t, err
 }
 
+type simpleLink struct {
+	Text string
+	URL  string
+}
+
 type baseData struct {
-	Lang          string
-	Version       string
-	StylesheetURL string
-	Title         string
-	HomeURL       string
-	ListZettelURL string
-	ListRolesURL  string
-	ListTagsURL   string
-	CanCreate     bool
-	NewZettelURL  string
-	WithAuth      bool
-	UserIsValid   bool
-	UserZettelURL string
-	UserIdent     string
-	UserLogoutURL string
-	LoginURL      string
-	CanReload     bool
-	ReloadURL     string
-	SearchURL     string
-	FooterHTML    template.HTML
+	Lang           string
+	Version        string
+	StylesheetURL  string
+	Title          string
+	HomeURL        string
+	ListZettelURL  string
+	ListRolesURL   string
+	ListTagsURL    string
+	CanCreate      bool
+	NewZettelURL   string
+	NewZettelLinks []simpleLink
+	WithAuth       bool
+	UserIsValid    bool
+	UserZettelURL  string
+	UserIdent      string
+	UserLogoutURL  string
+	LoginURL       string
+	CanReload      bool
+	ReloadURL      string
+	SearchURL      string
+	FooterHTML     template.HTML
 }
 
 func (te *TemplateEngine) makeBaseData(
 	ctx context.Context, lang string, title string, user *domain.Meta) baseData {
 	var (
-		newZettelURL  string
-		userZettelURL string
-		userIdent     string
-		userLogoutURL string
+		newZettelLinks []simpleLink
+		userZettelURL  string
+		userIdent      string
+		userLogoutURL  string
 	)
 	canCreate := te.canCreate(ctx, user)
 	if canCreate {
-		newZettelURL = newURLBuilder('n').SetZid(domain.TemplateZettelID).String()
+		newZettelLinks = te.fetchNewTemplates(ctx, user)
 	}
 	userIsValid := user != nil
 	if userIsValid {
@@ -211,27 +207,57 @@ func (te *TemplateEngine) makeBaseData(
 	}
 
 	return baseData{
-		Lang:          lang,
-		Version:       te.version,
-		StylesheetURL: te.stylesheetURL,
-		Title:         title,
-		HomeURL:       te.homeURL,
-		ListZettelURL: te.listZettelURL,
-		ListRolesURL:  te.listRolesURL,
-		ListTagsURL:   te.listTagsURL,
-		CanCreate:     canCreate,
-		NewZettelURL:  newZettelURL,
-		WithAuth:      te.withAuth,
-		UserIsValid:   userIsValid,
-		UserZettelURL: userZettelURL,
-		UserIdent:     userIdent,
-		UserLogoutURL: userLogoutURL,
-		LoginURL:      te.loginURL,
-		CanReload:     te.policy.CanReload(user),
-		ReloadURL:     te.reloadURL,
-		SearchURL:     te.searchURL,
-		FooterHTML:    template.HTML(config.GetFooterHTML()),
+		Lang:           lang,
+		Version:        te.version,
+		StylesheetURL:  te.stylesheetURL,
+		Title:          title,
+		HomeURL:        te.homeURL,
+		ListZettelURL:  te.listZettelURL,
+		ListRolesURL:   te.listRolesURL,
+		ListTagsURL:    te.listTagsURL,
+		CanCreate:      canCreate,
+		NewZettelLinks: newZettelLinks,
+		WithAuth:       te.withAuth,
+		UserIsValid:    userIsValid,
+		UserZettelURL:  userZettelURL,
+		UserIdent:      userIdent,
+		UserLogoutURL:  userLogoutURL,
+		LoginURL:       te.loginURL,
+		CanReload:      te.policy.CanReload(user),
+		ReloadURL:      te.reloadURL,
+		SearchURL:      te.searchURL,
+		FooterHTML:     template.HTML(config.GetFooterHTML()),
 	}
+}
+
+var templatePlaceFilter = &place.Filter{
+	Expr: place.FilterExpr{
+		domain.MetaKeyRole: []string{domain.MetaValueRoleNewTemplate},
+	},
+}
+
+var templatePlaceSorter = &place.Sorter{
+	Order:      "id",
+	Descending: false,
+	Offset:     -1,
+	Limit:      31, // Just to be one the safe side...
+}
+
+func (te *TemplateEngine) fetchNewTemplates(ctx context.Context, user *domain.Meta) []simpleLink {
+	templateList, err := te.place.SelectMeta(ctx, templatePlaceFilter, templatePlaceSorter)
+	if err != nil {
+		return nil
+	}
+	result := make([]simpleLink, 0, len(templateList))
+	for _, meta := range templateList {
+		if te.policy.CanRead(user, meta) {
+			result = append(result, simpleLink{
+				Text: config.GetTitle(meta),
+				URL:  newURLBuilder('n').SetZid(meta.Zid).String(),
+			})
+		}
+	}
+	return result
 }
 
 func (te *TemplateEngine) renderTemplate(

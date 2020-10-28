@@ -153,8 +153,8 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.AddZettelRoute('a', http.MethodGet, adapter.MakeGetLogoutHandler())
 	router.AddListRoute('c', http.MethodGet, adapter.MakeReloadHandler(usecase.NewReload(pp)))
 	if !readonly {
-		router.AddZettelRoute('c', http.MethodGet, adapter.MakeGetCloneZettelHandler(te, ucGetZettel))
-		router.AddZettelRoute('c', http.MethodPost, adapter.MakePostCloneZettelHandler(usecase.NewCloneZettel(pp)))
+		router.AddZettelRoute('c', http.MethodGet, adapter.MakeGetCloneZettelHandler(te, ucGetZettel, usecase.NewCloneZettel()))
+		router.AddZettelRoute('c', http.MethodPost, adapter.MakePostCreateZettelHandler(usecase.NewCreateZettel(pp)))
 		router.AddZettelRoute('d', http.MethodGet, adapter.MakeGetDeleteZettelHandler(te, ucGetZettel))
 		router.AddZettelRoute('d', http.MethodPost, adapter.MakePostDeleteZettelHandler(usecase.NewDeleteZettel(pp)))
 		router.AddZettelRoute('e', http.MethodGet, adapter.MakeEditGetZettelHandler(te, ucGetZettel))
@@ -165,8 +165,8 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, ucGetZettel, ucGetMeta))
 	router.AddZettelRoute('k', http.MethodGet, adapter.MakeWebUIListsHandler(te, ucListMeta, ucListRoles, ucListTags))
 	if !readonly {
-		router.AddZettelRoute('n', http.MethodGet, adapter.MakeGetCloneZettelHandler(te, ucGetZettel))
-		router.AddZettelRoute('n', http.MethodPost, adapter.MakePostCloneZettelHandler(usecase.NewCloneZettel(pp))) // TODO
+		router.AddZettelRoute('n', http.MethodGet, adapter.MakeGetNewZettelHandler(te, ucGetZettel, usecase.NewNewZettel()))
+		router.AddZettelRoute('n', http.MethodPost, adapter.MakePostCreateZettelHandler(usecase.NewCreateZettel(pp)))
 	}
 	router.AddListRoute('r', http.MethodGet, adapter.MakeListRoleHandler(te, ucListRoles))
 	if !readonly {

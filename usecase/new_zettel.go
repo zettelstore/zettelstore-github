@@ -24,24 +24,24 @@ import (
 	"zettelstore.de/z/domain"
 )
 
-// CloneZettel is the data for this use case.
-type CloneZettel struct{}
+// NewZettel is the data for this use case.
+type NewZettel struct{}
 
-// NewCloneZettel creates a new use case.
-func NewCloneZettel() CloneZettel {
-	return CloneZettel{}
+// NewNewZettel creates a new use case.
+func NewNewZettel() NewZettel {
+	return NewZettel{}
 }
 
 // Run executes the use case.
-func (uc CloneZettel) Run(origZettel domain.Zettel) domain.Zettel {
+func (uc NewZettel) Run(origZettel domain.Zettel) domain.Zettel {
 	meta := origZettel.Meta.Clone()
-	if title, ok := meta.Get(domain.MetaKeyTitle); ok {
-		if len(title) > 0 {
-			title = "Copy of " + title
-		} else {
-			title = "Copy"
+	if role, ok := meta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleNewTemplate {
+		if newRole, ok := meta.Get(domain.MetaKeyNewRole); ok {
+			if len(newRole) > 0 {
+				meta.Set(domain.MetaKeyRole, newRole)
+			}
+			meta.Delete(domain.MetaKeyNewRole)
 		}
-		meta.Set(domain.MetaKeyTitle, title)
 	}
 	return domain.Zettel{Meta: meta, Content: origZettel.Content}
 }

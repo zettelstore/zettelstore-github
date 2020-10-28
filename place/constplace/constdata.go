@@ -72,7 +72,14 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 </nav>
 </div>
 {{- if .CanCreate}}
-<a href="{{.NewZettelURL}}">New</a>
+<div class="zs-dropdown">
+<button>New</button>
+<nav class="zs-dropdown-content">
+{{- range .NewZettelLinks}}
+<a href="{{.URL}}">{{.Text}}</a>
+{{- end}}
+</nav>
+</div>
 {{- end}}
 {{- if .WithAuth}}
 <div class="zs-dropdown">
@@ -177,6 +184,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 (<a href="{{.RoleURL}}">{{.RoleText}}</a>)
 {{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
 {{if .CanClone}}&#183; <a href="{{.CloneURL}}">Clone</a>{{end}}
+{{if .CanNew}}&#183; <a href="{{.NewURL}}">New</a>{{end}}
 {{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}" target="_blank">{{.ExtURL}}</a>{{end}}
 </div>
 </header>
@@ -199,6 +207,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <a href="{{.WebURL}}">Web</a>
 {{ if .CanWrite}} &#183; <a href="{{.EditURL}}">Edit</a>{{ end}}
 {{ if .CanClone}} &#183; <a href="{{.CloneURL}}">Clone</a>{{ end}}
+{{ if .CanNew}} &#183; <a href="{{.NewURL}}">New</a>{{ end}}
 {{ if .CanRename}}&#183; <a href="{{.RenameURL}}">Rename</a>{{end}}
 {{ if .CanDelete}}&#183; <a href="{{.DeleteURL}}">Delete</a>{{end}}
 </header>
@@ -653,11 +662,25 @@ footer {
 `,
 	},
 
-	domain.TemplateZettelID: constZettel{
+	domain.TemplateNewZettelID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:  "New Zettel",
-			domain.MetaKeySyntax: "zmk",
-			domain.MetaKeyRole:   "zettel",
+			domain.MetaKeyTitle:   "New Zettel",
+			domain.MetaKeySyntax:  "zmk",
+			domain.MetaKeyRole:    domain.MetaValueRoleNewTemplate,
+			domain.MetaKeyNewRole: "zettel",
+		},
+		"",
+	},
+
+	domain.TemplateNewUserID: constZettel{
+		constHeader{
+			domain.MetaKeyTitle:    "New User",
+			domain.MetaKeySyntax:   "zmk",
+			domain.MetaKeyRole:     domain.MetaValueRoleNewTemplate,
+			domain.MetaKeyNewRole:  "user",
+			domain.MetaKeyCred:     "",
+			domain.MetaKeyIdent:    "",
+			domain.MetaKeyUserRole: "reader",
 		},
 		"",
 	},

@@ -134,6 +134,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			matrix = append(matrix, row)
 		}
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
+		canClone := base.CanCreate && !zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
 			baseData
 			Zid         string
@@ -142,6 +143,8 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			EditURL     string
 			CanClone    bool
 			CloneURL    string
+			CanNew      bool
+			NewURL      string
 			CanRename   bool
 			RenameURL   string
 			CanDelete   bool
@@ -161,8 +164,10 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			WebURL:      newURLBuilder('h').SetZid(zid).String(),
 			CanWrite:    te.canWrite(ctx, user, zettel),
 			EditURL:     newURLBuilder('e').SetZid(zid).String(),
-			CanClone:    base.CanCreate && !zettel.Content.IsBinary(),
+			CanClone:    canClone,
 			CloneURL:    newURLBuilder('c').SetZid(zid).String(),
+			CanNew:      canClone && zettel.Meta.GetDefault(domain.MetaKeyRole, "") == domain.MetaValueRoleNewTemplate,
+			NewURL:      newURLBuilder('n').SetZid(zid).String(),
 			CanRename:   te.canRename(ctx, user, zettel.Meta),
 			RenameURL:   newURLBuilder('r').SetZid(zid).String(),
 			CanDelete:   te.canDelete(ctx, user, zettel.Meta),

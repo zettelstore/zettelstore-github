@@ -65,6 +65,20 @@ func KeyIsValid(key string) bool {
 	return reKey.MatchString(key)
 }
 
+// Supported key types.
+const (
+	MetaTypeBool    = 'b'
+	MetaTypeCred    = 'c'
+	MetaTypeEmpty   = 'e'
+	MetaTypeID      = 'i'
+	MetaTypeString  = 's'
+	MetaTypeTagSet  = 'T'
+	MetaTypeURL     = 'u'
+	MetaTypeUnknown = '\000'
+	MetaTypeWord    = 'w'
+	MetaTypeWordSet = 'W'
+)
+
 // Predefined keys.
 const (
 	MetaKeyID               = "id"
@@ -85,6 +99,7 @@ const (
 	MetaKeyIdent            = "ident"
 	MetaKeyLang             = "lang"
 	MetaKeyLicense          = "license"
+	MetaKeyNewRole          = "new-role"
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
 	MetaKeyURL              = "url"
@@ -92,28 +107,6 @@ const (
 	MetaKeyVisibility       = "visibility"
 	MetaKeyYAMLHeader       = "yaml-header"
 	MetaKeyZettelFileSyntax = "zettel-file-syntax"
-)
-
-// Important values for some keys.
-const (
-	MetaValueRoleUser         = "user"
-	MetaValueVisibilityOwner  = "owner"
-	MetaValueVisibilityLogin  = "login"
-	MetaValueVisibilityPublic = "public"
-)
-
-// Supported key types.
-const (
-	MetaTypeBool    = 'b'
-	MetaTypeCred    = 'c'
-	MetaTypeEmpty   = 'e'
-	MetaTypeID      = 'i'
-	MetaTypeString  = 's'
-	MetaTypeTagSet  = 'T'
-	MetaTypeURL     = 'u'
-	MetaTypeUnknown = '\000'
-	MetaTypeWord    = 'w'
-	MetaTypeWordSet = 'W'
 )
 
 var keyTypeMap = map[string]byte{
@@ -131,9 +124,11 @@ var keyTypeMap = map[string]byte{
 	MetaKeyDefaultSyntax:    MetaTypeWord,
 	MetaKeyDefaultTitle:     MetaTypeString,
 	MetaKeyFooterHTML:       MetaTypeString,
+	MetaKeyIconMaterial:     MetaTypeEmpty,
 	MetaKeyIdent:            MetaTypeWord,
 	MetaKeyLang:             MetaTypeWord,
 	MetaKeyLicense:          MetaTypeEmpty,
+	MetaKeyNewRole:          MetaTypeWord,
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
 	MetaKeyURL:              MetaTypeURL,
@@ -142,6 +137,15 @@ var keyTypeMap = map[string]byte{
 	MetaKeyYAMLHeader:       MetaTypeBool,
 	MetaKeyZettelFileSyntax: MetaTypeWordSet,
 }
+
+// Important values for some keys.
+const (
+	MetaValueRoleUser         = "user"
+	MetaValueRoleNewTemplate  = "new-template"
+	MetaValueVisibilityOwner  = "owner"
+	MetaValueVisibilityLogin  = "login"
+	MetaValueVisibilityPublic = "public"
+)
 
 // Type returns a type hint for the given key. If no type hint is specified,
 // MetaTypeUnknown is returned.

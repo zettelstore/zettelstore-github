@@ -171,12 +171,7 @@ func makeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 type metaInfo struct {
 	Title template.HTML
 	URL   string
-	Tags  []metaTagInfo
-}
-
-type metaTagInfo struct {
-	Text string
-	URL  string
+	Tags  []simpleLink
 }
 
 // buildHTMLMetaList builds a zettel list based on a meta list for HTML rendering.
@@ -204,13 +199,13 @@ func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
 	return metas, nil
 }
 
-func buildTagInfos(meta *domain.Meta) []metaTagInfo {
-	var tagInfos []metaTagInfo
+func buildTagInfos(meta *domain.Meta) []simpleLink {
+	var tagInfos []simpleLink
 	if tags, ok := meta.GetList(domain.MetaKeyTags); ok {
-		tagInfos = make([]metaTagInfo, 0, len(tags))
+		tagInfos = make([]simpleLink, 0, len(tags))
 		ub := newURLBuilder('h')
 		for _, t := range tags {
-			tagInfos = append(tagInfos, metaTagInfo{Text: t, URL: ub.AppendQuery("tags", t).String()})
+			tagInfos = append(tagInfos, simpleLink{Text: t, URL: ub.AppendQuery("tags", t).String()})
 			ub.ClearQuery()
 		}
 	}
