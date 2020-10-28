@@ -220,14 +220,14 @@ func (m *Meta) Get(key string) (string, bool) {
 		return m.Zid.Format(), true
 	}
 	value, ok := m.pairs[key]
-	return value, ok
+	return strings.TrimSpace(value), ok
 }
 
 // GetDefault retrieves the string value of the given key. If no value was
 // stored, the given default value is returned.
 func (m *Meta) GetDefault(key string, def string) string {
 	if value, ok := m.Get(key); ok {
-		return value
+		return strings.TrimSpace(value)
 	}
 	return def
 }
@@ -282,7 +282,7 @@ func (m *Meta) doPairs(first bool) []MetaPair {
 	if first {
 		for _, key := range firstKeys {
 			if value, ok := m.pairs[key]; ok {
-				result = append(result, MetaPair{Key: key, Value: value})
+				result = append(result, MetaPair{key, strings.TrimSpace(value)})
 			}
 		}
 	}
@@ -296,7 +296,7 @@ func (m *Meta) doPairs(first bool) []MetaPair {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		result = append(result, MetaPair{k, m.pairs[k]})
+		result = append(result, MetaPair{k, strings.TrimSpace(m.pairs[k])})
 	}
 	return result
 }
