@@ -415,12 +415,13 @@ nav.zs-menu {
   overflow: auto;
   white-space: nowrap;
   font-family: sans-serif;
+  padding-left: .5rem;
 }
 nav.zs-menu > a {
   float:left;
   display: inline-block;
   text-align: center;
-  padding:.83rem 1rem;
+  padding:.41rem .5rem;
   text-decoration: none;
   color:black;
 }
@@ -431,10 +432,10 @@ nav.zs-menu form {
   float: right;
 }
 nav.zs-menu form input[type=text] {
-  padding: .25rem;
+  padding: .12rem;
   border: none;
-  margin-top: .5rem;
-  margin-right: 1rem;
+  margin-top: .25rem;
+  margin-right: .5rem;
 }
 .zs-dropdown {
   float: left;
@@ -445,7 +446,7 @@ nav.zs-menu form input[type=text] {
   border: none;
   outline: none;
   color: black;
-  padding:.83rem 1rem;
+  padding:.41rem .5rem;
   background-color: inherit;
   font-family: inherit;
   margin: 0;
@@ -461,7 +462,7 @@ nav.zs-menu form input[type=text] {
 .zs-dropdown-content > a {
   float: none;
   color: black;
-  padding:.83rem 1rem;
+  padding:.41rem .5rem;
   text-decoration: none;
   display: block;
   text-align: left;
