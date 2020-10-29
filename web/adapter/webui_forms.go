@@ -65,11 +65,16 @@ func parseZettelForm(r *http.Request, zid domain.ZettelID) (domain.Zettel, bool,
 	if postSyntax, ok := trimmedFormValue(r, "syntax"); ok {
 		meta.Set(domain.MetaKeySyntax, postSyntax)
 	}
-	postContent, hasContent := trimmedFormValue(r, "content")
+	if values, ok := r.PostForm["content"]; ok && len(values) > 0 {
+		return domain.Zettel{
+			Meta:    meta,
+			Content: domain.NewContent(strings.ReplaceAll(strings.TrimSpace(values[0]), "\r\n", "\n")),
+		}, true, nil
+	}
 	return domain.Zettel{
 		Meta:    meta,
-		Content: domain.NewContent(strings.ReplaceAll(postContent, "\r\n", "\n")),
-	}, hasContent, nil
+		Content: domain.NewContent(""),
+	}, false, nil
 }
 
 func trimmedFormValue(r *http.Request, key string) (string, bool) {
