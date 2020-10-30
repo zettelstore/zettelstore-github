@@ -94,7 +94,7 @@ func NewZettelID(withSeconds bool) ZettelID {
 
 // Some important ZettelIDs
 const (
-	ConfigurationID     = ZettelID(1)
+	ConfigurationID     = ZettelID(100)
 	BaseTemplateID      = ZettelID(10100)
 	LoginTemplateID     = ZettelID(10200)
 	ListTemplateID      = ZettelID(10300)
