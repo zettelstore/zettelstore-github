@@ -562,7 +562,7 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 		attrs := ln.Attrs.Clone()
 		attrs = attrs.Set("class", "zs-external")
 		if v.enc.newWindow {
-			attrs = attrs.Set("target", "_blank")
+			attrs = attrs.Set("target", "_blank").Set("rel", "noopener noreferrer")
 		}
 		v.writeAHref(ln.Ref, attrs, ln.Inlines)
 		v.b.WriteString(v.enc.material)

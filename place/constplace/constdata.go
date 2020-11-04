@@ -185,7 +185,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
 {{if .CanClone}}&#183; <a href="{{.CloneURL}}">Clone</a>{{end}}
 {{if .CanNew}}&#183; <a href="{{.NewURL}}">New</a>{{end}}
-{{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}" target="_blank">{{.ExtURL}}</a>{{end}}
+{{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}" target="_blank" ref="noopener noreferrer">{{.ExtURL}}</a>{{end}}
 </div>
 </header>
 {{- .Content -}}
@@ -215,25 +215,31 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <table>{{- range .MetaData}}<tr><td>{{.Key}}</td><td>{{.Value}}</td></tr>{{- end}}</table>
 {{- if .HasLinks}}
 <h2>References</h2>
-{{if .HasZetLinks}}
+{{- if .HasZetLinks}}
 <h3>Zettel</h3>
 <ul>
-{{range .ZetLinks}}<li>{{if .HasURL}}<a href="{{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>{{end}}
+{{- range .ZetLinks}}
+<li>{{if .HasURL}}<a href="{{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>
+{{- end}}
 </ul>
-{{end}}
-{{if .HasLocLinks}}
+{{- end}}
+{{- if .HasLocLinks}}
 <h3>Local</h3>
 <ul>
-{{range .LocLinks}}<li><a href="{{.}}">{{.}}</a></li>{{end}}
+{{- range .LocLinks}}
+<li><a href="{{.}}">{{.}}</a></li>
+{{- end}}
 </ul>
-{{end}}
-{{if .HasExtLinks}}
+{{- end}}
+{{- if .HasExtLinks}}
 <h3>External</h3>
 <ul>
-{{range .ExtLinks}}<li><a href="{{.}}" target="_blank">{{.}}</a></li>{{end}}
+{{- range .ExtLinks}}
+<li><a href="{{.}}" target="_blank" ref="noopener noreferrer">{{.}}</a></li>
+{{- end}}
 </ul>
-{{end}}
-{{end}}
+{{- end}}
+{{- end}}
 <h2>Parts and format</h3>
 <table>
 {{- range .Matrix}}
