@@ -80,12 +80,13 @@ func MakeGetHTMLZettelHandler(
 			log.Println(err)
 			return
 		}
+		newWindow := true
 		htmlContent, err := formatBlocks(
 			z.Ast,
 			"html",
 			&langOption,
 			&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
-			&encoder.BoolOption{Key: "newwindow", Value: true},
+			&encoder.BoolOption{Key: "newwindow", Value: newWindow},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'h', getMeta, "", "")},
 			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
 		)
@@ -102,42 +103,44 @@ func MakeGetHTMLZettelHandler(
 		canClone := base.CanCreate && !zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
 			baseData
-			MetaHeader template.HTML
-			HTMLTitle  template.HTML
-			CanWrite   bool
-			EditURL    string
-			Zid        string
-			InfoURL    string
-			RoleText   string
-			RoleURL    string
-			HasTags    bool
-			Tags       []simpleLink
-			CanClone   bool
-			CloneURL   string
-			CanNew     bool
-			NewURL     string
-			HasExtURL  bool
-			ExtURL     string
-			Content    template.HTML
+			MetaHeader   template.HTML
+			HTMLTitle    template.HTML
+			CanWrite     bool
+			EditURL      string
+			Zid          string
+			InfoURL      string
+			RoleText     string
+			RoleURL      string
+			HasTags      bool
+			Tags         []simpleLink
+			CanClone     bool
+			CloneURL     string
+			CanNew       bool
+			NewURL       string
+			HasExtURL    bool
+			ExtURL       string
+			ExtNewWindow template.HTMLAttr
+			Content      template.HTML
 		}{
-			baseData:   base,
-			MetaHeader: template.HTML(metaHeader),
-			HTMLTitle:  template.HTML(htmlTitle),
-			CanWrite:   te.canWrite(ctx, user, zettel),
-			EditURL:    newURLBuilder('e').SetZid(zid).String(),
-			Zid:        zid.Format(),
-			InfoURL:    newURLBuilder('i').SetZid(zid).String(),
-			RoleText:   roleText,
-			RoleURL:    newURLBuilder('h').AppendQuery("role", roleText).String(),
-			HasTags:    len(tags) > 0,
-			Tags:       tags,
-			CanClone:   canClone,
-			CloneURL:   newURLBuilder('c').SetZid(zid).String(),
-			CanNew:     canClone && roleText == domain.MetaValueRoleNewTemplate,
-			NewURL:     newURLBuilder('n').SetZid(zid).String(),
-			ExtURL:     extURL,
-			HasExtURL:  hasExtURL,
-			Content:    template.HTML(htmlContent),
+			baseData:     base,
+			MetaHeader:   template.HTML(metaHeader),
+			HTMLTitle:    template.HTML(htmlTitle),
+			CanWrite:     te.canWrite(ctx, user, zettel),
+			EditURL:      newURLBuilder('e').SetZid(zid).String(),
+			Zid:          zid.Format(),
+			InfoURL:      newURLBuilder('i').SetZid(zid).String(),
+			RoleText:     roleText,
+			RoleURL:      newURLBuilder('h').AppendQuery("role", roleText).String(),
+			HasTags:      len(tags) > 0,
+			Tags:         tags,
+			CanClone:     canClone,
+			CloneURL:     newURLBuilder('c').SetZid(zid).String(),
+			CanNew:       canClone && roleText == domain.MetaValueRoleNewTemplate,
+			NewURL:       newURLBuilder('n').SetZid(zid).String(),
+			ExtURL:       extURL,
+			HasExtURL:    hasExtURL,
+			ExtNewWindow: htmlAttrNewWindow(newWindow && hasExtURL),
+			Content:      template.HTML(htmlContent),
 		})
 	}
 }

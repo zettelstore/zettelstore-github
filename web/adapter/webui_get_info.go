@@ -137,50 +137,52 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		canClone := base.CanCreate && !zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
 			baseData
-			Zid         string
-			WebURL      string
-			CanWrite    bool
-			EditURL     string
-			CanClone    bool
-			CloneURL    string
-			CanNew      bool
-			NewURL      string
-			CanRename   bool
-			RenameURL   string
-			CanDelete   bool
-			DeleteURL   string
-			MetaData    []metaDataInfo
-			HasLinks    bool
-			HasZetLinks bool
-			ZetLinks    []zettelReference
-			HasLocLinks bool
-			LocLinks    []string
-			HasExtLinks bool
-			ExtLinks    []string
-			Matrix      [][]matrixElement
+			Zid          string
+			WebURL       string
+			CanWrite     bool
+			EditURL      string
+			CanClone     bool
+			CloneURL     string
+			CanNew       bool
+			NewURL       string
+			CanRename    bool
+			RenameURL    string
+			CanDelete    bool
+			DeleteURL    string
+			MetaData     []metaDataInfo
+			HasLinks     bool
+			HasZetLinks  bool
+			ZetLinks     []zettelReference
+			HasLocLinks  bool
+			LocLinks     []string
+			HasExtLinks  bool
+			ExtLinks     []string
+			ExtNewWindow template.HTMLAttr
+			Matrix       [][]matrixElement
 		}{
-			baseData:    base,
-			Zid:         zid.Format(),
-			WebURL:      newURLBuilder('h').SetZid(zid).String(),
-			CanWrite:    te.canWrite(ctx, user, zettel),
-			EditURL:     newURLBuilder('e').SetZid(zid).String(),
-			CanClone:    canClone,
-			CloneURL:    newURLBuilder('c').SetZid(zid).String(),
-			CanNew:      canClone && zettel.Meta.GetDefault(domain.MetaKeyRole, "") == domain.MetaValueRoleNewTemplate,
-			NewURL:      newURLBuilder('n').SetZid(zid).String(),
-			CanRename:   te.canRename(ctx, user, zettel.Meta),
-			RenameURL:   newURLBuilder('r').SetZid(zid).String(),
-			CanDelete:   te.canDelete(ctx, user, zettel.Meta),
-			DeleteURL:   newURLBuilder('d').SetZid(zid).String(),
-			MetaData:    metaData,
-			HasLinks:    len(zetLinks)+len(extLinks)+len(locLinks) > 0,
-			HasZetLinks: len(zetLinks) > 0,
-			ZetLinks:    zetLinks,
-			HasLocLinks: len(locLinks) > 0,
-			LocLinks:    locLinks,
-			HasExtLinks: len(extLinks) > 0,
-			ExtLinks:    extLinks,
-			Matrix:      matrix,
+			baseData:     base,
+			Zid:          zid.Format(),
+			WebURL:       newURLBuilder('h').SetZid(zid).String(),
+			CanWrite:     te.canWrite(ctx, user, zettel),
+			EditURL:      newURLBuilder('e').SetZid(zid).String(),
+			CanClone:     canClone,
+			CloneURL:     newURLBuilder('c').SetZid(zid).String(),
+			CanNew:       canClone && zettel.Meta.GetDefault(domain.MetaKeyRole, "") == domain.MetaValueRoleNewTemplate,
+			NewURL:       newURLBuilder('n').SetZid(zid).String(),
+			CanRename:    te.canRename(ctx, user, zettel.Meta),
+			RenameURL:    newURLBuilder('r').SetZid(zid).String(),
+			CanDelete:    te.canDelete(ctx, user, zettel.Meta),
+			DeleteURL:    newURLBuilder('d').SetZid(zid).String(),
+			MetaData:     metaData,
+			HasLinks:     len(zetLinks)+len(extLinks)+len(locLinks) > 0,
+			HasZetLinks:  len(zetLinks) > 0,
+			ZetLinks:     zetLinks,
+			HasLocLinks:  len(locLinks) > 0,
+			LocLinks:     locLinks,
+			HasExtLinks:  len(extLinks) > 0,
+			ExtLinks:     extLinks,
+			ExtNewWindow: htmlAttrNewWindow(len(extLinks) > 0),
+			Matrix:       matrix,
 		})
 	}
 }

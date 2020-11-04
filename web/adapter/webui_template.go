@@ -230,6 +230,15 @@ func (te *TemplateEngine) makeBaseData(
 	}
 }
 
+// htmlAttrNewWindow eturns HTML attribute string for opening a link in a new window.
+// If hasURL is false an empty string is returned.
+func htmlAttrNewWindow(hasURL bool) template.HTMLAttr {
+	if hasURL {
+		return " target=\"_blank\" ref=\"noopener noreferrer\""
+	}
+	return ""
+}
+
 var templatePlaceFilter = &place.Filter{
 	Expr: place.FilterExpr{
 		domain.MetaKeyRole: []string{domain.MetaValueRoleNewTemplate},

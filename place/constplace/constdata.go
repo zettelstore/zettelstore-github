@@ -185,7 +185,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
 {{if .CanClone}}&#183; <a href="{{.CloneURL}}">Clone</a>{{end}}
 {{if .CanNew}}&#183; <a href="{{.NewURL}}">New</a>{{end}}
-{{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}" target="_blank" ref="noopener noreferrer">{{.ExtURL}}</a>{{end}}
+{{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}"{{.ExtNewWindow}}>{{.ExtURL}}</a>{{end}}
 </div>
 </header>
 {{- .Content -}}
@@ -235,7 +235,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <h3>External</h3>
 <ul>
 {{- range .ExtLinks}}
-<li><a href="{{.}}" target="_blank" ref="noopener noreferrer">{{.}}</a></li>
+<li><a href="{{.}}"{{$.ExtNewWindow}}>{{.}}</a></li>
 {{- end}}
 </ul>
 {{- end}}
