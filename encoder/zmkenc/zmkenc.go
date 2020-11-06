@@ -36,17 +36,10 @@ func init() {
 	})
 }
 
-type zmkEncoder struct {
-	adaptLink func(*ast.LinkNode) ast.InlineNode
-}
+type zmkEncoder struct{}
 
 // SetOption sets an option for this encoder.
-func (ze *zmkEncoder) SetOption(option encoder.Option) {
-	switch opt := option.(type) {
-	case *encoder.AdaptLinkOption:
-		ze.adaptLink = opt.Adapter
-	}
-}
+func (ze *zmkEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
 func (ze *zmkEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
@@ -306,14 +299,6 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 
 // VisitLink writes HTML code for links.
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
-	if adapt := v.enc.adaptLink; adapt != nil {
-		n := adapt(ln)
-		var ok bool
-		if ln, ok = n.(*ast.LinkNode); !ok {
-			n.Accept(v)
-			return
-		}
-	}
 	v.b.WriteString("[[")
 	v.acceptInlineSlice(ln.Inlines)
 	v.b.WriteByte('|')
