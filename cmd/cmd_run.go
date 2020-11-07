@@ -80,7 +80,7 @@ func setupPlaces(cfg *domain.Meta) (place.Place, int, error) {
 
 func getPlaceURIs(cfg *domain.Meta) []string {
 	readonly := cfg.GetBool("readonly")
-	hasGlobals := false
+	hasConst := false
 	var result []string = nil
 	for cnt := 1; ; cnt++ {
 		key := fmt.Sprintf("place-%v-uri", cnt)
@@ -88,8 +88,8 @@ func getPlaceURIs(cfg *domain.Meta) []string {
 		if !ok || uri == "" {
 			break
 		}
-		if uri == "globals:" {
-			hasGlobals = true
+		if uri == "const:" {
+			hasConst = true
 		}
 		if readonly {
 			if u, err := url.Parse(uri); err == nil {
@@ -102,8 +102,8 @@ func getPlaceURIs(cfg *domain.Meta) []string {
 		}
 		result = append(result, uri)
 	}
-	if !hasGlobals {
-		result = append(result, "globals:")
+	if !hasConst {
+		result = append(result, "const:")
 	}
 	return result
 }

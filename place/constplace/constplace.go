@@ -30,7 +30,7 @@ import (
 
 func init() {
 	place.Register(
-		"globals",
+		"const",
 		func(u *url.URL, next place.Place) (place.Place, error) {
 			return &constPlace{u: u, next: next, zettel: constZettelMap}, nil
 		})
