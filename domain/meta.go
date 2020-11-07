@@ -67,16 +67,16 @@ func KeyIsValid(key string) bool {
 
 // Supported key types.
 const (
-	MetaTypeBool    = 'b'
-	MetaTypeCred    = 'c'
-	MetaTypeEmpty   = 'e'
-	MetaTypeID      = 'i'
-	MetaTypeString  = 's'
-	MetaTypeTagSet  = 'T'
-	MetaTypeURL     = 'u'
-	MetaTypeUnknown = '\000'
-	MetaTypeWord    = 'w'
-	MetaTypeWordSet = 'W'
+	MetaTypeBool       = 'b'
+	MetaTypeCredential = 'c'
+	MetaTypeEmpty      = 'e'
+	MetaTypeID         = 'i'
+	MetaTypeString     = 's'
+	MetaTypeTagSet     = 'T'
+	MetaTypeURL        = 'u'
+	MetaTypeUnknown    = '\000'
+	MetaTypeWord       = 'w'
+	MetaTypeWordSet    = 'W'
 )
 
 // Predefined keys.
@@ -87,7 +87,7 @@ const (
 	MetaKeySyntax           = "syntax"
 	MetaKeyRole             = "role"
 	MetaKeyCopyright        = "copyright"
-	MetaKeyCred             = "cred"
+	MetaKeyCredential       = "credential"
 	MetaKeyDefaultCopyright = "default-copyright"
 	MetaKeyDefaultLang      = "default-lang"
 	MetaKeyDefaultLicense   = "default-license"
@@ -96,13 +96,13 @@ const (
 	MetaKeyDefaultTitle     = "default-title"
 	MetaKeyFooterHTML       = "footer-html"
 	MetaKeyIconMaterial     = "icon-material"
-	MetaKeyIdent            = "ident"
 	MetaKeyLang             = "lang"
 	MetaKeyLicense          = "license"
 	MetaKeyNewRole          = "new-role"
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
 	MetaKeyURL              = "url"
+	MetaKeyUserID           = "user-id"
 	MetaKeyUserRole         = "user-role"
 	MetaKeyVisibility       = "visibility"
 	MetaKeyYAMLHeader       = "yaml-header"
@@ -116,7 +116,7 @@ var keyTypeMap = map[string]byte{
 	MetaKeySyntax:           MetaTypeWord,
 	MetaKeyRole:             MetaTypeWord,
 	MetaKeyCopyright:        MetaTypeString,
-	MetaKeyCred:             MetaTypeCred,
+	MetaKeyCredential:       MetaTypeCredential,
 	MetaKeyDefaultCopyright: MetaTypeString,
 	MetaKeyDefaultLicense:   MetaTypeEmpty,
 	MetaKeyDefaultLang:      MetaTypeWord,
@@ -125,7 +125,7 @@ var keyTypeMap = map[string]byte{
 	MetaKeyDefaultTitle:     MetaTypeString,
 	MetaKeyFooterHTML:       MetaTypeString,
 	MetaKeyIconMaterial:     MetaTypeEmpty,
-	MetaKeyIdent:            MetaTypeWord,
+	MetaKeyUserID:           MetaTypeWord,
 	MetaKeyLang:             MetaTypeWord,
 	MetaKeyLicense:          MetaTypeEmpty,
 	MetaKeyNewRole:          MetaTypeWord,

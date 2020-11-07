@@ -58,7 +58,7 @@ func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
 	// could give herself the same ''ident''. Second, in most cases the owner
 	// will authenticate.
 	identMeta, err := uc.port.GetMeta(ctx, owner)
-	if err == nil && identMeta.GetDefault(domain.MetaKeyIdent, "") == ident {
+	if err == nil && identMeta.GetDefault(domain.MetaKeyUserID, "") == ident {
 		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
 			return nil, nil
 		}
@@ -67,8 +67,8 @@ func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
 	// Owner was not found or has another ident. Try via list search.
 	filter := place.Filter{
 		Expr: map[string][]string{
-			domain.MetaKeyIdent: []string{ident},
-			domain.MetaKeyRole:  []string{domain.MetaValueRoleUser},
+			domain.MetaKeyRole:   []string{domain.MetaValueRoleUser},
+			domain.MetaKeyUserID: []string{ident},
 		},
 	}
 	metaList, err := uc.port.SelectMeta(ctx, &filter, nil)
@@ -106,7 +106,7 @@ func (uc GetUserByZid) Run(ctx context.Context, zid domain.ZettelID, ident strin
 		return nil, err
 	}
 
-	if val, ok := userMeta.Get(domain.MetaKeyIdent); !ok || val != ident {
+	if val, ok := userMeta.Get(domain.MetaKeyUserID); !ok || val != ident {
 		return nil, nil
 	}
 	return userMeta, nil

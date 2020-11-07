@@ -128,13 +128,13 @@ func (err *ErrNotAllowed) Error() string {
 			"Operation %q on zettel %v not allowed for user %v/%v",
 			err.Op,
 			err.Zid.Format(),
-			err.User.GetDefault(domain.MetaKeyIdent, "?"),
+			err.User.GetDefault(domain.MetaKeyUserID, "?"),
 			err.User.Zid.Format())
 	}
 	return fmt.Sprintf(
 		"Operation %q not allowed for user %v/%v",
 		err.Op,
-		err.User.GetDefault(domain.MetaKeyIdent, "?"),
+		err.User.GetDefault(domain.MetaKeyUserID, "?"),
 		err.User.Zid.Format())
 }
 

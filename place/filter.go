@@ -101,7 +101,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case domain.MetaTypeCred:
+	case domain.MetaTypeCredential:
 		return matchNever
 	case domain.MetaTypeID:
 		return func(value string) bool {

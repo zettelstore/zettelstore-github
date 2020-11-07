@@ -202,7 +202,7 @@ func (te *TemplateEngine) makeBaseData(
 	userIsValid := user != nil
 	if userIsValid {
 		userZettelURL = newURLBuilder('h').SetZid(user.Zid).String()
-		userIdent = user.GetDefault(domain.MetaKeyIdent, "")
+		userIdent = user.GetDefault(domain.MetaKeyUserID, "")
 		userLogoutURL = newURLBuilder('a').SetZid(user.Zid).String()
 	}
 

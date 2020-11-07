@@ -58,7 +58,7 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 		return nil, err
 	}
 
-	if hashCred, ok := identMeta.Get(domain.MetaKeyCred); ok {
+	if hashCred, ok := identMeta.Get(domain.MetaKeyCredential); ok {
 		ok, err := cred.CompareHashAndCredential(hashCred, identMeta.Zid, ident, credential)
 		if err != nil {
 			return nil, err

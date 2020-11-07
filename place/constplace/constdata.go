@@ -681,13 +681,13 @@ footer {
 
 	domain.TemplateNewUserID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:    "New User",
-			domain.MetaKeySyntax:   "zmk",
-			domain.MetaKeyRole:     domain.MetaValueRoleNewTemplate,
-			domain.MetaKeyNewRole:  "user",
-			domain.MetaKeyCred:     "",
-			domain.MetaKeyIdent:    "",
-			domain.MetaKeyUserRole: "reader",
+			domain.MetaKeyTitle:      "New User",
+			domain.MetaKeySyntax:     "zmk",
+			domain.MetaKeyRole:       domain.MetaValueRoleNewTemplate,
+			domain.MetaKeyNewRole:    "user",
+			domain.MetaKeyCredential: "",
+			domain.MetaKeyUserID:     "",
+			domain.MetaKeyUserRole:   "reader",
 		},
 		"",
 	},

@@ -59,7 +59,7 @@ func GetToken(ident *domain.Meta, d time.Duration, kind Kind) ([]byte, error) {
 	if role, ok := ident.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
 		return nil, ErrNoUser
 	}
-	subject, ok := ident.Get(domain.MetaKeyIdent)
+	subject, ok := ident.Get(domain.MetaKeyUserID)
 	if !ok || len(subject) == 0 {
 		return nil, ErrNoIdent
 	}

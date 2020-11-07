@@ -64,8 +64,8 @@ func (d *defaultPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
 
 var noChangeUser = []string{
 	domain.MetaKeyID,
-	domain.MetaKeyIdent,
 	domain.MetaKeyRole,
+	domain.MetaKeyUserID,
 	domain.MetaKeyUserRole,
 }
 

@@ -55,7 +55,7 @@ type sortFunc func(i, j int) bool
 
 func getSortFunc(key string, descending bool, ml []*domain.Meta) sortFunc {
 	keyType := domain.KeyType(key)
-	if key == domain.MetaKeyID || keyType == domain.MetaTypeCred {
+	if key == domain.MetaKeyID || keyType == domain.MetaTypeCredential {
 		if descending {
 			return func(i, j int) bool { return ml[i].Zid > ml[j].Zid }
 		}
