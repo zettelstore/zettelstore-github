@@ -416,7 +416,9 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	v.b.WriteString(mapRefState[ln.Ref.State])
 	v.writeEscaped(ln.Ref.String())
 	v.b.WriteString("\" [")
-	v.acceptInlineSlice(ln.Inlines)
+	if !ln.OnlyRef {
+		v.acceptInlineSlice(ln.Inlines)
+	}
 	v.b.WriteByte(']')
 }
 

@@ -300,8 +300,10 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 // VisitLink writes HTML code for links.
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	v.b.WriteString("[[")
-	v.acceptInlineSlice(ln.Inlines)
-	v.b.WriteByte('|')
+	if !ln.OnlyRef {
+		v.acceptInlineSlice(ln.Inlines)
+		v.b.WriteByte('|')
+	}
 	v.b.WriteStrings(ln.Ref.String(), "]]")
 }
 

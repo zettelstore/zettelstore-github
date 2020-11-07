@@ -201,7 +201,9 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 
 // VisitLink writes text code for links.
 func (v *visitor) VisitLink(ln *ast.LinkNode) {
-	v.acceptInlineSlice(ln.Inlines)
+	if !ln.OnlyRef {
+		v.acceptInlineSlice(ln.Inlines)
+	}
 }
 
 // VisitImage writes text code for images.
