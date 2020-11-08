@@ -28,19 +28,18 @@ import (
 
 // postProcessBlocks is the entry point for post-processing a list of block nodes.
 func postProcessBlocks(bs ast.BlockSlice) ast.BlockSlice {
-	pp := postProcessor{marker: map[string]ast.Node{}}
+	pp := postProcessor{}
 	return pp.processBlockSlice(bs)
 }
 
 // postProcessInlines is the entry point for post-processing a list of inline nodes.
 func postProcessInlines(is ast.InlineSlice) ast.InlineSlice {
-	pp := postProcessor{marker: map[string]ast.Node{}}
+	pp := postProcessor{}
 	return pp.processInlineSlice(is)
 }
 
 // postProcessor is a visitor that cleans the abstract syntax tree.
 type postProcessor struct {
-	marker  map[string]ast.Node
 	inVerse bool
 }
 
@@ -234,18 +233,7 @@ func (pp *postProcessor) VisitFootnote(fn *ast.FootnoteNode) {
 }
 
 // VisitMark post-processes a mark.
-// It checks that there is no duplicate mark text. The first of such mark will
-// survive, all following marks will have a delete mark text.
-func (pp *postProcessor) VisitMark(mn *ast.MarkNode) {
-	if len(mn.Text) > 0 {
-		s := string(mn.Text)
-		if n, ok := pp.marker[s]; ok && n != mn {
-			mn.Text = ""
-		} else {
-			pp.marker[s] = mn
-		}
-	}
-}
+func (pp *postProcessor) VisitMark(mn *ast.MarkNode) {}
 
 var mapSemantic = map[ast.FormatCode]ast.FormatCode{
 	ast.FormatItalic: ast.FormatEmph,

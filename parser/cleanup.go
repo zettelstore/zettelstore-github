@@ -21,6 +21,7 @@
 package parser
 
 import (
+	"strconv"
 	"strings"
 
 	"zettelstore.de/z/ast"
@@ -34,12 +35,21 @@ import (
 func cleanupBlockSlice(bs ast.BlockSlice) {
 	cv := &cleanupVisitor{
 		textEnc: encoder.Create("text"),
+		doMark:  false,
 	}
-	ast.NewTopDownTraverser(cv).VisitBlockSlice(bs)
+	t := ast.NewTopDownTraverser(cv)
+	t.VisitBlockSlice(bs)
+	if cv.hasMark {
+		cv.doMark = true
+		t.VisitBlockSlice(bs)
+	}
 }
 
 type cleanupVisitor struct {
 	textEnc encoder.Encoder
+	ids     map[string]ast.Node
+	hasMark bool
+	doMark  bool
 }
 
 // VisitZettel does nothing.
@@ -51,9 +61,9 @@ func (cv *cleanupVisitor) VisitVerbatim(vn *ast.VerbatimNode) {}
 // VisitRegion does nothing.
 func (cv *cleanupVisitor) VisitRegion(rn *ast.RegionNode) {}
 
-// VisitHeading does nothing.
+// VisitHeading calculates the heading slug.
 func (cv *cleanupVisitor) VisitHeading(hn *ast.HeadingNode) {
-	if hn == nil || hn.Inlines == nil {
+	if cv.doMark || hn == nil || hn.Inlines == nil {
 		return
 	}
 	var sb strings.Builder
@@ -61,7 +71,10 @@ func (cv *cleanupVisitor) VisitHeading(hn *ast.HeadingNode) {
 	if err != nil {
 		return
 	}
-	hn.Slug = strfun.Slugify(sb.String())
+	s := strfun.Slugify(sb.String())
+	if len(s) > 0 {
+		hn.Slug = cv.addIdentifier(s, hn)
+	}
 }
 
 // VisitHRule does nothing.
@@ -106,11 +119,43 @@ func (cv *cleanupVisitor) VisitCite(cn *ast.CiteNode) {}
 // VisitFootnote does nothing.
 func (cv *cleanupVisitor) VisitFootnote(fn *ast.FootnoteNode) {}
 
-// VisitMark does nothing.
-func (cv *cleanupVisitor) VisitMark(mn *ast.MarkNode) {}
+// VisitMark checks for duplicate marks and changes them.
+func (cv *cleanupVisitor) VisitMark(mn *ast.MarkNode) {
+	if mn == nil {
+		return
+	}
+	if !cv.doMark {
+		cv.hasMark = true
+		return
+	}
+	if len(mn.Text) == 0 {
+		mn.Text = cv.addIdentifier("*", mn)
+		return
+	}
+	mn.Text = cv.addIdentifier(mn.Text, mn)
+}
 
 // VisitFormat does nothing.
 func (cv *cleanupVisitor) VisitFormat(fn *ast.FormatNode) {}
 
 // VisitLiteral does nothing.
 func (cv *cleanupVisitor) VisitLiteral(ln *ast.LiteralNode) {}
+
+func (cv *cleanupVisitor) addIdentifier(id string, node ast.Node) string {
+	if cv.ids == nil {
+		cv.ids = map[string]ast.Node{id: node}
+		return id
+	}
+	if n, ok := cv.ids[id]; ok && n != node {
+		prefix := id + "-"
+		for count := 1; ; count++ {
+			newID := prefix + strconv.Itoa(count)
+			if n, ok := cv.ids[newID]; !ok || n == node {
+				cv.ids[newID] = node
+				return newID
+			}
+		}
+	}
+	cv.ids[id] = node
+	return id
+}

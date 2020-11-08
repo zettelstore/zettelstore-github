@@ -33,6 +33,7 @@ var tests = []struct{ in, exp string }{
 	{"äöüÄÖÜß", "aouaouß"},
 	{"\"aèf", "aef"},
 	{"a#b", "a-b"},
+	{"*", ""},
 }
 
 func TestSlugify(t *testing.T) {
