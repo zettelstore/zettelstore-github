@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -73,6 +74,8 @@ var exceptions = []string{
 	"<http://foo.bar.baz/test?q=hello&id=22&boolean>\n",        // 591
 }
 
+var reHeadingID = regexp.MustCompile(` id="[^"]*"`)
+
 func TestMarkdownSpec(t *testing.T) {
 	content, err := ioutil.ReadFile("../testdata/markdown/spec.json")
 	if err != nil {
@@ -116,6 +119,9 @@ func TestMarkdownSpec(t *testing.T) {
 					mdHTML = strings.ReplaceAll(mdHTML, "\"MAILTO:", "\"mailto:")
 					gotHTML := sb.String()
 					gotHTML = strings.ReplaceAll(gotHTML, " class=\"zs-external\"", "")
+					if strings.Count(gotHTML, "<h") > 0 {
+						gotHTML = reHeadingID.ReplaceAllString(gotHTML, "")
+					}
 					if gotHTML != mdHTML {
 						mdHTML := strings.ReplaceAll(mdHTML, "<li>\n", "<li>")
 						if gotHTML != mdHTML {

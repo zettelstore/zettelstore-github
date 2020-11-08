@@ -139,6 +139,9 @@ func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
 	strLvl := strconv.Itoa(lvl)
 	v.b.WriteStrings("<h", strLvl)
 	v.visitAttributes(hn.Attrs)
+	if slug := hn.Slug; len(slug) > 0 {
+		v.b.WriteStrings(" id=\"", slug, "\"")
+	}
 	v.b.WriteByte('>')
 	v.acceptInlineSlice(hn.Inlines)
 	v.b.WriteStrings("</h", strLvl, ">\n")

@@ -94,6 +94,7 @@ func (rn *RegionNode) Accept(v Visitor) { v.VisitRegion(rn) }
 type HeadingNode struct {
 	Level   int
 	Inlines InlineSlice // Heading text, possibly formatted
+	Slug    string      // Heading text, suitable to be used as an URL fragment
 	Attrs   *Attributes
 }
 

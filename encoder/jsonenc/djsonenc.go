@@ -181,6 +181,10 @@ func (v *detailVisitor) VisitHeading(hn *ast.HeadingNode) {
 	v.visitAttributes(hn.Attrs)
 	v.writeContentStart('n')
 	v.b.WriteString(strconv.Itoa(hn.Level))
+	if slug := hn.Slug; len(slug) > 0 {
+		v.writeContentStart('s')
+		v.b.WriteStrings("\"", slug, "\"")
+	}
 	v.writeContentStart('i')
 	v.acceptInlineSlice(hn.Inlines)
 	v.b.WriteByte('}')

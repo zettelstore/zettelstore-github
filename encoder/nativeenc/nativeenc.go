@@ -225,7 +225,7 @@ func (v *visitor) VisitRegion(rn *ast.RegionNode) {
 
 // VisitHeading writes the native code for a heading.
 func (v *visitor) VisitHeading(hn *ast.HeadingNode) {
-	v.b.WriteStrings("[Heading ", strconv.Itoa(hn.Level))
+	v.b.WriteStrings("[Heading ", strconv.Itoa(hn.Level), " \"", hn.Slug, "\"")
 	v.visitAttributes(hn.Attrs)
 	v.b.WriteByte(' ')
 	v.acceptInlineSlice(hn.Inlines)

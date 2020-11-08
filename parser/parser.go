@@ -72,7 +72,9 @@ func Get(name string) *Info {
 
 // ParseBlocks parses some input and returns a slice of block nodes.
 func ParseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
-	return Get(syntax).ParseBlocks(inp, meta, syntax)
+	bs := Get(syntax).ParseBlocks(inp, meta, syntax)
+	cleanupBlockSlice(bs)
+	return bs
 }
 
 // ParseInlines parses some input and returns a slice of inline nodes.
