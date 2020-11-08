@@ -42,9 +42,13 @@ type zmkEncoder struct{}
 func (ze *zmkEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
-func (ze *zmkEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (ze *zmkEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
 	v := newVisitor(w, ze)
-	zettel.Meta.WriteAsHeader(&v.b)
+	if inhMeta {
+		zettel.InhMeta.WriteAsHeader(&v.b)
+	} else {
+		zettel.Meta.WriteAsHeader(&v.b)
+	}
 	v.acceptBlockSlice(zettel.Ast)
 	length, err := v.b.Flush()
 	return length, err

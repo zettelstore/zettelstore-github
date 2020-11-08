@@ -42,10 +42,14 @@ type jsonEncoder struct{}
 func (je *jsonEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
-func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
 	b := encoder.NewBufWriter(w)
 	b.WriteString("{\"meta\":")
-	writeMeta(&b, zettel.Meta)
+	if inhMeta {
+		writeMeta(&b, zettel.InhMeta)
+	} else {
+		writeMeta(&b, zettel.Meta)
+	}
 	b.WriteString(",\"content\":")
 	writeContent(&b, zettel.Content)
 	b.WriteByte('}')

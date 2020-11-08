@@ -40,9 +40,13 @@ type textEncoder struct{}
 func (te *textEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel does nothing.
-func (te *textEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (te *textEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
 	v := newVisitor(w)
-	te.WriteMeta(&v.b, zettel.Meta)
+	if inhMeta {
+		te.WriteMeta(&v.b, zettel.InhMeta)
+	} else {
+		te.WriteMeta(&v.b, zettel.Meta)
+	}
 	v.acceptBlockSlice(zettel.Ast)
 	length, err := v.b.Flush()
 	return length, err

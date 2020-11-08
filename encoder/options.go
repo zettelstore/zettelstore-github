@@ -23,7 +23,6 @@ package encoder
 
 import (
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
 )
 
 // StringOption is an option with a string value
@@ -43,14 +42,6 @@ type BoolOption struct {
 
 // Name returns the visible name of this option.
 func (bo *BoolOption) Name() string { return bo.Key }
-
-// MetaOption is an option with meta data as the value.
-type MetaOption struct {
-	Meta *domain.Meta
-}
-
-// Name returns the visible name of this option.
-func (mo *MetaOption) Name() string { return "meta" }
 
 // TitleOption is an option to give the title as a AST inline slice
 type TitleOption struct {

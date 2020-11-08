@@ -54,7 +54,7 @@ func cmdFile(cfg *domain.Meta) (int, error) {
 		fmt.Fprintf(os.Stderr, "Unknown format %q\n", format)
 		return 2, nil
 	}
-	_, err = enc.WriteZettel(os.Stdout, z)
+	_, err = enc.WriteZettel(os.Stdout, z, format != "raw")
 	if err != nil {
 		return 2, err
 	}

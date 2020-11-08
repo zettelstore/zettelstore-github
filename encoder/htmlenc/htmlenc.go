@@ -44,7 +44,6 @@ type htmlEncoder struct {
 	adaptLink  func(*ast.LinkNode) ast.InlineNode
 	adaptImage func(*ast.ImageNode) ast.InlineNode
 	adaptCite  func(*ast.CiteNode) ast.InlineNode
-	meta       *domain.Meta
 	ignoreMeta map[string]bool
 	footnotes  []*ast.FootnoteNode
 }
@@ -65,8 +64,6 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 		case "xhtml":
 			he.xhtml = opt.Value
 		}
-	case *encoder.MetaOption:
-		he.meta = opt.Meta
 	case *encoder.StringsOption:
 		switch opt.Key {
 		case "no-meta":
@@ -91,7 +88,7 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel encodes a full zettel as HTML5.
-func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
 	v := newVisitor(he, w)
 	if !he.xhtml {
 		v.b.WriteString("<!DOCTYPE html>\n")
@@ -101,8 +98,8 @@ func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error)
 	var sb strings.Builder
 	textEnc.WriteInlines(&sb, zettel.Title)
 	v.b.WriteStrings("<title>", sb.String(), "</title>")
-	if he.meta != nil {
-		v.acceptMeta(he.meta, false)
+	if inhMeta {
+		v.acceptMeta(zettel.InhMeta, false)
 	} else {
 		v.acceptMeta(zettel.Meta, false)
 	}

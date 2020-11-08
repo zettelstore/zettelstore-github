@@ -40,14 +40,11 @@ func init() {
 type nativeEncoder struct {
 	adaptLink  func(*ast.LinkNode) ast.InlineNode
 	adaptImage func(*ast.ImageNode) ast.InlineNode
-	meta       *domain.Meta
 }
 
 // SetOption sets one option for this encoder.
 func (ne *nativeEncoder) SetOption(option encoder.Option) {
 	switch opt := option.(type) {
-	case *encoder.MetaOption:
-		ne.meta = opt.Meta
 	case *encoder.AdaptLinkOption:
 		ne.adaptLink = opt.Adapter
 	case *encoder.AdaptImageOption:
@@ -56,13 +53,13 @@ func (ne *nativeEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel encodes the zettel to the writer.
-func (ne *nativeEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (ne *nativeEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
 	v := newVisitor(w, ne)
 	v.b.WriteString("[Title ")
 	v.acceptInlineSlice(zettel.Title)
 	v.b.WriteByte(']')
-	if ne.meta != nil {
-		v.acceptMeta(ne.meta, false)
+	if inhMeta {
+		v.acceptMeta(zettel.InhMeta, false)
 	} else {
 		v.acceptMeta(zettel.Meta, false)
 	}

@@ -77,14 +77,14 @@ func MakeGetZettelHandler(
 
 		switch part {
 		case "zettel":
+			inhMeta := false
 			if format != "raw" {
 				w.Header().Set("Content-Type", format2ContentType(format))
+				inhMeta = true
 			}
-			err = writeZettel(w, z, format,
-				&langOption,
+			enc := encoder.Create(format, &langOption,
 				&linkAdapter,
 				&imageAdapter,
-				&encoder.MetaOption{Meta: z.InhMeta},
 				&encoder.StringsOption{
 					Key: "no-meta",
 					Value: []string{
@@ -92,9 +92,18 @@ func MakeGetZettelHandler(
 					},
 				},
 			)
+			if enc == nil {
+				err = errNoSuchFormat
+			} else {
+				_, err = enc.WriteZettel(w, z, inhMeta)
+			}
 		case "meta":
 			w.Header().Set("Content-Type", format2ContentType(format))
-			err = writeMeta(w, z.Meta, format)
+			if format == "raw" {
+				err = writeMeta(w, z.Meta, format) // Don't write inherited meta data, just the raw
+			} else {
+				err = writeMeta(w, z.InhMeta, format)
+			}
 		case "content":
 			if format == "raw" {
 				if ct, ok := syntax2contentType(config.GetSyntax(z.Meta)); ok {
