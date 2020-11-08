@@ -86,19 +86,20 @@ func ParseTitle(title string) ast.InlineSlice {
 }
 
 // ParseZettel parses the zettel based on the syntax.
-func ParseZettel(zettel domain.Zettel, syntax string) (*ast.Zettel, *domain.Meta) {
-	meta := config.AddDefaultValues(zettel.Meta)
+func ParseZettel(zettel domain.Zettel, syntax string) *ast.Zettel {
+	meta := zettel.Meta
+	inhMeta := config.AddDefaultValues(zettel.Meta)
 	if len(syntax) == 0 {
-		syntax, _ = meta.Get(domain.MetaKeySyntax)
+		syntax, _ = inhMeta.Get(domain.MetaKeySyntax)
 	}
-	title, _ := meta.Get(domain.MetaKeyTitle)
-	zid := meta.Zid
+	title, _ := inhMeta.Get(domain.MetaKeyTitle)
 	z := &ast.Zettel{
-		Zid:     zid,
-		Meta:    zettel.Meta,
+		Zid:     meta.Zid,
+		Meta:    meta,
 		Content: zettel.Content,
+		InhMeta: inhMeta,
 		Title:   ParseTitle(title),
-		Ast:     ParseBlocks(input.NewInput(zettel.Content.AsString()), zettel.Meta, syntax),
+		Ast:     ParseBlocks(input.NewInput(zettel.Content.AsString()), inhMeta, syntax),
 	}
-	return z, meta
+	return z
 }

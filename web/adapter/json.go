@@ -34,29 +34,29 @@ import (
 	"zettelstore.de/z/usecase"
 )
 
-func writeJSONZettel(ctx context.Context, w http.ResponseWriter, z *ast.Zettel, meta *domain.Meta, format string, part string, getMeta usecase.GetMeta) error {
+func writeJSONZettel(ctx context.Context, w http.ResponseWriter, z *ast.Zettel, format string, part string, getMeta usecase.GetMeta) error {
 	var err error
 	switch part {
 	case "zettel":
-		err = writeJSONHeader(w, z.Meta, format)
+		err = writeJSONHeader(w, z.Zid, format)
 		if err == nil {
-			err = writeJSONMeta(w, z, meta, format)
+			err = writeJSONMeta(w, z, format)
 		}
 		if err == nil {
 			err = writeJSONContent(ctx, w, z, format, part, getMeta)
 		}
 	case "meta":
-		err = writeJSONHeader(w, z.Meta, format)
+		err = writeJSONHeader(w, z.Zid, format)
 		if err == nil {
-			err = writeJSONMeta(w, z, z.Meta, format)
+			err = writeJSONMeta(w, z, format)
 		}
 	case "content":
-		err = writeJSONHeader(w, z.Meta, format)
+		err = writeJSONHeader(w, z.Zid, format)
 		if err == nil {
 			err = writeJSONContent(ctx, w, z, format, part, getMeta)
 		}
 	case "id":
-		writeJSONHeader(w, z.Meta, format)
+		writeJSONHeader(w, z.Zid, format)
 	default:
 		panic(part)
 	}
@@ -76,17 +76,17 @@ var (
 	jsonFooter        = []byte("}")
 )
 
-func writeJSONHeader(w http.ResponseWriter, meta *domain.Meta, format string) error {
+func writeJSONHeader(w http.ResponseWriter, zid domain.ZettelID, format string) error {
 	w.Header().Set("Content-Type", format2ContentType(format))
 	_, err := w.Write(jsonHeader1)
 	if err == nil {
-		_, err = w.Write(meta.Zid.FormatBytes())
+		_, err = w.Write(zid.FormatBytes())
 	}
 	if err == nil {
 		_, err = w.Write(jsonHeader2)
 	}
 	if err == nil {
-		_, err = w.Write([]byte(newURLBuilder('z').SetZid(meta.Zid).String()))
+		_, err = w.Write([]byte(newURLBuilder('z').SetZid(zid).String()))
 	}
 	if err == nil && format != encoder.GetDefaultFormat() {
 		_, err = w.Write(jsonHeader3)
@@ -100,10 +100,10 @@ func writeJSONHeader(w http.ResponseWriter, meta *domain.Meta, format string) er
 	return err
 }
 
-func writeJSONMeta(w http.ResponseWriter, z *ast.Zettel, meta *domain.Meta, format string) error {
+func writeJSONMeta(w http.ResponseWriter, z *ast.Zettel, format string) error {
 	_, err := w.Write(jsonMetaHeader)
 	if err == nil {
-		err = writeMeta(w, meta, format, &encoder.TitleOption{Inline: z.Title})
+		err = writeMeta(w, z.InhMeta, format, &encoder.TitleOption{Inline: z.Title})
 	}
 	return err
 }
@@ -156,7 +156,7 @@ func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*
 		if readZettel {
 			zettel, err1 := getZettel.Run(ctx, meta.Zid)
 			if err1 == nil {
-				z, meta = parser.ParseZettel(zettel, "")
+				z = parser.ParseZettel(zettel, "")
 			} else {
 				err = err1
 			}
@@ -168,11 +168,12 @@ func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*
 				Zid:     meta.Zid,
 				Meta:    meta,
 				Content: "",
+				InhMeta: config.AddDefaultValues(meta),
 				Title:   parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, config.GetDefaultTitle())),
 				Ast:     nil,
 			}
 		}
-		err = writeJSONZettel(ctx, w, z, z.Meta, format, part, getMeta)
+		err = writeJSONZettel(ctx, w, z, format, part, getMeta)
 	}
 	if err == nil {
 		_, err = w.Write(jsonListFooter)

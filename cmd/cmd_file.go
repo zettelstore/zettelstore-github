@@ -39,7 +39,7 @@ func cmdFile(cfg *domain.Meta) (int, error) {
 	if meta == nil {
 		return 2, err
 	}
-	z, _ := parser.ParseZettel(
+	z := parser.ParseZettel(
 		domain.Zettel{
 			Meta:    meta,
 			Content: domain.NewContent(inp.Src[inp.Pos:]),

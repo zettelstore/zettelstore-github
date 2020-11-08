@@ -52,7 +52,7 @@ func MakeGetZettelHandler(
 		}
 		q := r.URL.Query()
 		syntax := q.Get("syntax")
-		z, meta := parser.ParseZettel(zettel, syntax)
+		z := parser.ParseZettel(zettel, syntax)
 
 		format := getFormat(r, q, encoder.GetDefaultFormat())
 		part := getPart(q, "zettel")
@@ -64,14 +64,14 @@ func MakeGetZettelHandler(
 				http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
 				return
 			}
-			if err := writeJSONZettel(ctx, w, z, meta, format, part, getMeta); err != nil {
+			if err := writeJSONZettel(ctx, w, z, format, part, getMeta); err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)
 			}
 			return
 		}
 
-		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(z.InhMeta)}
 		linkAdapter := encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta, part, format)}
 		imageAdapter := encoder.AdaptImageOption{Adapter: makeImageAdapter()}
 
@@ -84,7 +84,7 @@ func MakeGetZettelHandler(
 				&langOption,
 				&linkAdapter,
 				&imageAdapter,
-				&encoder.MetaOption{Meta: meta},
+				&encoder.MetaOption{Meta: z.InhMeta},
 				&encoder.StringsOption{
 					Key: "no-meta",
 					Value: []string{
@@ -94,10 +94,10 @@ func MakeGetZettelHandler(
 			)
 		case "meta":
 			w.Header().Set("Content-Type", format2ContentType(format))
-			err = writeMeta(w, zettel.Meta, format)
+			err = writeMeta(w, z.Meta, format)
 		case "content":
 			if format == "raw" {
-				if ct, ok := syntax2contentType(config.GetSyntax(zettel.Meta)); ok {
+				if ct, ok := syntax2contentType(config.GetSyntax(z.Meta)); ok {
 					w.Header().Add("Content-Type", ct)
 				}
 			} else {

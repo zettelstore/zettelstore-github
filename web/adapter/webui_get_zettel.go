@@ -52,9 +52,9 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		syntax := r.URL.Query().Get("syntax")
-		z, meta := parser.ParseZettel(zettel, syntax)
+		z := parser.ParseZettel(zettel, syntax)
 
-		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(z.InhMeta)}
 		textTitle, err := formatInlines(z.Title, "text", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -62,7 +62,7 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		metaHeader, err := formatMeta(
-			meta,
+			z.InhMeta,
 			"html",
 			&encoder.StringsOption{
 				Key:   "no-meta",

@@ -114,7 +114,7 @@ func checkZmkEncoder(t *testing.T, zettel *ast.Zettel) {
 	gotFirst := sb.String()
 	sb.Reset()
 
-	newZettel, _ := parser.ParseZettel(domain.Zettel{
+	newZettel := parser.ParseZettel(domain.Zettel{
 		Meta: zettel.Meta, Content: domain.NewContent("\n" + gotFirst)}, "")
 	zmkEncoder.WriteBlocks(&sb, newZettel.Ast)
 	gotSecond := sb.String()
@@ -145,7 +145,7 @@ func TestContentRegression(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			z, _ := parser.ParseZettel(zettel, "")
+			z := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
 				t.Run(fmt.Sprintf("%s::%d(%s)", place.Location(), meta.Zid, format), func(st *testing.T) {
 					resultName := filepath.Join(wd, "result", "content", placeName, z.Zid.Format()+"."+format)
@@ -194,7 +194,7 @@ func TestMetaRegression(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			z, _ := parser.ParseZettel(zettel, "")
+			z := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
 				t.Run(fmt.Sprintf("%s::%d(%s)", place.Location(), meta.Zid, format), func(st *testing.T) {
 					resultName := filepath.Join(wd, "result", "meta", placeName, z.Zid.Format()+"."+format)

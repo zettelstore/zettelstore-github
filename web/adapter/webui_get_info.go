@@ -80,9 +80,9 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			return
 		}
 		syntax := q.Get("syntax")
-		z, meta := parser.ParseZettel(zettel, syntax)
+		z := parser.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(z.InhMeta)}
 		getTitle := func(zid domain.ZettelID) (string, int) {
 			meta, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
