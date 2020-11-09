@@ -22,13 +22,16 @@ package adapter
 
 import (
 	"context"
+	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
@@ -60,14 +63,15 @@ func MakeWebUIListsHandler(te *TemplateEngine, listMeta usecase.ListMeta, listRo
 }
 
 func renderWebUIZettelList(w http.ResponseWriter, r *http.Request, te *TemplateEngine, listMeta usecase.ListMeta) {
+	query := r.URL.Query()
+	filter, sorter := getFilterSorter(query, false)
 	ctx := r.Context()
-	filter, sorter := getFilterSorter(r.URL.Query(), false)
-	metaList, err := listMeta.Run(ctx, filter, sorter)
-	if err != nil {
-		checkUsecaseError(w, err)
-		return
-	}
-	renderWebUIMetaList(ctx, w, te, metaList)
+	renderWebUIMetaList(
+		ctx, w, te, sorter,
+		func(sorter *place.Sorter) ([]*domain.Meta, error) {
+			return listMeta.Run(ctx, filter, sorter)
+		},
+		func(offset int) string { return newPageURL('h', query, offset, "_offset", "_limit") })
 }
 
 type roleInfo struct {
@@ -169,23 +173,61 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 // MakeSearchHandler creates a new HTTP handler for the use case "search".
 func MakeSearchHandler(te *TemplateEngine, search usecase.Search, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		filter, sorter := getFilterSorter(r.URL.Query(), true)
+		query := r.URL.Query()
+		filter, sorter := getFilterSorter(query, true)
 		if filter == nil || len(filter.Expr) == 0 {
 			http.Redirect(w, r, newURLBuilder('h').String(), http.StatusFound)
 			return
 		}
 
 		ctx := r.Context()
-		metaList, err := search.Run(ctx, filter, sorter)
+		renderWebUIMetaList(
+			ctx, w, te, sorter,
+			func(sorter *place.Sorter) ([]*domain.Meta, error) {
+				return search.Run(ctx, filter, sorter)
+			},
+			func(offset int) string { return newPageURL('s', query, offset, "offset", "limit") })
+	}
+}
+
+func renderWebUIMetaList(
+	ctx context.Context, w http.ResponseWriter, te *TemplateEngine,
+	sorter *place.Sorter,
+	ucMetaList func(sorter *place.Sorter) ([]*domain.Meta, error),
+	pageURL func(int) string) {
+
+	var metaList []*domain.Meta
+	var err error
+	var prevURL, nextURL string
+	if lps := config.GetListPageSize(); lps > 0 {
+		sorter = ensureSorter(sorter)
+		if sorter.Limit < lps {
+			sorter.Limit = lps + 1
+		}
+
+		metaList, err = ucMetaList(sorter)
 		if err != nil {
 			checkUsecaseError(w, err)
 			return
 		}
-		renderWebUIMetaList(ctx, w, te, metaList)
+		if offset := sorter.Offset; offset > 0 {
+			offset -= lps
+			if offset < 0 {
+				offset = 0
+			}
+			prevURL = pageURL(offset)
+		}
+		if len(metaList) >= sorter.Limit {
+			nextURL = pageURL(sorter.Offset + lps)
+			metaList = metaList[:len(metaList)-1]
+		}
+	} else {
+		metaList, err = ucMetaList(sorter)
+		if err != nil {
+			checkUsecaseError(w, err)
+			return
+		}
 	}
-}
-
-func renderWebUIMetaList(ctx context.Context, w http.ResponseWriter, te *TemplateEngine, metaList []*domain.Meta) {
 	user := session.GetUser(ctx)
 	metas, err := buildHTMLMetaList(metaList)
 	if err != nil {
@@ -195,9 +237,34 @@ func renderWebUIMetaList(ctx context.Context, w http.ResponseWriter, te *Templat
 	}
 	te.renderTemplate(ctx, w, domain.ListTemplateID, struct {
 		baseData
-		Metas []metaInfo
+		Metas       []metaInfo
+		HasPrevNext bool
+		HasPrev     bool
+		PrevURL     template.URL
+		HasNext     bool
+		NextURL     template.URL
 	}{
-		baseData: te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user),
-		Metas:    metas,
+		baseData:    te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user),
+		Metas:       metas,
+		HasPrevNext: len(prevURL) > 0 || len(nextURL) > 0,
+		HasPrev:     len(prevURL) > 0,
+		PrevURL:     template.URL(prevURL),
+		HasNext:     len(nextURL) > 0,
+		NextURL:     template.URL(nextURL),
 	})
+}
+
+func newPageURL(key byte, query url.Values, offset int, offsetKey, limitKey string) string {
+	urlBuilder := newURLBuilder(key)
+	for key, values := range query {
+		if key != offsetKey && key != limitKey {
+			for _, val := range values {
+				urlBuilder.AppendQuery(key, val)
+			}
+		}
+	}
+	if offset > 0 {
+		urlBuilder.AppendQuery(offsetKey, strconv.Itoa(offset))
+	}
+	return urlBuilder.String()
 }

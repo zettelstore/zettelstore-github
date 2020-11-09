@@ -71,6 +71,7 @@ const (
 	MetaTypeCredential = 'c'
 	MetaTypeEmpty      = 'e'
 	MetaTypeID         = 'i'
+	MetaTypeNumber     = 'n'
 	MetaTypeString     = 's'
 	MetaTypeTagSet     = 'T'
 	MetaTypeURL        = 'u'
@@ -98,6 +99,7 @@ const (
 	MetaKeyIconMaterial     = "icon-material"
 	MetaKeyLang             = "lang"
 	MetaKeyLicense          = "license"
+	MetaKeyListPageSize     = "list-page-size"
 	MetaKeyNewRole          = "new-role"
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
@@ -128,6 +130,7 @@ var keyTypeMap = map[string]byte{
 	MetaKeyUserID:           MetaTypeWord,
 	MetaKeyLang:             MetaTypeWord,
 	MetaKeyLicense:          MetaTypeEmpty,
+	MetaKeyListPageSize:     MetaTypeNumber,
 	MetaKeyNewRole:          MetaTypeWord,
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
@@ -523,8 +526,6 @@ func addToMeta(m *Meta, key, val string) {
 		if _, err := ParseZettelID(val); err == nil {
 			m.Set(key, val)
 		}
-	//case MetaContextKey:
-	//	addSet(m, key, v, func(s string) bool { return IsValidID(s) })
 	case MetaTypeEmpty:
 		fallthrough
 	default:

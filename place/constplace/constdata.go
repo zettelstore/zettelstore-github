@@ -159,7 +159,17 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <ul>
 {{range .Metas}}<li><a href="{{.URL}}">{{.Title}}</a><span class="zs-meta">{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}</span></li>{{end}}
 </ul>
-<p>Items: {{len .Metas}}</p>
+{{- if .HasPrevNext}}
+<p>
+{{- if .HasPrev}}
+<a href="{{.PrevURL}}" rel="prev">Prev</a>
+{{- if .HasNext}},{{- end}}
+{{- end}}
+{{- if .HasNext}}
+<a href="{{.NextURL}}" rel="next">Next</a>
+{{- end}}
+</p>
+{{- end}}
 {{end}}`)},
 
 	domain.DetailTemplateID: constZettel{

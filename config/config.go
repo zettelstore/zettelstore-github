@@ -21,6 +21,8 @@
 package config
 
 import (
+	"strconv"
+
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/place/stock"
@@ -176,4 +178,17 @@ func GetFooterHTML() string {
 		}
 	}
 	return ""
+}
+
+// GetListPageSize returns the maximum length of a list to be returned in WebUI.
+// A value less or equal to zero signals no limit.
+func GetListPageSize() int {
+	if config := getConfigurationMeta(); config != nil {
+		if data, ok := config.Get(domain.MetaKeyListPageSize); ok {
+			if value, err := strconv.Atoi(data); err == nil {
+				return value
+			}
+		}
+	}
+	return 0
 }
