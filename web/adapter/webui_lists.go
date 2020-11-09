@@ -21,6 +21,7 @@
 package adapter
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"sort"
@@ -66,21 +67,7 @@ func renderWebUIZettelList(w http.ResponseWriter, r *http.Request, te *TemplateE
 		checkUsecaseError(w, err)
 		return
 	}
-
-	user := session.GetUser(ctx)
-	metas, err := buildHTMLMetaList(metaList)
-	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		log.Println(err)
-		return
-	}
-	te.renderTemplate(r.Context(), w, domain.ListTemplateID, struct {
-		baseData
-		Metas []metaInfo
-	}{
-		baseData: te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user),
-		Metas:    metas,
-	})
+	renderWebUIMetaList(ctx, w, te, metaList)
 }
 
 type roleInfo struct {
@@ -176,5 +163,41 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 		baseData:  base,
 		MinCounts: minCounts,
 		Tags:      tagsList,
+	})
+}
+
+// MakeSearchHandler creates a new HTTP handler for the use case "search".
+func MakeSearchHandler(te *TemplateEngine, search usecase.Search, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		filter, sorter := getFilterSorter(r.URL.Query(), true)
+		if filter == nil || len(filter.Expr) == 0 {
+			http.Redirect(w, r, newURLBuilder('h').String(), http.StatusFound)
+			return
+		}
+
+		ctx := r.Context()
+		metaList, err := search.Run(ctx, filter, sorter)
+		if err != nil {
+			checkUsecaseError(w, err)
+			return
+		}
+		renderWebUIMetaList(ctx, w, te, metaList)
+	}
+}
+
+func renderWebUIMetaList(ctx context.Context, w http.ResponseWriter, te *TemplateEngine, metaList []*domain.Meta) {
+	user := session.GetUser(ctx)
+	metas, err := buildHTMLMetaList(metaList)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+	te.renderTemplate(ctx, w, domain.ListTemplateID, struct {
+		baseData
+		Metas []metaInfo
+	}{
+		baseData: te.makeBaseData(ctx, config.GetDefaultLang(), config.GetSiteName(), user),
+		Metas:    metas,
 	})
 }
