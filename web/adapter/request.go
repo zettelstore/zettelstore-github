@@ -63,10 +63,11 @@ func getPart(q url.Values, defPart string) string {
 	return part
 }
 
-func getFilterSorter(q url.Values) (filter *place.Filter, sorter *place.Sorter) {
+func getFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter *place.Sorter) {
+	sortKey, offsetKey, limitKey, negateKey, sKey := getQueryKeys(forSearch)
 	for key, values := range q {
 		switch key {
-		case "_sort":
+		case sortKey:
 			if len(values) > 0 {
 				descending := false
 				sortkey := values[0]
@@ -80,24 +81,24 @@ func getFilterSorter(q url.Values) (filter *place.Filter, sorter *place.Sorter) 
 					sorter.Descending = descending
 				}
 			}
-		case "_offset":
+		case offsetKey:
 			if len(values) > 0 {
 				if offset, err := strconv.Atoi(values[0]); err == nil {
 					sorter = ensureSorter(sorter)
 					sorter.Offset = offset
 				}
 			}
-		case "_limit":
+		case limitKey:
 			if len(values) > 0 {
 				if limit, err := strconv.Atoi(values[0]); err == nil {
 					sorter = ensureSorter(sorter)
 					sorter.Limit = limit
 				}
 			}
-		case "_negate":
+		case negateKey:
 			filter = ensureFilter(filter)
 			filter.Negate = true
-		case "_s":
+		case sKey:
 			cleanedValues := make([]string, 0, len(values))
 			for _, val := range values {
 				if len(val) > 0 {
@@ -109,13 +110,20 @@ func getFilterSorter(q url.Values) (filter *place.Filter, sorter *place.Sorter) 
 				filter.Expr[""] = cleanedValues
 			}
 		default:
-			if domain.KeyIsValid(key) {
+			if !forSearch && domain.KeyIsValid(key) {
 				filter = ensureFilter(filter)
 				filter.Expr[key] = values
 			}
 		}
 	}
 	return filter, sorter
+}
+
+func getQueryKeys(forSearch bool) (string, string, string, string, string) {
+	if forSearch {
+		return "sort", "offset", "limit", "negate", "s"
+	}
+	return "_sort", "_offset", "_limit", "_negate", "_s"
 }
 
 func ensureFilter(filter *place.Filter) *place.Filter {

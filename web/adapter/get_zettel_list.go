@@ -36,7 +36,7 @@ import (
 func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
-		filter, sorter := getFilterSorter(q)
+		filter, sorter := getFilterSorter(q, false)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
 		if err != nil {
 			checkUsecaseError(w, err)

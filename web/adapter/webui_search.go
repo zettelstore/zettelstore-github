@@ -23,11 +23,9 @@ package adapter
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
-	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
@@ -36,40 +34,7 @@ import (
 func MakeSearchHandler(te *TemplateEngine, search usecase.Search, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
-		var filter *place.Filter
-		var sorter *place.Sorter
-		for key, values := range query {
-			switch key {
-			case "offset":
-				if len(values) > 0 {
-					if offset, err := strconv.Atoi(values[0]); err == nil {
-						sorter = ensureSorter(sorter)
-						sorter.Offset = offset
-					}
-				}
-			case "limit":
-				if len(values) > 0 {
-					if limit, err := strconv.Atoi(values[0]); err == nil {
-						sorter = ensureSorter(sorter)
-						sorter.Limit = limit
-					}
-				}
-			case "negate":
-				filter = ensureFilter(filter)
-				filter.Negate = true
-			case "s":
-				cleanedValues := make([]string, 0, len(values))
-				for _, val := range values {
-					if len(val) > 0 {
-						cleanedValues = append(cleanedValues, val)
-					}
-				}
-				if len(cleanedValues) > 0 {
-					filter = ensureFilter(filter)
-					filter.Expr[""] = cleanedValues
-				}
-			}
-		}
+		filter, sorter := getFilterSorter(query, true)
 		if filter == nil || len(filter.Expr) == 0 {
 			http.Redirect(w, r, newURLBuilder('h').String(), http.StatusFound)
 			return
