@@ -47,12 +47,12 @@ func MakeWebUIListsHandler(te *TemplateEngine, listMeta usecase.ListMeta, listRo
 			http.NotFound(w, r)
 			return
 		}
-		switch zid.Format() {
-		case "00000000000001":
+		switch zid {
+		case 1:
 			renderWebUIZettelList(w, r, te, listMeta)
-		case "00000000000002":
+		case 2:
 			renderWebUIRolesList(w, r, te, listRole)
-		case "00000000000003":
+		case 3:
 			renderWebUITagsList(w, r, te, listTags)
 		}
 	}
