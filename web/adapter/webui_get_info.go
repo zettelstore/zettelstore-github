@@ -98,8 +98,8 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			}
 			return "", 1
 		}
-		links, images := collect.References(z)
-		zetLinks, locLinks, extLinks := splitIntExtLinks(getTitle, append(links, images...))
+		summary := collect.References(z)
+		zetLinks, locLinks, extLinks := splitIntExtLinks(getTitle, append(summary.Links, summary.Images...))
 
 		// Render as HTML
 		textTitle, err := formatInlines(z.Title, "text", nil, langOption)

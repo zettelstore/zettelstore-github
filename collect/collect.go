@@ -24,16 +24,22 @@ import (
 	"zettelstore.de/z/ast"
 )
 
+// Summary stores the relevant parts of the syntax tree
+type Summary struct {
+	Links  []*ast.Reference // list of all referenced links
+	Images []*ast.Reference // list of all referenced images
+}
+
 // References returns all references mentioned in the given zettel. This also
 // includes references to images.
-func References(zettel *ast.Zettel) (links, images []*ast.Reference) {
-	lv := &linkVisitor{nil, nil}
-	ast.NewTopDownTraverser(lv).VisitBlockSlice(zettel.Ast)
-	return lv.links, lv.images
+func References(zettel *ast.Zettel) Summary {
+	lv := linkVisitor{}
+	ast.NewTopDownTraverser(&lv).VisitBlockSlice(zettel.Ast)
+	return lv.summary
 }
 
 type linkVisitor struct {
-	links, images []*ast.Reference
+	summary Summary
 }
 
 // VisitZettel does nothing.
@@ -80,13 +86,13 @@ func (lv *linkVisitor) VisitBreak(bn *ast.BreakNode) {}
 
 // VisitLink collects the given link as a reference.
 func (lv *linkVisitor) VisitLink(ln *ast.LinkNode) {
-	lv.links = append(lv.links, ln.Ref)
+	lv.summary.Links = append(lv.summary.Links, ln.Ref)
 }
 
 // VisitImage collects the image links as a reference.
 func (lv *linkVisitor) VisitImage(in *ast.ImageNode) {
 	if in.Ref != nil {
-		lv.images = append(lv.images, in.Ref)
+		lv.summary.Images = append(lv.summary.Images, in.Ref)
 	}
 }
 
