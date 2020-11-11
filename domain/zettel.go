@@ -94,20 +94,22 @@ func NewZettelID(withSeconds bool) ZettelID {
 
 // Some important ZettelIDs
 const (
-	ConfigurationID     = ZettelID(1)
-	BaseTemplateID      = ZettelID(10100)
-	LoginTemplateID     = ZettelID(10200)
-	ListTemplateID      = ZettelID(10300)
-	DetailTemplateID    = ZettelID(10401)
-	InfoTemplateID      = ZettelID(10402)
-	FormTemplateID      = ZettelID(10403)
-	RenameTemplateID    = ZettelID(10404)
-	DeleteTemplateID    = ZettelID(10405)
-	RolesTemplateID     = ZettelID(10500)
-	TagsTemplateID      = ZettelID(10600)
-	BaseCSSID           = ZettelID(20001)
-	TemplateNewZettelID = ZettelID(40001)
-	TemplateNewUserID   = ZettelID(40002)
+	ConfigurationID  = ZettelID(1)
+	BaseTemplateID   = ZettelID(10100)
+	LoginTemplateID  = ZettelID(10200)
+	ListTemplateID   = ZettelID(10300)
+	DetailTemplateID = ZettelID(10401)
+	InfoTemplateID   = ZettelID(10402)
+	FormTemplateID   = ZettelID(10403)
+	RenameTemplateID = ZettelID(10404)
+	DeleteTemplateID = ZettelID(10405)
+	RolesTemplateID  = ZettelID(10500)
+	TagsTemplateID   = ZettelID(10600)
+	BaseCSSID        = ZettelID(20001)
+
+	// Range 90000...99999 is reserved for zettel templates
+	TemplateNewZettelID = ZettelID(91001)
+	TemplateNewUserID   = ZettelID(96001)
 )
 
 // Zettel --------------------------------------------------------------------
