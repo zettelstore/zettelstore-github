@@ -195,7 +195,9 @@ func buildTagInfos(meta *domain.Meta) []simpleLink {
 		tagInfos = make([]simpleLink, 0, len(tags))
 		ub := newURLBuilder('h')
 		for _, t := range tags {
-			tagInfos = append(tagInfos, simpleLink{Text: t, URL: ub.AppendQuery("tags", t).String()})
+			// Cast to template.HTML is ok, because "t" is a tag name
+			// and contains only legal characters by construction.
+			tagInfos = append(tagInfos, simpleLink{Text: template.HTML(t), URL: ub.AppendQuery("tags", t).String()})
 			ub.ClearQuery()
 		}
 	}

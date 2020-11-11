@@ -101,7 +101,6 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		summary := collect.References(z)
 		zetLinks, locLinks, extLinks := splitIntExtLinks(getTitle, append(summary.Links, summary.Images...))
 
-		// Render as HTML
 		textTitle, err := formatInlines(z.Title, "text", nil, langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)

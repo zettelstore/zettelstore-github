@@ -21,6 +21,7 @@
 package adapter
 
 import (
+	"html/template"
 	"net/http"
 	"strings"
 
@@ -30,6 +31,7 @@ import (
 
 type formZettelData struct {
 	baseData
+	Heading       template.HTML
 	MetaTitle     string
 	MetaTags      string
 	MetaRole      string

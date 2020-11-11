@@ -273,7 +273,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 		`{{define "content"}}
 <article>
 <header>
-<h1>{{.Title}}</h1>
+<h1>{{.Heading}}</h1>
 </header>
 <form method="POST">
 <div>

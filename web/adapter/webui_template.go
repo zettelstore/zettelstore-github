@@ -32,6 +32,9 @@ import (
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/encoder"
+	"zettelstore.de/z/input"
+	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/web/session"
 )
@@ -159,7 +162,7 @@ func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.Zet
 }
 
 type simpleLink struct {
-	Text string
+	Text template.HTML
 	URL  string
 }
 
@@ -260,8 +263,18 @@ func (te *TemplateEngine) fetchNewTemplates(ctx context.Context, user *domain.Me
 	result := make([]simpleLink, 0, len(templateList))
 	for _, meta := range templateList {
 		if te.policy.CanRead(user, meta) {
+			title := config.GetTitle(meta)
+			langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+			astTitle := parser.ParseInlines(input.NewInput(config.GetTitle(meta)), "zmk")
+			menuTitle, err := formatInlines(astTitle, "html", &langOption)
+			if err != nil {
+				menuTitle, err = formatInlines(astTitle, "text", &langOption)
+				if err != nil {
+					menuTitle = title
+				}
+			}
 			result = append(result, simpleLink{
-				Text: config.GetTitle(meta),
+				Text: template.HTML(menuTitle),
 				URL:  newURLBuilder('n').SetZid(meta.Zid).String(),
 			})
 		}

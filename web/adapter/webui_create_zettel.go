@@ -22,10 +22,16 @@ package adapter
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
+
+	"zettelstore.de/z/input"
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/encoder"
+	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
@@ -34,7 +40,7 @@ import (
 func MakeGetCloneZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, cloneZettel usecase.CloneZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if origZettel, ok := getOrigZettel(w, r, getZettel, "Clone"); ok {
-			renderZettelForm(w, r, te, cloneZettel.Run(origZettel), "Clone Zettel")
+			renderZettelForm(w, r, te, cloneZettel.Run(origZettel), "Clone Zettel", template.HTML("Clone Zettel"))
 		}
 	}
 }
@@ -43,7 +49,22 @@ func MakeGetCloneZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, 
 func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, newZettel usecase.NewZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if origZettel, ok := getOrigZettel(w, r, getZettel, "New"); ok {
-			renderZettelForm(w, r, te, newZettel.Run(origZettel), "New Zettel")
+			meta := origZettel.Meta
+			title := parser.ParseInlines(input.NewInput(config.GetTitle(meta)), "zmk")
+			langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+			textTitle, err := formatInlines(title, "text", &langOption)
+			if err != nil {
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+				log.Println(err)
+				return
+			}
+			htmlTitle, err := formatInlines(title, "html", &langOption)
+			if err != nil {
+				http.Error(w, "Internal error", http.StatusInternalServerError)
+				log.Println(err)
+				return
+			}
+			renderZettelForm(w, r, te, newZettel.Run(origZettel), textTitle, template.HTML(htmlTitle))
 		}
 	}
 }
@@ -66,12 +87,13 @@ func getOrigZettel(w http.ResponseWriter, r *http.Request, getZettel usecase.Get
 	return origZettel, true
 }
 
-func renderZettelForm(w http.ResponseWriter, r *http.Request, te *TemplateEngine, zettel domain.Zettel, heading string) {
+func renderZettelForm(w http.ResponseWriter, r *http.Request, te *TemplateEngine, zettel domain.Zettel, title string, heading template.HTML) {
 	ctx := r.Context()
 	user := session.GetUser(ctx)
 	meta := zettel.Meta
 	te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
-		baseData:      te.makeBaseData(ctx, config.GetLang(meta), heading, user),
+		baseData:      te.makeBaseData(ctx, config.GetLang(meta), title, user),
+		Heading:       heading,
 		MetaTitle:     config.GetTitle(meta),
 		MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),
 		MetaRole:      config.GetRole(meta),
