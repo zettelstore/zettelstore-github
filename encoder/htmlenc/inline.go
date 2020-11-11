@@ -91,7 +91,7 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 			attrs = attrs.Set("target", "_blank").Set("rel", "noopener noreferrer")
 		}
 		v.writeAHref(ln.Ref, attrs, ln.Inlines)
-		v.b.WriteString(v.enc.material)
+		v.b.WriteString(v.enc.markerExternal)
 	default:
 		v.b.WriteString("<a href=\"")
 		v.writeQuotedEscaped(ln.Ref.Value)

@@ -114,7 +114,7 @@ func MakeGetZettelHandler(
 			}
 			err = writeContent(w, z, format,
 				&langOption,
-				&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
+				&encoder.StringOption{Key: domain.MetaKeyMarkerExternal, Value: config.GetMarkerExternal()},
 				&linkAdapter,
 				&imageAdapter,
 			)

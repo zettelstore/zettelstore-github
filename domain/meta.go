@@ -96,11 +96,11 @@ const (
 	MetaKeyDefaultSyntax    = "default-syntax"
 	MetaKeyDefaultTitle     = "default-title"
 	MetaKeyFooterHTML       = "footer-html"
-	MetaKeyIconMaterial     = "icon-material"
 	MetaKeyLang             = "lang"
 	MetaKeyLicense          = "license"
 	MetaKeyListPageSize     = "list-page-size"
 	MetaKeyNewRole          = "new-role"
+	MetaKeyMarkerExternal   = "marker-external"
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
 	MetaKeyURL              = "url"
@@ -126,12 +126,12 @@ var keyTypeMap = map[string]byte{
 	MetaKeyDefaultSyntax:    MetaTypeWord,
 	MetaKeyDefaultTitle:     MetaTypeString,
 	MetaKeyFooterHTML:       MetaTypeString,
-	MetaKeyIconMaterial:     MetaTypeEmpty,
 	MetaKeyUserID:           MetaTypeWord,
 	MetaKeyLang:             MetaTypeWord,
 	MetaKeyLicense:          MetaTypeEmpty,
 	MetaKeyListPageSize:     MetaTypeNumber,
 	MetaKeyNewRole:          MetaTypeWord,
+	MetaKeyMarkerExternal:   MetaTypeEmpty,
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
 	MetaKeyURL:              MetaTypeURL,
