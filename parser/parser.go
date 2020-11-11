@@ -95,13 +95,17 @@ func ParseZettel(zettel domain.Zettel, syntax string) *ast.Zettel {
 		syntax, _ = inhMeta.Get(domain.MetaKeySyntax)
 	}
 	title, _ := inhMeta.Get(domain.MetaKeyTitle)
+	parseMeta := inhMeta
+	if syntax == "meta" {
+		parseMeta = meta
+	}
 	z := &ast.Zettel{
 		Zid:     meta.Zid,
 		Meta:    meta,
 		Content: zettel.Content,
 		InhMeta: inhMeta,
 		Title:   ParseTitle(title),
-		Ast:     ParseBlocks(input.NewInput(zettel.Content.AsString()), inhMeta, syntax),
+		Ast:     ParseBlocks(input.NewInput(zettel.Content.AsString()), parseMeta, syntax),
 	}
 	return z
 }
