@@ -84,7 +84,7 @@ func MakeGetHTMLZettelHandler(
 			z.Ast,
 			"html",
 			&langOption,
-			&encoder.StringOption{Key: "material", Value: config.GetIconMaterial()},
+			&encoder.StringOption{Key: domain.MetaKeyMarkerExternal, Value: config.GetMarkerExternal()},
 			&encoder.BoolOption{Key: "newwindow", Value: true},
 			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'h', getMeta, "", "")},
 			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},

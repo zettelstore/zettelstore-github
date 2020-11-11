@@ -158,14 +158,14 @@ func GetZettelFileSyntax() []string {
 	return nil
 }
 
-// GetIconMaterial returns the current value of the "icon-material" key.
-func GetIconMaterial() string {
+// GetMarkerExternal returns the current value of the "marker-external" key.
+func GetMarkerExternal() string {
 	if config := getConfigurationMeta(); config != nil {
-		if html, ok := config.Get(domain.MetaKeyIconMaterial); ok {
+		if html, ok := config.Get(domain.MetaKeyMarkerExternal); ok {
 			return html
 		}
 	}
-	return "&#8280;"
+	return "&#8599;&#xfe0e;"
 }
 
 // GetFooterHTML returns HTML code tht should be embedded into the footer of each WebUI page

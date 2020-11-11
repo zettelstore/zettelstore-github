@@ -39,16 +39,16 @@ func init() {
 }
 
 type htmlEncoder struct {
-	lang       string // default language
-	xhtml      bool   // use XHTML syntax instead of HTML syntax
-	material   string // Symbol after link to (external) material.
-	newWindow  bool   // open link in new window
-	adaptLink  func(*ast.LinkNode) ast.InlineNode
-	adaptImage func(*ast.ImageNode) ast.InlineNode
-	adaptCite  func(*ast.CiteNode) ast.InlineNode
-	meta       *domain.Meta
-	ignoreMeta map[string]bool
-	footnotes  []*ast.FootnoteNode
+	lang           string // default language
+	xhtml          bool   // use XHTML syntax instead of HTML syntax
+	markerExternal string // Marker after link to (external) material.
+	newWindow      bool   // open link in new window
+	adaptLink      func(*ast.LinkNode) ast.InlineNode
+	adaptImage     func(*ast.ImageNode) ast.InlineNode
+	adaptCite      func(*ast.CiteNode) ast.InlineNode
+	meta           *domain.Meta
+	ignoreMeta     map[string]bool
+	footnotes      []*ast.FootnoteNode
 }
 
 func (he *htmlEncoder) SetOption(option encoder.Option) {
@@ -57,8 +57,8 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 		switch opt.Key {
 		case "lang":
 			he.lang = opt.Value
-		case "material":
-			he.material = opt.Value
+		case domain.MetaKeyMarkerExternal:
+			he.markerExternal = opt.Value
 		}
 	case *encoder.BoolOption:
 		switch opt.Key {
@@ -565,7 +565,7 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 			attrs = attrs.Set("target", "_blank")
 		}
 		v.writeAHref(ln.Ref, attrs, ln.Inlines)
-		v.b.WriteString(v.enc.material)
+		v.b.WriteString(v.enc.markerExternal)
 	default:
 		v.b.WriteString("<a href=\"")
 		v.writeQuotedEscaped(ln.Ref.Value)
