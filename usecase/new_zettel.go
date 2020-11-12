@@ -36,11 +36,12 @@ func NewNewZettel() NewZettel {
 func (uc NewZettel) Run(origZettel domain.Zettel) domain.Zettel {
 	meta := origZettel.Meta.Clone()
 	if role, ok := meta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleNewTemplate {
-		if newRole, ok := meta.Get(domain.MetaKeyNewRole); ok {
-			if len(newRole) > 0 {
-				meta.Set(domain.MetaKeyRole, newRole)
+		const prefix = "new-"
+		for _, pair := range meta.PairsRest() {
+			if key := pair.Key; len(key) > len(prefix) && key[0:len(prefix)] == prefix {
+				meta.Set(key[len(prefix):], pair.Value)
+				meta.Delete(key)
 			}
-			meta.Delete(domain.MetaKeyNewRole)
 		}
 	}
 	return domain.Zettel{Meta: meta, Content: origZettel.Content}
