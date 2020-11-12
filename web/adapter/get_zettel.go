@@ -33,10 +33,7 @@ import (
 )
 
 // MakeGetZettelHandler creates a new HTTP handler to return a rendered zettel.
-func MakeGetZettelHandler(
-	te *TemplateEngine,
-	getZettel usecase.GetZettel,
-	getMeta usecase.GetMeta) http.HandlerFunc {
+func MakeGetZettelHandler(getZettel usecase.GetZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {

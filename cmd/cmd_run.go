@@ -176,7 +176,7 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.AddListRoute('t', http.MethodGet, adapter.MakeListTagsHandler(te, ucListTags))
 	router.AddListRoute('s', http.MethodGet, adapter.MakeSearchHandler(te, usecase.NewSearch(pp), ucGetMeta, ucGetZettel))
 	router.AddListRoute('z', http.MethodGet, adapter.MakeListMetaHandler(te, usecase.NewListMeta(pp), ucGetMeta, ucGetZettel))
-	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler(te, ucGetZettel, ucGetMeta))
+	router.AddZettelRoute('z', http.MethodGet, adapter.MakeGetZettelHandler(ucGetZettel, ucGetMeta))
 	return session.NewHandler(router, usecase.NewGetUserByZid(up))
 }
 
