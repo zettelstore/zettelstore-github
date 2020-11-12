@@ -36,8 +36,8 @@ func parseRef(s string) *ast.Reference {
 }
 
 func TestLinks(t *testing.T) {
-	zettel := &ast.Zettel{}
-	summary := collect.References(zettel)
+	zn := &ast.ZettelNode{}
+	summary := collect.References(zn)
 	if summary.Links != nil || summary.Images != nil {
 		t.Error("No links/images expected, but got:", summary.Links, "and", summary.Images)
 	}
@@ -49,21 +49,21 @@ func TestLinks(t *testing.T) {
 			&ast.LinkNode{Ref: parseRef("https://zettelstore.de/z")},
 		},
 	}
-	zettel.Ast = ast.BlockSlice{para}
-	summary = collect.References(zettel)
+	zn.Ast = ast.BlockSlice{para}
+	summary = collect.References(zn)
 	if summary.Links == nil || summary.Images != nil {
 		t.Error("Links expected, and no images, but got:", summary.Links, "and", summary.Images)
 	}
 
 	para.Inlines = append(para.Inlines, intNode)
-	summary = collect.References(zettel)
+	summary = collect.References(zn)
 	if cnt := len(summary.Links); cnt != 3 {
 		t.Error("Link count does not work. Expected: 3, got", summary.Links)
 	}
 }
 
 func TestImage(t *testing.T) {
-	zettel := &ast.Zettel{
+	zn := &ast.ZettelNode{
 		Ast: ast.BlockSlice{
 			&ast.ParaNode{
 				Inlines: ast.InlineSlice{
@@ -72,7 +72,7 @@ func TestImage(t *testing.T) {
 			},
 		},
 	}
-	summary := collect.References(zettel)
+	summary := collect.References(zn)
 	if summary.Images == nil {
 		t.Error("Only image expected, but got: ", summary.Images)
 	}

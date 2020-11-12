@@ -96,9 +96,9 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		user := session.GetUser(ctx)
-		roleText := z.Meta.GetDefault(domain.MetaKeyRole, "*")
-		tags := buildTagInfos(z.Meta)
-		extURL, hasExtURL := z.Meta.Get(domain.MetaKeyURL)
+		roleText := z.Zettel.Meta.GetDefault(domain.MetaKeyRole, "*")
+		tags := buildTagInfos(z.Zettel.Meta)
+		extURL, hasExtURL := z.Zettel.Meta.Get(domain.MetaKeyURL)
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
 		canClone := base.CanCreate && !zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {

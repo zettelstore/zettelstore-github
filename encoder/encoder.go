@@ -35,9 +35,9 @@ import (
 type Encoder interface {
 	SetOption(Option)
 
-	WriteZettel(io.Writer, *ast.Zettel, bool) (int, error)
+	WriteZettel(io.Writer, *ast.ZettelNode, bool) (int, error)
 	WriteMeta(io.Writer, *domain.Meta) (int, error)
-	WriteContent(io.Writer, *ast.Zettel) (int, error)
+	WriteContent(io.Writer, *ast.ZettelNode) (int, error)
 	WriteBlocks(io.Writer, ast.BlockSlice) (int, error)
 	WriteInlines(io.Writer, ast.InlineSlice) (int, error)
 }

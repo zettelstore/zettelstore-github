@@ -40,15 +40,15 @@ type rawEncoder struct{}
 func (re *rawEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
-func (re *rawEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
+func (re *rawEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	b := encoder.NewBufWriter(w)
 	if inhMeta {
-		zettel.InhMeta.Write(&b)
+		zn.InhMeta.Write(&b)
 	} else {
-		zettel.Meta.Write(&b)
+		zn.Zettel.Meta.Write(&b)
 	}
 	b.WriteByte('\n')
-	b.WriteString(zettel.Content.AsString())
+	b.WriteString(zn.Zettel.Content.AsString())
 	length, err := b.Flush()
 	return length, err
 }
@@ -61,9 +61,9 @@ func (re *rawEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return length, err
 }
 
-func (re *rawEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (re *rawEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
 	b := encoder.NewBufWriter(w)
-	b.WriteString(zettel.Content.AsString())
+	b.WriteString(zn.Zettel.Content.AsString())
 	length, err := b.Flush()
 	return length, err
 }

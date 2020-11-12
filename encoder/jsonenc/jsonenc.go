@@ -42,16 +42,16 @@ type jsonEncoder struct{}
 func (je *jsonEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
-func (je *jsonEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
+func (je *jsonEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	b := encoder.NewBufWriter(w)
 	b.WriteString("{\"meta\":")
 	if inhMeta {
-		writeMeta(&b, zettel.InhMeta)
+		writeMeta(&b, zn.InhMeta)
 	} else {
-		writeMeta(&b, zettel.Meta)
+		writeMeta(&b, zn.Zettel.Meta)
 	}
 	b.WriteString(",\"content\":")
-	writeContent(&b, zettel.Content)
+	writeContent(&b, zn.Zettel.Content)
 	b.WriteByte('}')
 	length, err := b.Flush()
 	return length, err
@@ -65,9 +65,9 @@ func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return length, err
 }
 
-func (je *jsonEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
+func (je *jsonEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
 	b := encoder.NewBufWriter(w)
-	writeContent(&b, zettel.Content)
+	writeContent(&b, zn.Zettel.Content)
 	length, err := b.Flush()
 	return length, err
 }

@@ -34,7 +34,7 @@ import (
 	"zettelstore.de/z/usecase"
 )
 
-func writeJSONZettel(ctx context.Context, w http.ResponseWriter, z *ast.Zettel, format string, part string, getMeta usecase.GetMeta) error {
+func writeJSONZettel(ctx context.Context, w http.ResponseWriter, z *ast.ZettelNode, format string, part string, getMeta usecase.GetMeta) error {
 	var err error
 	switch part {
 	case "zettel":
@@ -100,7 +100,7 @@ func writeJSONHeader(w http.ResponseWriter, zid domain.ZettelID, format string) 
 	return err
 }
 
-func writeJSONMeta(w http.ResponseWriter, z *ast.Zettel, format string) error {
+func writeJSONMeta(w http.ResponseWriter, z *ast.ZettelNode, format string) error {
 	_, err := w.Write(jsonMetaHeader)
 	if err == nil {
 		err = writeMeta(w, z.InhMeta, format, &encoder.TitleOption{Inline: z.Title})
@@ -108,7 +108,7 @@ func writeJSONMeta(w http.ResponseWriter, z *ast.Zettel, format string) error {
 	return err
 }
 
-func writeJSONContent(ctx context.Context, w http.ResponseWriter, z *ast.Zettel, format string, part string, getMeta usecase.GetMeta) error {
+func writeJSONContent(ctx context.Context, w http.ResponseWriter, z *ast.ZettelNode, format string, part string, getMeta usecase.GetMeta) error {
 	_, err := w.Write(jsonContentHeader)
 	if err == nil {
 		err = writeContent(w, z, format,
@@ -152,7 +152,7 @@ func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*
 		if err != nil {
 			break
 		}
-		var z *ast.Zettel
+		var z *ast.ZettelNode
 		if readZettel {
 			zettel, err1 := getZettel.Run(ctx, meta.Zid)
 			if err1 == nil {
@@ -164,10 +164,9 @@ func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*
 				break
 			}
 		} else {
-			z = &ast.Zettel{
+			z = &ast.ZettelNode{
+				Zettel:  domain.Zettel{Meta: meta, Content: ""},
 				Zid:     meta.Zid,
-				Meta:    meta,
-				Content: "",
 				InhMeta: config.AddDefaultValues(meta),
 				Title:   parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, config.GetDefaultTitle())),
 				Ast:     nil,

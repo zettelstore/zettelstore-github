@@ -109,10 +109,10 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}
 
 		user := session.GetUser(ctx)
-		pairs := z.Meta.Pairs()
+		pairs := z.Zettel.Meta.Pairs()
 		metaData := make([]metaDataInfo, 0, len(pairs))
 		for _, p := range pairs {
-			metaData = append(metaData, metaDataInfo{p.Key, htmlMetaValue(z.Meta, p.Key)})
+			metaData = append(metaData, metaDataInfo{p.Key, htmlMetaValue(z.Zettel.Meta, p.Key)})
 		}
 		formats := encoder.GetFormats()
 		defFormat := encoder.GetDefaultFormat()

@@ -53,18 +53,18 @@ func (ne *nativeEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel encodes the zettel to the writer.
-func (ne *nativeEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
+func (ne *nativeEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(w, ne)
 	v.b.WriteString("[Title ")
-	v.acceptInlineSlice(zettel.Title)
+	v.acceptInlineSlice(zn.Title)
 	v.b.WriteByte(']')
 	if inhMeta {
-		v.acceptMeta(zettel.InhMeta, false)
+		v.acceptMeta(zn.InhMeta, false)
 	} else {
-		v.acceptMeta(zettel.Meta, false)
+		v.acceptMeta(zn.Zettel.Meta, false)
 	}
 	v.b.WriteByte('\n')
-	v.acceptBlockSlice(zettel.Ast)
+	v.acceptBlockSlice(zn.Ast)
 	length, err := v.b.Flush()
 	return length, err
 }
@@ -77,8 +77,8 @@ func (ne *nativeEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) 
 	return length, err
 }
 
-func (ne *nativeEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
-	return ne.WriteBlocks(w, zettel.Ast)
+func (ne *nativeEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
+	return ne.WriteBlocks(w, zn.Ast)
 }
 
 // WriteBlocks writes a block slice to the writer

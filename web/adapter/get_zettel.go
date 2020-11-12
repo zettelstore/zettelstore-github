@@ -97,13 +97,13 @@ func MakeGetZettelHandler(getZettel usecase.GetZettel, getMeta usecase.GetMeta) 
 		case "meta":
 			w.Header().Set("Content-Type", format2ContentType(format))
 			if format == "raw" {
-				err = writeMeta(w, z.Meta, format) // Don't write inherited meta data, just the raw
+				err = writeMeta(w, z.Zettel.Meta, format) // Don't write inherited meta data, just the raw
 			} else {
 				err = writeMeta(w, z.InhMeta, format)
 			}
 		case "content":
 			if format == "raw" {
-				if ct, ok := syntax2contentType(config.GetSyntax(z.Meta)); ok {
+				if ct, ok := syntax2contentType(config.GetSyntax(z.Zettel.Meta)); ok {
 					w.Header().Add("Content-Type", ct)
 				}
 			} else {

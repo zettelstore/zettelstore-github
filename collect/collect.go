@@ -32,18 +32,15 @@ type Summary struct {
 
 // References returns all references mentioned in the given zettel. This also
 // includes references to images.
-func References(zettel *ast.Zettel) Summary {
+func References(zn *ast.ZettelNode) Summary {
 	lv := linkVisitor{}
-	ast.NewTopDownTraverser(&lv).VisitBlockSlice(zettel.Ast)
+	ast.NewTopDownTraverser(&lv).VisitBlockSlice(zn.Ast)
 	return lv.summary
 }
 
 type linkVisitor struct {
 	summary Summary
 }
-
-// VisitZettel does nothing.
-func (lv *linkVisitor) VisitZettel(z *ast.Zettel) {}
 
 // VisitVerbatim does nothing.
 func (lv *linkVisitor) VisitVerbatim(vn *ast.VerbatimNode) {}

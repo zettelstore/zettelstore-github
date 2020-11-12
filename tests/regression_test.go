@@ -96,26 +96,26 @@ func checkFileContent(t *testing.T, filename string, gotContent string) {
 	}
 }
 
-func checkBlocksFile(t *testing.T, resultName string, zettel *ast.Zettel, format string) {
+func checkBlocksFile(t *testing.T, resultName string, zn *ast.ZettelNode, format string) {
 	t.Helper()
 	if enc := encoder.Create(format); enc != nil {
 		var sb strings.Builder
-		enc.WriteBlocks(&sb, zettel.Ast)
+		enc.WriteBlocks(&sb, zn.Ast)
 		checkFileContent(t, resultName, sb.String())
 		return
 	}
 	panic(fmt.Sprintf("Unknown writer format %q", format))
 }
 
-func checkZmkEncoder(t *testing.T, zettel *ast.Zettel) {
+func checkZmkEncoder(t *testing.T, zn *ast.ZettelNode) {
 	zmkEncoder := encoder.Create("zmk")
 	var sb strings.Builder
-	zmkEncoder.WriteBlocks(&sb, zettel.Ast)
+	zmkEncoder.WriteBlocks(&sb, zn.Ast)
 	gotFirst := sb.String()
 	sb.Reset()
 
 	newZettel := parser.ParseZettel(domain.Zettel{
-		Meta: zettel.Meta, Content: domain.NewContent("\n" + gotFirst)}, "")
+		Meta: zn.Zettel.Meta, Content: domain.NewContent("\n" + gotFirst)}, "")
 	zmkEncoder.WriteBlocks(&sb, newZettel.Ast)
 	gotSecond := sb.String()
 	sb.Reset()
@@ -162,12 +162,12 @@ func TestContentRegression(t *testing.T) {
 	}
 }
 
-func checkMetaFile(t *testing.T, resultName string, zettel *ast.Zettel, format string) {
+func checkMetaFile(t *testing.T, resultName string, zn *ast.ZettelNode, format string) {
 	t.Helper()
 
 	if enc := encoder.Create(format); enc != nil {
 		var sb strings.Builder
-		enc.WriteMeta(&sb, zettel.Meta)
+		enc.WriteMeta(&sb, zn.Zettel.Meta)
 		checkFileContent(t, resultName, sb.String())
 		return
 	}

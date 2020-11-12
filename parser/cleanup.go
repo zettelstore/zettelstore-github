@@ -52,9 +52,6 @@ type cleanupVisitor struct {
 	doMark  bool
 }
 
-// VisitZettel does nothing.
-func (cv *cleanupVisitor) VisitZettel(z *ast.Zettel) {}
-
 // VisitVerbatim does nothing.
 func (cv *cleanupVisitor) VisitVerbatim(vn *ast.VerbatimNode) {}
 

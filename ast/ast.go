@@ -26,12 +26,11 @@ import (
 	"zettelstore.de/z/domain"
 )
 
-// Zettel is the root node of the abstract syntax tree.
+// ZettelNode is the root node of the abstract syntax tree.
 // It is *not* part of the visitor pattern.
-type Zettel struct {
+type ZettelNode struct {
+	Zettel  domain.Zettel
 	Zid     domain.ZettelID // Zettel identification.
-	Meta    *domain.Meta    // Original meta data, as stored in the place.
-	Content domain.Content  // Raw zettel content
 	InhMeta *domain.Meta    // Meta data of the zettel, with inherited values.
 	Title   InlineSlice     // Zettel title is a sequence of inline nodes.
 	Ast     BlockSlice      // Zettel abstract syntax tree is a sequence of block nodes.

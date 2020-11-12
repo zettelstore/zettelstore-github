@@ -57,18 +57,18 @@ func (je *jsonDetailEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel writes the encoded zettel to the writer.
-func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
+func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newDetailVisitor(w, je)
 	v.b.WriteString("{\"meta\":{\"title\":")
-	v.acceptInlineSlice(zettel.Title)
+	v.acceptInlineSlice(zn.Title)
 	if inhMeta {
-		v.writeMeta(zettel.InhMeta, false)
+		v.writeMeta(zn.InhMeta, false)
 	} else {
-		v.writeMeta(zettel.Meta, false)
+		v.writeMeta(zn.Zettel.Meta, false)
 	}
 	v.b.WriteByte('}')
 	v.b.WriteString(",\"content\":")
-	v.acceptBlockSlice(zettel.Ast)
+	v.acceptBlockSlice(zn.Ast)
 	v.b.WriteByte('}')
 	length, err := v.b.Flush()
 	return length, err
@@ -90,8 +90,8 @@ func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, err
 	return length, err
 }
 
-func (je *jsonDetailEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
-	return je.WriteBlocks(w, zettel.Ast)
+func (je *jsonDetailEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
+	return je.WriteBlocks(w, zn.Ast)
 }
 
 // WriteBlocks writes a block slice to the writer

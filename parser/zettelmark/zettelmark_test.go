@@ -613,8 +613,7 @@ type TestVisitor struct {
 	b strings.Builder
 }
 
-func (tv *TestVisitor) String() string             { return tv.b.String() }
-func (tv *TestVisitor) VisitZettel(pn *ast.Zettel) {}
+func (tv *TestVisitor) String() string { return tv.b.String() }
 func (tv *TestVisitor) VisitPara(pn *ast.ParaNode) {
 	tv.b.WriteString("(PARA")
 	tv.visitInlineSlice(pn.Inlines)

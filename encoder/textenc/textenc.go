@@ -40,14 +40,14 @@ type textEncoder struct{}
 func (te *textEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel does nothing.
-func (te *textEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
+func (te *textEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(w)
 	if inhMeta {
-		te.WriteMeta(&v.b, zettel.InhMeta)
+		te.WriteMeta(&v.b, zn.InhMeta)
 	} else {
-		te.WriteMeta(&v.b, zettel.Meta)
+		te.WriteMeta(&v.b, zn.Zettel.Meta)
 	}
-	v.acceptBlockSlice(zettel.Ast)
+	v.acceptBlockSlice(zn.Ast)
 	length, err := v.b.Flush()
 	return length, err
 }
@@ -63,8 +63,8 @@ func (te *textEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return length, err
 }
 
-func (te *textEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
-	return te.WriteBlocks(w, zettel.Ast)
+func (te *textEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
+	return te.WriteBlocks(w, zn.Ast)
 }
 
 // WriteBlocks writes the content of a block slice to the writer.

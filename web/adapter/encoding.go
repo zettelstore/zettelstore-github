@@ -80,13 +80,13 @@ func formatInlines(is ast.InlineSlice, format string, options ...encoder.Option)
 	return content.String(), nil
 }
 
-func writeContent(w io.Writer, zettel *ast.Zettel, format string, options ...encoder.Option) error {
+func writeContent(w io.Writer, zn *ast.ZettelNode, format string, options ...encoder.Option) error {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return errNoSuchFormat
 	}
 
-	_, err := enc.WriteContent(w, zettel)
+	_, err := enc.WriteContent(w, zn)
 	return err
 }
 

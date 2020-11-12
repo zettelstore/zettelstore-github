@@ -88,7 +88,7 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel encodes a full zettel as HTML5.
-func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool) (int, error) {
+func (he *htmlEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(he, w)
 	if !he.xhtml {
 		v.b.WriteString("<!DOCTYPE html>\n")
@@ -96,15 +96,15 @@ func (he *htmlEncoder) WriteZettel(w io.Writer, zettel *ast.Zettel, inhMeta bool
 	v.b.WriteStrings("<html lang=\"", he.lang, "\">\n<head>\n<meta charset=\"utf-8\">\n")
 	textEnc := encoder.Create("text")
 	var sb strings.Builder
-	textEnc.WriteInlines(&sb, zettel.Title)
+	textEnc.WriteInlines(&sb, zn.Title)
 	v.b.WriteStrings("<title>", sb.String(), "</title>")
 	if inhMeta {
-		v.acceptMeta(zettel.InhMeta, false)
+		v.acceptMeta(zn.InhMeta, false)
 	} else {
-		v.acceptMeta(zettel.Meta, false)
+		v.acceptMeta(zn.Zettel.Meta, false)
 	}
 	v.b.WriteString("\n</head>\n<body>\n")
-	v.acceptBlockSlice(zettel.Ast)
+	v.acceptBlockSlice(zn.Ast)
 	v.writeEndnotes()
 	v.b.WriteString("</body>\n</html>")
 	length, err := v.b.Flush()
@@ -119,8 +119,8 @@ func (he *htmlEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
 	return length, err
 }
 
-func (he *htmlEncoder) WriteContent(w io.Writer, zettel *ast.Zettel) (int, error) {
-	return he.WriteBlocks(w, zettel.Ast)
+func (he *htmlEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
+	return he.WriteBlocks(w, zn.Ast)
 }
 
 // WriteBlocks encodes a block slice.
