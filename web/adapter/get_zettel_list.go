@@ -33,7 +33,7 @@ import (
 )
 
 // MakeListMetaHandler creates a new HTTP handler for the use case "list some zettel".
-func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
+func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta usecase.GetMeta, parseZettel usecase.ParseZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		filter, sorter := getFilterSorter(q, false)
@@ -50,7 +50,7 @@ func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta 
 		case "html":
 			renderListMetaHTML(w, metaList)
 		case "json", "djson":
-			renderListMetaJSON(r.Context(), w, metaList, format, part, getMeta, getZettel)
+			renderListMetaJSON(r.Context(), w, metaList, format, part, getMeta, parseZettel)
 		case "native", "raw", "text", "zmk":
 			http.Error(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format), http.StatusNotImplemented)
 			log.Println(format)

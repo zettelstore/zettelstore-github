@@ -28,7 +28,6 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/session"
 )
@@ -36,7 +35,7 @@ import (
 // MakeGetHTMLZettelHandler creates a new HTTP handler for the use case "get zettel".
 func MakeGetHTMLZettelHandler(
 	te *TemplateEngine,
-	getZettel usecase.GetZettel,
+	parseZettel usecase.ParseZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zid, err := domain.ParseZettelID(r.URL.Path[1:])
@@ -46,16 +45,15 @@ func MakeGetHTMLZettelHandler(
 		}
 
 		ctx := r.Context()
-		zettel, err := getZettel.Run(ctx, zid)
+		syntax := r.URL.Query().Get("syntax")
+		zn, err := parseZettel.Run(ctx, zid, syntax)
 		if err != nil {
 			checkUsecaseError(w, err)
 			return
 		}
-		syntax := r.URL.Query().Get("syntax")
-		z := parser.ParseZettel(zettel, syntax)
 
 		metaHeader, err := formatMeta(
-			z.InhMeta,
+			zn.InhMeta,
 			"html",
 			&encoder.StringsOption{
 				Key:   "no-meta",
@@ -67,14 +65,14 @@ func MakeGetHTMLZettelHandler(
 			log.Println(err)
 			return
 		}
-		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(z.InhMeta)}
-		htmlTitle, err := formatInlines(z.Title, "html", &langOption)
+		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(zn.InhMeta)}
+		htmlTitle, err := formatInlines(zn.Title, "html", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
-		textTitle, err := formatInlines(z.Title, "text", &langOption)
+		textTitle, err := formatInlines(zn.Title, "text", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -82,7 +80,7 @@ func MakeGetHTMLZettelHandler(
 		}
 		newWindow := true
 		htmlContent, err := formatBlocks(
-			z.Ast,
+			zn.Ast,
 			"html",
 			&langOption,
 			&encoder.StringOption{Key: domain.MetaKeyMarkerExternal, Value: config.GetMarkerExternal()},
@@ -96,11 +94,11 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		user := session.GetUser(ctx)
-		roleText := z.Zettel.Meta.GetDefault(domain.MetaKeyRole, "*")
-		tags := buildTagInfos(z.Zettel.Meta)
-		extURL, hasExtURL := z.Zettel.Meta.Get(domain.MetaKeyURL)
+		roleText := zn.Zettel.Meta.GetDefault(domain.MetaKeyRole, "*")
+		tags := buildTagInfos(zn.Zettel.Meta)
+		extURL, hasExtURL := zn.Zettel.Meta.Get(domain.MetaKeyURL)
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
-		canClone := base.CanCreate && !zettel.Content.IsBinary()
+		canClone := base.CanCreate && !zn.Zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
 			baseData
 			MetaHeader   template.HTML
@@ -125,7 +123,7 @@ func MakeGetHTMLZettelHandler(
 			baseData:     base,
 			MetaHeader:   template.HTML(metaHeader),
 			HTMLTitle:    template.HTML(htmlTitle),
-			CanWrite:     te.canWrite(ctx, user, zettel),
+			CanWrite:     te.canWrite(ctx, user, zn.Zettel),
 			EditURL:      newURLBuilder('e').SetZid(zid).String(),
 			Zid:          zid.Format(),
 			InfoURL:      newURLBuilder('i').SetZid(zid).String(),

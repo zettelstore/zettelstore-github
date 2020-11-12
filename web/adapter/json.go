@@ -130,7 +130,7 @@ var (
 	jsonListFooter = []byte("]}")
 )
 
-func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*domain.Meta, format string, part string, getMeta usecase.GetMeta, getZettel usecase.GetZettel) {
+func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*domain.Meta, format string, part string, getMeta usecase.GetMeta, parseZettel usecase.ParseZettel) {
 	var readZettel bool
 	switch part {
 	case "zettel", "content":
@@ -152,19 +152,16 @@ func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*
 		if err != nil {
 			break
 		}
-		var z *ast.ZettelNode
+		var zn *ast.ZettelNode
 		if readZettel {
-			zettel, err1 := getZettel.Run(ctx, meta.Zid)
-			if err1 == nil {
-				z = parser.ParseZettel(zettel, "")
-			} else {
+			z, err1 := parseZettel.Run(ctx, meta.Zid, "")
+			if err1 != nil {
 				err = err1
-			}
-			if err != nil {
 				break
 			}
+			zn = z
 		} else {
-			z = &ast.ZettelNode{
+			zn = &ast.ZettelNode{
 				Zettel:  domain.Zettel{Meta: meta, Content: ""},
 				Zid:     meta.Zid,
 				InhMeta: config.AddDefaultValues(meta),
@@ -172,7 +169,7 @@ func renderListMetaJSON(ctx context.Context, w http.ResponseWriter, metaList []*
 				Ast:     nil,
 			}
 		}
-		err = writeJSONZettel(ctx, w, z, format, part, getMeta)
+		err = writeJSONZettel(ctx, w, zn, format, part, getMeta)
 	}
 	if err == nil {
 		_, err = w.Write(jsonListFooter)

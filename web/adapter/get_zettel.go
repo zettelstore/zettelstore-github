@@ -28,12 +28,11 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
 )
 
 // MakeGetZettelHandler creates a new HTTP handler to return a rendered zettel.
-func MakeGetZettelHandler(getZettel usecase.GetZettel, getMeta usecase.GetMeta) http.HandlerFunc {
+func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
@@ -42,14 +41,12 @@ func MakeGetZettelHandler(getZettel usecase.GetZettel, getMeta usecase.GetMeta) 
 		}
 
 		ctx := r.Context()
-		zettel, err := getZettel.Run(ctx, zid)
+		q := r.URL.Query()
+		zn, err := parseZettel.Run(ctx, zid, q.Get("syntax"))
 		if err != nil {
 			checkUsecaseError(w, err)
 			return
 		}
-		q := r.URL.Query()
-		syntax := q.Get("syntax")
-		z := parser.ParseZettel(zettel, syntax)
 
 		format := getFormat(r, q, encoder.GetDefaultFormat())
 		part := getPart(q, "zettel")
@@ -61,14 +58,14 @@ func MakeGetZettelHandler(getZettel usecase.GetZettel, getMeta usecase.GetMeta) 
 				http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
 				return
 			}
-			if err := writeJSONZettel(ctx, w, z, format, part, getMeta); err != nil {
+			if err := writeJSONZettel(ctx, w, zn, format, part, getMeta); err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)
 			}
 			return
 		}
 
-		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(z.InhMeta)}
+		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(zn.InhMeta)}
 		linkAdapter := encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta, part, format)}
 		imageAdapter := encoder.AdaptImageOption{Adapter: makeImageAdapter()}
 
@@ -92,24 +89,24 @@ func MakeGetZettelHandler(getZettel usecase.GetZettel, getMeta usecase.GetMeta) 
 			if enc == nil {
 				err = errNoSuchFormat
 			} else {
-				_, err = enc.WriteZettel(w, z, inhMeta)
+				_, err = enc.WriteZettel(w, zn, inhMeta)
 			}
 		case "meta":
 			w.Header().Set("Content-Type", format2ContentType(format))
 			if format == "raw" {
-				err = writeMeta(w, z.Zettel.Meta, format) // Don't write inherited meta data, just the raw
+				err = writeMeta(w, zn.Zettel.Meta, format) // Don't write inherited meta data, just the raw
 			} else {
-				err = writeMeta(w, z.InhMeta, format)
+				err = writeMeta(w, zn.InhMeta, format)
 			}
 		case "content":
 			if format == "raw" {
-				if ct, ok := syntax2contentType(config.GetSyntax(z.Zettel.Meta)); ok {
+				if ct, ok := syntax2contentType(config.GetSyntax(zn.Zettel.Meta)); ok {
 					w.Header().Add("Content-Type", ct)
 				}
 			} else {
 				w.Header().Set("Content-Type", format2ContentType(format))
 			}
-			err = writeContent(w, z, format,
+			err = writeContent(w, zn, format,
 				&langOption,
 				&encoder.StringOption{Key: domain.MetaKeyMarkerExternal, Value: config.GetMarkerExternal()},
 				&linkAdapter,

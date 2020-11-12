@@ -59,7 +59,7 @@ type matrixElement struct {
 }
 
 // MakeGetInfoHandler creates a new HTTP handler for the use case "get zettel".
-func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta usecase.GetMeta) http.HandlerFunc {
+func MakeGetInfoHandler(te *TemplateEngine, parseZettel usecase.ParseZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		if format := getFormat(r, q, "html"); format != "html" {
@@ -74,15 +74,13 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}
 
 		ctx := r.Context()
-		zettel, err := getZettel.Run(ctx, zid)
+		zn, err := parseZettel.Run(ctx, zid, q.Get("syntax"))
 		if err != nil {
 			checkUsecaseError(w, err)
 			return
 		}
-		syntax := q.Get("syntax")
-		z := parser.ParseZettel(zettel, syntax)
 
-		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(z.InhMeta)}
+		langOption := &encoder.StringOption{Key: "lang", Value: config.GetLang(zn.InhMeta)}
 		getTitle := func(zid domain.ZettelID) (string, int) {
 			meta, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
@@ -98,10 +96,10 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			}
 			return "", 1
 		}
-		summary := collect.References(z)
+		summary := collect.References(zn)
 		zetLinks, locLinks, extLinks := splitIntExtLinks(getTitle, append(summary.Links, summary.Images...))
 
-		textTitle, err := formatInlines(z.Title, "text", nil, langOption)
+		textTitle, err := formatInlines(zn.Title, "text", nil, langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -109,10 +107,10 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 		}
 
 		user := session.GetUser(ctx)
-		pairs := z.Zettel.Meta.Pairs()
+		pairs := zn.Zettel.Meta.Pairs()
 		metaData := make([]metaDataInfo, 0, len(pairs))
 		for _, p := range pairs {
-			metaData = append(metaData, metaDataInfo{p.Key, htmlMetaValue(z.Zettel.Meta, p.Key)})
+			metaData = append(metaData, metaDataInfo{p.Key, htmlMetaValue(zn.Zettel.Meta, p.Key)})
 		}
 		formats := encoder.GetFormats()
 		defFormat := encoder.GetDefaultFormat()
@@ -133,7 +131,7 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			matrix = append(matrix, row)
 		}
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
-		canClone := base.CanCreate && !zettel.Content.IsBinary()
+		canClone := base.CanCreate && !zn.Zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
 			baseData
 			Zid          string
@@ -162,15 +160,15 @@ func MakeGetInfoHandler(te *TemplateEngine, getZettel usecase.GetZettel, getMeta
 			baseData:     base,
 			Zid:          zid.Format(),
 			WebURL:       newURLBuilder('h').SetZid(zid).String(),
-			CanWrite:     te.canWrite(ctx, user, zettel),
+			CanWrite:     te.canWrite(ctx, user, zn.Zettel),
 			EditURL:      newURLBuilder('e').SetZid(zid).String(),
 			CanClone:     canClone,
 			CloneURL:     newURLBuilder('c').SetZid(zid).String(),
-			CanNew:       canClone && zettel.Meta.GetDefault(domain.MetaKeyRole, "") == domain.MetaValueRoleNewTemplate,
+			CanNew:       canClone && zn.Zettel.Meta.GetDefault(domain.MetaKeyRole, "") == domain.MetaValueRoleNewTemplate,
 			NewURL:       newURLBuilder('n').SetZid(zid).String(),
-			CanRename:    te.canRename(ctx, user, zettel.Meta),
+			CanRename:    te.canRename(ctx, user, zn.Zettel.Meta),
 			RenameURL:    newURLBuilder('r').SetZid(zid).String(),
-			CanDelete:    te.canDelete(ctx, user, zettel.Meta),
+			CanDelete:    te.canDelete(ctx, user, zn.Zettel.Meta),
 			DeleteURL:    newURLBuilder('d').SetZid(zid).String(),
 			MetaData:     metaData,
 			HasLinks:     len(zetLinks)+len(extLinks)+len(locLinks) > 0,
