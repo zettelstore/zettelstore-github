@@ -421,7 +421,7 @@ body {
   margin: 0;
   min-height: 100vh;
   text-rendering: optimizeSpeed;
-  line-height: 1.6;
+  line-height: 1.4;
   overflow-x: hidden;
   background-color: #f8f8f8 ;
   height: 100%;
@@ -495,10 +495,6 @@ main {
 article > * + * {
   margin-top: 1rem;
 }
-article {
-  padding: 0;
-  margin: 0;
-}
 article header {
   padding: 0;
   margin: 0;
@@ -511,6 +507,9 @@ h5 { font-size:.83rem;  margin:1.5rem 0 }
 h6 { font-size:.75rem;  margin:1.67rem 0 }
 p {
   margin: 1rem 0 0 0;
+}
+ol,ul {
+  padding-left: 1rem;
 }
 li,figure,figcaption,dl {
   margin: 0;
