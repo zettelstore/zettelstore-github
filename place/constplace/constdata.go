@@ -37,7 +37,7 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 		},
-		"# Zettelstore Configuration",
+		"Zettelstore Configuration",
 	},
 
 	domain.BaseTemplateID: constZettel{
