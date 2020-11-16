@@ -509,7 +509,7 @@ p {
   margin: 1rem 0 0 0;
 }
 ol,ul {
-  padding-left: 1rem;
+  padding-left: 1.1rem;
 }
 li,figure,figcaption,dl {
   margin: 0;
