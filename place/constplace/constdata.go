@@ -493,7 +493,7 @@ main {
   padding: 0 1rem;
 }
 article > * + * {
-  margin-top: 1rem;
+  margin-top: .5rem;
 }
 article header {
   padding: 0;
@@ -506,7 +506,7 @@ h4 { font-size:1rem;    margin:1.12rem 0 }
 h5 { font-size:.83rem;  margin:1.5rem 0 }
 h6 { font-size:.75rem;  margin:1.67rem 0 }
 p {
-  margin: 1rem 0 0 0;
+  margin: .5rem 0 0 0;
 }
 ol,ul {
   padding-left: 1.1rem;
@@ -515,13 +515,13 @@ li,figure,figcaption,dl {
   margin: 0;
 }
 dt {
-  margin: 1rem 0 0 0;
+  margin: .5rem 0 0 0;
 }
 dt+dd {
   margin-top: 0;
 }
 dd {
-  margin: 1rem 0 0 2rem;
+  margin: .5rem 0 0 2rem;
 }
 dd > p:first-child {
   margin: 0 0 0 0;
@@ -534,7 +534,7 @@ blockquote {
   font-style: italic;
 }
 blockquote p {
-  margin-bottom: 1rem;
+  margin-bottom: .5rem;
 }
 blockquote cite {
   font-style: normal;
@@ -546,7 +546,7 @@ table {
 }
 th,td {
   text-align: left;
-  padding: 0.5rem;
+  padding: .25rem .5rem;
 }
 td { border-bottom: 1px solid hsl(0, 0%, 85%); }
 thead th { border-bottom: 2px solid hsl(0, 0%, 70%); }
@@ -598,7 +598,7 @@ img {
   max-width: 100%;
 }
 .zs-endnotes {
-  padding-top: 1rem;
+  padding-top: .5rem;
   border-top: 1px solid;
 }
 code,pre,kbd {
