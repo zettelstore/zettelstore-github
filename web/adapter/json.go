@@ -79,10 +79,6 @@ var (
 
 func writeJSONHeader(w http.ResponseWriter, zid domain.ZettelID, format string) error {
 	w.Header().Set("Content-Type", format2ContentType(format))
-	return writeJSONID(w, zid, format)
-}
-
-func writeJSONID(w io.Writer, zid domain.ZettelID, format string) error {
 	_, err := w.Write(jsonHeader1)
 	if err == nil {
 		_, err = w.Write(zid.FormatBytes())
@@ -105,7 +101,7 @@ func writeJSONID(w io.Writer, zid domain.ZettelID, format string) error {
 	return err
 }
 
-func writeJSONMeta(w http.ResponseWriter, z *ast.ZettelNode, format string) error {
+func writeJSONMeta(w io.Writer, z *ast.ZettelNode, format string) error {
 	_, err := w.Write(jsonMetaHeader)
 	if err == nil {
 		err = writeMeta(w, z.InhMeta, format, &encoder.TitleOption{Inline: z.Title})
@@ -113,7 +109,7 @@ func writeJSONMeta(w http.ResponseWriter, z *ast.ZettelNode, format string) erro
 	return err
 }
 
-func writeJSONContent(ctx context.Context, w http.ResponseWriter, z *ast.ZettelNode, format string, part string, getMeta usecase.GetMeta) error {
+func writeJSONContent(ctx context.Context, w io.Writer, z *ast.ZettelNode, format string, part string, getMeta usecase.GetMeta) error {
 	_, err := w.Write(jsonContentHeader)
 	if err == nil {
 		err = writeContent(w, z, format,
@@ -124,7 +120,7 @@ func writeJSONContent(ctx context.Context, w http.ResponseWriter, z *ast.ZettelN
 	return err
 }
 
-func writeJSONFooter(w http.ResponseWriter) error {
+func writeJSONFooter(w io.Writer) error {
 	_, err := w.Write(jsonFooter)
 	return err
 }

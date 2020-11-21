@@ -164,14 +164,25 @@ func emitZettelRefs(w io.Writer, err error, refs []*ast.Reference) error {
 			_, err = w.Write([]byte{','})
 		}
 		if err == nil {
-			zid, err1 := domain.ParseZettelID(ref.Value)
-			if err1 == nil {
-				err = writeJSONID(w, zid, "json")
-			} else {
-				err = err1
-			}
+			_, err = w.Write([]byte("{\"id\":\""))
 		}
-		err = closeObject(w, err)
+		path := ref.URL.Path
+		if err == nil {
+			_, err = w.Write([]byte(path))
+		}
+		if err == nil {
+			_, err = w.Write([]byte("\",\"url\":\""))
+		}
+		if err == nil {
+			ub := newURLBuilder('z').AppendPath(path)
+			if fragment := ref.URL.Fragment; len(fragment) > 0 {
+				ub.SetFragment(fragment)
+			}
+			_, err = w.Write([]byte(ub.String()))
+		}
+		if err == nil {
+			_, err = w.Write([]byte{'"', '}'})
+		}
 	}
 	return err
 }
