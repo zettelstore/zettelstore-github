@@ -23,6 +23,7 @@ package adapter
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -78,6 +79,10 @@ var (
 
 func writeJSONHeader(w http.ResponseWriter, zid domain.ZettelID, format string) error {
 	w.Header().Set("Content-Type", format2ContentType(format))
+	return writeJSONID(w, zid, format)
+}
+
+func writeJSONID(w io.Writer, zid domain.ZettelID, format string) error {
 	_, err := w.Write(jsonHeader1)
 	if err == nil {
 		_, err = w.Write(zid.FormatBytes())

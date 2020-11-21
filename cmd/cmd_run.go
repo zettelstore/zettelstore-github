@@ -165,6 +165,7 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.AddZettelRoute('h', http.MethodGet, getHTMLZettelHandler)
 	router.AddZettelRoute('i', http.MethodGet, adapter.MakeGetInfoHandler(te, ucParseZettel, ucGetMeta))
 	router.AddZettelRoute('k', http.MethodGet, adapter.MakeWebUIListsHandler(te, ucListMeta, ucListRoles, ucListTags))
+	router.AddZettelRoute('l', http.MethodGet, adapter.MakeGetLinksHandler(ucParseZettel))
 	if !readonly {
 		router.AddZettelRoute('n', http.MethodGet, adapter.MakeGetNewZettelHandler(te, ucGetZettel, usecase.NewNewZettel()))
 		router.AddZettelRoute('n', http.MethodPost, adapter.MakePostCreateZettelHandler(usecase.NewCreateZettel(pp)))

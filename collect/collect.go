@@ -28,6 +28,7 @@ import (
 type Summary struct {
 	Links  []*ast.Reference // list of all referenced links
 	Images []*ast.Reference // list of all referenced images
+	Cites  []*ast.CiteNode  // list of all referenced citations
 }
 
 // References returns all references mentioned in the given zettel. This also
@@ -93,8 +94,10 @@ func (lv *linkVisitor) VisitImage(in *ast.ImageNode) {
 	}
 }
 
-// VisitCite does nothing.
-func (lv *linkVisitor) VisitCite(cn *ast.CiteNode) {}
+// VisitCite collects the citation.
+func (lv *linkVisitor) VisitCite(cn *ast.CiteNode) {
+	lv.summary.Cites = append(lv.summary.Cites, cn)
+}
 
 // VisitFootnote does nothing.
 func (lv *linkVisitor) VisitFootnote(fn *ast.FootnoteNode) {}
