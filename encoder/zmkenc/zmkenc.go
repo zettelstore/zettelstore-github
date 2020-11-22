@@ -204,7 +204,7 @@ func (v *visitor) VisitDescriptionList(dn *ast.DescriptionListNode) {
 
 var alignCode = map[ast.Alignment]string{
 	ast.AlignDefault: "",
-	ast.AlignLeft:    ">",
+	ast.AlignLeft:    "<",
 	ast.AlignCenter:  ":",
 	ast.AlignRight:   ">",
 }
@@ -212,16 +212,25 @@ var alignCode = map[ast.Alignment]string{
 // VisitTable emits a HTML table.
 func (v *visitor) VisitTable(tn *ast.TableNode) {
 	if len(tn.Header) > 0 {
-		for _, cell := range tn.Header {
+		for pos, cell := range tn.Header {
 			v.b.WriteString("|=")
+			colAlign := tn.Align[pos]
+			if cell.Align != colAlign {
+				v.b.WriteString(alignCode[cell.Align])
+			}
 			v.acceptInlineSlice(cell.Inlines)
-			v.b.WriteString(alignCode[cell.Align])
+			if colAlign != ast.AlignDefault {
+				v.b.WriteString(alignCode[colAlign])
+			}
 		}
 		v.b.WriteByte('\n')
 	}
 	for _, row := range tn.Rows {
-		for _, cell := range row {
-			v.b.WriteStrings("|", alignCode[cell.Align])
+		for pos, cell := range row {
+			v.b.WriteByte('|')
+			if cell.Align != tn.Align[pos] {
+				v.b.WriteString(alignCode[cell.Align])
+			}
 			v.acceptInlineSlice(cell.Inlines)
 		}
 		v.b.WriteByte('\n')
