@@ -21,7 +21,7 @@
 package adapter
 
 import (
-	"io"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -30,6 +30,27 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 )
+
+type jsonIDURL struct {
+	ID  string `json:"id"`
+	URL string `json:"url"`
+}
+type jsonGetLinks struct {
+	ID    string `json:"id"`
+	URL   string `json:"url"`
+	Links struct {
+		Incoming []jsonIDURL `json:"incoming"`
+		Outgoing []jsonIDURL `json:"outgoing"`
+		Local    []string    `json:"local"`
+		External []string    `json:"external"`
+	} `json:"links"`
+	Images struct {
+		Outgoing []jsonIDURL `json:"outgoing"`
+		Local    []string    `json:"local"`
+		External []string    `json:"external"`
+	} `json:"images"`
+	Cites []string `json:"cites"`
+}
 
 // MakeGetLinksHandler creates a new API handler to return links to other material.
 func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
@@ -55,181 +76,80 @@ func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
 			return
 		}
 
-		err = writeJSONHeader(w, zid, "json")
-		if err == nil && kind&kindLink != 0 {
-			doComma := false
-			_, err = w.Write([]byte(",\"link\":{"))
-			if err == nil && matter&matterIncoming != 0 {
-				_, err = w.Write([]byte("\"incoming\":["))
-				// backlink
-				err = closeList(w, err)
-				doComma = true
+		outData := jsonGetLinks{
+			ID:  zid.Format(),
+			URL: newURLBuilder('z').SetZid(zid).String(),
+		}
+		if kind&kindLink != 0 {
+			if matter&matterIncoming != 0 {
+				// Backlinks not yet implemented
+				outData.Links.Incoming = []jsonIDURL{}
 			}
 			zetRefs, locRefs, extRefs := collect.DivideReferences(summary.Links, false)
-			if err == nil && matter&matterOutgoing != 0 {
-				err = emitComma(w, doComma)
-				if err == nil {
-					_, err = w.Write([]byte("\"outgoing\":["))
-				}
-				err = emitZettelRefs(w, err, zetRefs)
-				err = closeList(w, err)
-				doComma = true
+			if matter&matterOutgoing != 0 {
+				outData.Links.Outgoing = idURLRefs(zetRefs)
 			}
-			if err == nil && matter&matterLocal != 0 {
-				err = emitComma(w, doComma)
-				if err == nil {
-					_, err = w.Write([]byte("\"local\":["))
-				}
-				err = emitStringRefs(w, err, locRefs)
-				err = closeList(w, err)
-				doComma = true
+			if matter&matterLocal != 0 {
+				outData.Links.Local = stringRefs(locRefs)
 			}
-			if err == nil && matter&matterExternal != 0 {
-				err = emitComma(w, doComma)
-				if err == nil {
-					_, err = w.Write([]byte("\"external\":["))
-				}
-				err = emitStringRefs(w, err, extRefs)
-				err = closeList(w, err)
+			if matter&matterExternal != 0 {
+				outData.Links.External = stringRefs(extRefs)
 			}
-			err = closeObject(w, err)
 		}
-		if err == nil && kind&kindImage != 0 {
-			doComma := false
-			_, err = w.Write([]byte(",\"image\":{"))
+		if kind&kindImage != 0 {
 			zetRefs, locRefs, extRefs := collect.DivideReferences(summary.Images, false)
-			if err == nil && matter&matterOutgoing != 0 {
-				_, err = w.Write([]byte("\"outgoing\":["))
-				err = emitZettelRefs(w, err, zetRefs)
-				err = closeList(w, err)
-				doComma = true
+			if matter&matterOutgoing != 0 {
+				outData.Images.Outgoing = idURLRefs(zetRefs)
 			}
-			if err == nil && matter&matterLocal != 0 {
-				err = emitComma(w, doComma)
-				if err == nil {
-					_, err = w.Write([]byte("\"local\":["))
-				}
-				err = emitStringRefs(w, err, locRefs)
-				err = closeList(w, err)
-				doComma = true
+			if matter&matterLocal != 0 {
+				outData.Images.Local = stringRefs(locRefs)
 			}
-			if err == nil && matter&matterExternal != 0 {
-				err = emitComma(w, doComma)
-				if err == nil {
-					_, err = w.Write([]byte("\"external\":["))
-				}
-				err = emitStringRefs(w, err, extRefs)
-				err = closeList(w, err)
+			if matter&matterExternal != 0 {
+				outData.Images.External = stringRefs(extRefs)
 			}
-			err = closeObject(w, err)
 		}
-		if err == nil && kind&kindCite != 0 {
-			_, err = w.Write([]byte(",\"cite\":["))
-			err = emitStringCites(w, err, summary.Cites)
-			err = closeList(w, err)
+		if kind&kindCite != 0 {
+			outData.Cites = stringCites(summary.Cites)
 		}
 
-		if err == nil {
-			err = writeJSONFooter(w)
-		}
+		w.Header().Set("Content-Type", format2ContentType("json"))
+		enc := json.NewEncoder(w)
+		enc.SetEscapeHTML(false)
+		err = enc.Encode(&outData)
 	}
 }
 
-func emitComma(w io.Writer, doComma bool) error {
-	if doComma {
-		_, err := w.Write([]byte{','})
-		return err
-	}
-	return nil
-}
-func closeList(w io.Writer, err error) error {
-	if err == nil {
-		_, err = w.Write([]byte{']'})
-	}
-	return err
-}
-func closeObject(w io.Writer, err error) error {
-	if err == nil {
-		_, err = w.Write([]byte{'}'})
-	}
-	return err
-}
-
-func emitZettelRefs(w io.Writer, err error, refs []*ast.Reference) error {
-	if err != nil {
-		return err
-	}
-	for i, ref := range refs {
-		if i > 0 && err == nil {
-			_, err = w.Write([]byte{','})
-		}
-		if err == nil {
-			_, err = w.Write([]byte("{\"id\":\""))
-		}
+func idURLRefs(refs []*ast.Reference) []jsonIDURL {
+	result := make([]jsonIDURL, 0, len(refs))
+	for _, ref := range refs {
 		path := ref.URL.Path
-		if err == nil {
-			_, err = w.Write([]byte(path))
+		ub := newURLBuilder('z').AppendPath(path)
+		if fragment := ref.URL.Fragment; len(fragment) > 0 {
+			ub.SetFragment(fragment)
 		}
-		if err == nil {
-			_, err = w.Write([]byte("\",\"url\":\""))
-		}
-		if err == nil {
-			ub := newURLBuilder('z').AppendPath(path)
-			if fragment := ref.URL.Fragment; len(fragment) > 0 {
-				ub.SetFragment(fragment)
-			}
-			_, err = w.Write([]byte(ub.String()))
-		}
-		if err == nil {
-			_, err = w.Write([]byte{'"', '}'})
-		}
+		result = append(result, jsonIDURL{ID: path, URL: ub.String()})
 	}
-	return err
-}
-func emitStringRefs(w io.Writer, err error, refs []*ast.Reference) error {
-	if err != nil {
-		return err
-	}
-	for i, ref := range refs {
-		if i > 0 && err == nil {
-			_, err = w.Write([]byte{','})
-		}
-		if err == nil {
-			_, err = w.Write([]byte{'"'})
-		}
-		if err == nil {
-			_, err = w.Write([]byte(ref.String()))
-		}
-		if err == nil {
-			_, err = w.Write([]byte{'"'})
-		}
-	}
-	return err
+	return result
 }
 
-func emitStringCites(w io.Writer, err error, cites []*ast.CiteNode) error {
-	if err != nil {
-		return err
+func stringRefs(refs []*ast.Reference) []string {
+	result := make([]string, 0, len(refs))
+	for _, ref := range refs {
+		result = append(result, ref.String())
 	}
+	return result
+}
+
+func stringCites(cites []*ast.CiteNode) []string {
 	mapKey := make(map[string]bool)
-	for i, cn := range cites {
-		if i > 0 && err == nil {
-			_, err = w.Write([]byte{','})
-		}
-		if err == nil {
-			_, err = w.Write([]byte{'"'})
-		}
-		if err == nil {
-			if _, ok := mapKey[cn.Key]; !ok {
-				_, err = w.Write([]byte(cn.Key))
-				mapKey[cn.Key] = true
-			}
-		}
-		if err == nil {
-			_, err = w.Write([]byte{'"'})
+	result := make([]string, 0, len(cites))
+	for _, cn := range cites {
+		if _, ok := mapKey[cn.Key]; !ok {
+			mapKey[cn.Key] = true
+			result = append(result, cn.Key)
 		}
 	}
-	return err
+	return result
 }
 
 type kindType int
