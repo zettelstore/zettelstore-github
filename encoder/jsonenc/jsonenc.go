@@ -17,7 +17,7 @@
 // along with Zettelstore. If not, see <http://www.gnu.org/licenses/>.
 //-----------------------------------------------------------------------------
 
-// Package jsonenc encodes the abstract syntax tree into JSON.
+// Package jsonenc encodes the abstract syntax tree into some JSON formats.
 package jsonenc
 
 import (
@@ -36,6 +36,8 @@ func init() {
 	})
 }
 
+// jsonEncoder is just a stub. It is not implemented. The real implementation
+// is in file web/adapter/json.go
 type jsonEncoder struct{}
 
 // SetOption sets an option for the encoder
@@ -43,33 +45,16 @@ func (je *jsonEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
 func (je *jsonEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
-	b := encoder.NewBufWriter(w)
-	b.WriteString("{\"meta\":")
-	if inhMeta {
-		writeMeta(&b, zn.InhMeta)
-	} else {
-		writeMeta(&b, zn.Zettel.Meta)
-	}
-	b.WriteByte(',')
-	writeContent(&b, zn.Zettel.Content)
-	b.WriteByte('}')
-	length, err := b.Flush()
-	return length, err
+	return 0, encoder.ErrNoWriteZettel
 }
 
 // WriteMeta encodes meta data as HTML5.
 func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
-	b := encoder.NewBufWriter(w)
-	writeMeta(&b, meta)
-	length, err := b.Flush()
-	return length, err
+	return 0, encoder.ErrNoWriteMeta
 }
 
 func (je *jsonEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
-	b := encoder.NewBufWriter(w)
-	writeContent(&b, zn.Zettel.Content)
-	length, err := b.Flush()
-	return length, err
+	return 0, encoder.ErrNoWriteContent
 }
 
 // WriteBlocks writes a block slice to the writer
@@ -80,35 +65,6 @@ func (je *jsonEncoder) WriteBlocks(w io.Writer, bs ast.BlockSlice) (int, error) 
 // WriteInlines writes an inline slice to the writer
 func (je *jsonEncoder) WriteInlines(w io.Writer, is ast.InlineSlice) (int, error) {
 	return 0, encoder.ErrNoWriteInlines
-}
-
-func writeMeta(b *encoder.BufWriter, meta *domain.Meta) {
-	b.WriteByte('{')
-	first := true
-	for _, p := range meta.Pairs() {
-		if !first {
-			b.WriteString(",\"")
-		} else {
-			b.WriteByte('"')
-			first = false
-		}
-		b.Write(Escape(p.Key))
-		b.WriteString("\":\"")
-		b.Write(Escape(p.Value))
-		b.WriteByte('"')
-	}
-	b.WriteByte('}')
-}
-
-func writeContent(b *encoder.BufWriter, content domain.Content) {
-	if content.IsBinary() {
-		b.WriteString("\"encoding\":\"base64\",\"content\":\"")
-		b.WriteBase64(content.AsBytes())
-		b.WriteByte('"')
-	} else {
-		b.WriteString("\"encoding\":\"\",\"content\":")
-		writeEscaped(b, content.AsString())
-	}
 }
 
 var (

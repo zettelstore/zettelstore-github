@@ -42,8 +42,11 @@ type Encoder interface {
 	WriteInlines(io.Writer, ast.InlineSlice) (int, error)
 }
 
-// Some errors to signal when WriteBlocks/WriteInlines are not implemented.
+// Some errors to signal when encoder methods are not implemented.
 var (
+	ErrNoWriteZettel  = errors.New("Method WriteZettel is not implemented")
+	ErrNoWriteMeta    = errors.New("Method WriteMeta is not implemented")
+	ErrNoWriteContent = errors.New("Method WriteContent is not implemented")
 	ErrNoWriteBlocks  = errors.New("Method WriteBlocks is not implemented")
 	ErrNoWriteInlines = errors.New("Method WriteInlines is not implemented")
 )
