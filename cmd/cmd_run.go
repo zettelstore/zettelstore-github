@@ -49,7 +49,7 @@ func runFunc(cfg *domain.Meta) (int, error) {
 
 	listenAddr, _ := cfg.Get("listen-addr")
 	v := config.GetVersion()
-	log.Printf("%v %v", v.Prog, v.Build)
+	log.Printf("%v %v (%v@%v/%v)", v.Prog, v.Build, v.GoVersion, v.Os, v.Arch)
 	if cfg.GetBool("verbose") {
 		log.Println("Configuration")
 		cfg.Write(os.Stderr)
