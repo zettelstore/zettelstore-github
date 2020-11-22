@@ -93,10 +93,13 @@ func (pp *postProcessor) VisitDescriptionList(dn *ast.DescriptionListNode) {
 func (pp *postProcessor) VisitTable(tn *ast.TableNode) {
 	width := tableWidth(tn)
 	tn.Align = make([]ast.Alignment, 0, width)
+	for i := 0; i < width; i++ {
+		tn.Align = append(tn.Align, ast.AlignDefault)
+	}
 	if len(tn.Rows) > 0 && isHeaderRow(tn.Rows[0]) {
 		tn.Header = tn.Rows[0]
 		tn.Rows = tn.Rows[1:]
-		for _, cell := range tn.Header {
+		for pos, cell := range tn.Header {
 			if inlines := cell.Inlines; len(inlines) > 0 {
 				if textNode, ok := inlines[0].(*ast.TextNode); ok {
 					if strings.HasPrefix(textNode.Text, "=") {
@@ -105,18 +108,14 @@ func (pp *postProcessor) VisitTable(tn *ast.TableNode) {
 				}
 				if textNode, ok := inlines[len(inlines)-1].(*ast.TextNode); ok {
 					if tnl := len(textNode.Text); tnl > 0 {
-						align := getAlignment(textNode.Text[tnl-1])
-						if align != ast.AlignDefault {
+						if align := getAlignment(textNode.Text[tnl-1]); align != ast.AlignDefault {
+							tn.Align[pos] = align
 							textNode.Text = textNode.Text[0 : tnl-1]
 						}
-						tn.Align = append(tn.Align, align)
 					}
 				}
 			}
 		}
-	}
-	for len(tn.Align) < width {
-		tn.Align = append(tn.Align, ast.AlignDefault)
 	}
 	if len(tn.Header) > 0 {
 		tn.Header = appendCells(tn.Header, width, tn.Align)
