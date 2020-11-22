@@ -242,7 +242,7 @@ const (
 )
 
 var mapKind = map[string]kindType{
-	"":      kindLink,
+	"":      kindLink | kindImage | kindCite,
 	"link":  kindLink,
 	"image": kindImage,
 	"cite":  kindCite,
@@ -271,7 +271,7 @@ const (
 )
 
 var mapMatter = map[string]matterType{
-	"":         matterOutgoing,
+	"":         matterIncoming | matterOutgoing | matterLocal | matterExternal,
 	"incoming": matterIncoming,
 	"outgoing": matterOutgoing,
 	"local":    matterLocal,
