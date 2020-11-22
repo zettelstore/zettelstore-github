@@ -50,7 +50,7 @@ func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta 
 		case "html":
 			renderListMetaHTML(w, metaList)
 		case "json", "djson":
-			renderListMetaJSON(r.Context(), w, metaList, format, part, getMeta, parseZettel)
+			renderListMetaXJSON(r.Context(), w, metaList, format, part, getMeta, parseZettel)
 		case "native", "raw", "text", "zmk":
 			http.Error(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format), http.StatusNotImplemented)
 			log.Println(format)

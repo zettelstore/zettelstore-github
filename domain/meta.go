@@ -46,16 +46,21 @@ func NewMeta(zid ZettelID) *Meta {
 
 // Clone returns a new copy of the same meta data that is not frozen.
 func (m *Meta) Clone() *Meta {
+	return &Meta{
+		Zid:     m.Zid,
+		pairs:   m.Map(),
+		frozen:  false,
+		YamlSep: m.YamlSep,
+	}
+}
+
+// Map returns a copy of the meta data as a string map.
+func (m *Meta) Map() map[string]string {
 	pairs := make(map[string]string, len(m.pairs))
 	for k, v := range m.pairs {
 		pairs[k] = v
 	}
-	return &Meta{
-		Zid:     m.Zid,
-		pairs:   pairs,
-		frozen:  false,
-		YamlSep: m.YamlSep,
-	}
+	return pairs
 }
 
 var reKey = regexp.MustCompile("^[0-9a-z][-0-9a-z]{0,254}$")

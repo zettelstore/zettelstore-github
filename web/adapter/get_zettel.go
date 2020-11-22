@@ -58,7 +58,13 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 				http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
 				return
 			}
-			if err := writeJSONZettel(ctx, w, zn, format, part, getMeta); err != nil {
+			w.Header().Set("Content-Type", format2ContentType(format))
+			if format != "djson" {
+				err = writeJSONZettel(w, zn, part)
+			} else {
+				err = writeDJSONZettel(ctx, w, zn, part, getMeta)
+			}
+			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)
 			}

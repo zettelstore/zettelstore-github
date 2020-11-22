@@ -31,10 +31,6 @@ import (
 	"zettelstore.de/z/usecase"
 )
 
-type jsonIDURL struct {
-	ID  string `json:"id"`
-	URL string `json:"url"`
-}
 type jsonGetLinks struct {
 	ID    string `json:"id"`
 	URL   string `json:"url"`
