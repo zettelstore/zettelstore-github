@@ -1,4 +1,0 @@
-The Zettelstore Authors
-=======================
-
-Detlef Stern <me@t73f.de>
