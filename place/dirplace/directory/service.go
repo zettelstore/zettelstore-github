@@ -72,6 +72,18 @@ func dirMapUpdate(dm dirMap, ev *fileEvent) {
 	updateEntry(de, ev)
 }
 
+func deleteFromMap(dm dirMap, ev *fileEvent) {
+	if ev.ext == "meta" {
+		if entry, ok := dm[ev.zid]; ok {
+			if entry.MetaSpec == MetaSpecFile {
+				entry.MetaSpec = MetaSpecNone
+				return
+			}
+		}
+	}
+	delete(dm, ev.zid)
+}
+
 // directoryService is the main service.
 func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int) {
 	curMap := make(dirMap)
@@ -105,9 +117,9 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 				}
 			case fileStatusDelete:
 				if newMap != nil {
-					delete(newMap, ev.zid)
+					deleteFromMap(newMap, ev)
 				} else {
-					delete(curMap, ev.zid)
+					deleteFromMap(curMap, ev)
 					srv.notifyChange(false, ev.zid)
 				}
 			}
