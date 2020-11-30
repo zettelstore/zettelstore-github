@@ -332,6 +332,11 @@ func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 		// Existing zettel, but new in this place.
 		entry.Zid = meta.Zid
 		dp.updateEntryFromMeta(&entry, meta)
+	} else if entry.MetaSpec == directory.MetaSpecNone {
+		if defaultMeta := entry.CalcDefaultMeta(); !meta.Equal(defaultMeta) {
+			dp.updateEntryFromMeta(&entry, meta)
+			dp.dirSrv.UpdateEntry(&entry)
+		}
 	}
 	dp.notifyChanged(false, meta.Zid)
 

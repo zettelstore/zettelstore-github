@@ -14,7 +14,6 @@ package dirplace
 import (
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/input"
@@ -53,7 +52,7 @@ func (cmd *fileGetMeta) run() {
 	case directory.MetaSpecHeader:
 		meta, _, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
 	default:
-		meta = calculateMeta(cmd.entry)
+		meta = cmd.entry.CalcDefaultMeta()
 	}
 	if err == nil {
 		cleanupMeta(meta, cmd.entry)
@@ -87,7 +86,7 @@ func (cmd *fileGetMetaContent) run() {
 	case directory.MetaSpecHeader:
 		meta, content, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
 	default:
-		meta = calculateMeta(cmd.entry)
+		meta = cmd.entry.CalcDefaultMeta()
 		content, err = readFileContent(cmd.entry.ContentPath)
 	}
 	if err == nil {
@@ -245,33 +244,18 @@ func cleanupMeta(meta *domain.Meta, entry *directory.Entry) {
 	switch entry.MetaSpec {
 	case directory.MetaSpecFile:
 		if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-			meta.Set(domain.MetaKeySyntax, calculateSyntax(entry))
+			m := entry.CalcDefaultMeta()
+			syntax, ok = m.Get(domain.MetaKeySyntax)
+			if !ok {
+				panic("Default meta must rcontain syntax")
+			}
+			meta.Set(domain.MetaKeySyntax, syntax)
 		}
 	}
 
 	if entry.Duplicates {
 		meta.Set("duplicates", "yes")
 	}
-}
-
-var alternativeSyntax = map[string]string{
-	"htm":  "html",
-	"tmpl": "go-template-html",
-}
-
-func calculateSyntax(entry *directory.Entry) string {
-	ext := strings.ToLower(entry.ContentExt)
-	if syntax, ok := alternativeSyntax[ext]; ok {
-		return syntax
-	}
-	return ext
-}
-
-func calculateMeta(entry *directory.Entry) *domain.Meta {
-	meta := domain.NewMeta(entry.Zid)
-	meta.Set(domain.MetaKeyTitle, entry.Zid.Format())
-	meta.Set(domain.MetaKeySyntax, calculateSyntax(entry))
-	return meta
 }
 
 func openFileWrite(path string) (*os.File, error) {

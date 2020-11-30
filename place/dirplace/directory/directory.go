@@ -76,32 +76,6 @@ func (srv *Service) notifyChange(all bool, zid domain.ZettelID) {
 	}
 }
 
-// MetaSpec defines all possibilities where meta data can be stored.
-type MetaSpec int
-
-// Constants for MetaSpec
-const (
-	MetaSpecUnknown MetaSpec = iota
-	MetaSpecNone             // no meta information
-	MetaSpecFile             // meta information is in meta file
-	MetaSpecHeader           // meta information is in header
-)
-
-// Entry stores everything for a directory entry.
-type Entry struct {
-	Zid         domain.ZettelID
-	MetaSpec    MetaSpec // location of meta information
-	MetaPath    string   // file path of meta information
-	ContentPath string   // file path of zettel content
-	ContentExt  string   // (normalized) file extension of zettel content
-	Duplicates  bool     // multiple content files
-}
-
-// IsValid checks whether the entry is valid.
-func (e *Entry) IsValid() bool {
-	return e.Zid.IsValid()
-}
-
 // GetEntries returns an unsorted list of all current directory entries.
 func (srv *Service) GetEntries() []Entry {
 	resChan := make(chan resGetEntries)
