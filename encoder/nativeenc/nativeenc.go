@@ -381,12 +381,13 @@ func (v *visitor) VisitBreak(bn *ast.BreakNode) {
 }
 
 var mapRefState = map[ast.RefState]string{
-	ast.RefStateInvalid:      " \"invalid\" \"",
-	ast.RefStateZettel:       " \"zettel\" \"",
-	ast.RefStateZettelFound:  " \"zettel\" \"",
-	ast.RefStateZettelBroken: " \"broken\" \"",
-	ast.RefStateLocal:        " \"local\" \"",
-	ast.RefStateExternal:     " \"external\" \"",
+	ast.RefStateInvalid:      "INVALID",
+	ast.RefStateZettel:       "ZETTEL",
+	ast.RefStateZettelSelf:   "SELF",
+	ast.RefStateZettelFound:  "ZETTEL",
+	ast.RefStateZettelBroken: "BROKEN",
+	ast.RefStateLocal:        "LOCAL",
+	ast.RefStateExternal:     "EXTERNAL",
 }
 
 // VisitLink writes native code for links.
@@ -401,7 +402,9 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	}
 	v.b.WriteString("Link")
 	v.visitAttributes(ln.Attrs)
+	v.b.WriteByte(' ')
 	v.b.WriteString(mapRefState[ln.Ref.State])
+	v.b.WriteString(" \"")
 	v.writeEscaped(ln.Ref.String())
 	v.b.WriteString("\" [")
 	if !ln.OnlyRef {

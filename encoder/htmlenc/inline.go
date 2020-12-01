@@ -68,7 +68,7 @@ func (v *visitor) VisitLink(ln *ast.LinkNode) {
 	defer v.lang.pop()
 
 	switch ln.Ref.State {
-	case ast.RefStateZettelFound, ast.RefStateLocal:
+	case ast.RefStateZettelSelf, ast.RefStateZettelFound, ast.RefStateLocal:
 		v.writeAHref(ln.Ref, ln.Attrs, ln.Inlines)
 	case ast.RefStateZettelBroken:
 		attrs := ln.Attrs.Clone()

@@ -25,6 +25,9 @@ func DivideReferences(all []*ast.Reference, duplicates bool) (zettel, local, ext
 	mapLocal := make(map[string]bool)
 	mapExternal := make(map[string]bool)
 	for _, ref := range all {
+		if ref.State == ast.RefStateZettelSelf {
+			continue
+		}
 		s := ref.String()
 		if ref.IsZettel() {
 			if duplicates {

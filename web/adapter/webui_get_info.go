@@ -242,6 +242,9 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast
 		return nil, nil, nil
 	}
 	for _, ref := range links {
+		if ref.State == ast.RefStateZettelSelf {
+			continue
+		}
 		if ref.IsZettel() {
 			zid, err := domain.ParseZettelID(ref.URL.Path)
 			if err != nil {

@@ -82,6 +82,7 @@ type RefState int
 const (
 	RefStateInvalid      RefState = iota // Invalid URL
 	RefStateZettel                       // Valid reference to an internal zettel
+	RefStateZettelSelf                   // Valid reference to same zettel with a fragment
 	RefStateZettelFound                  // Valid reference to an existing internal zettel
 	RefStateZettelBroken                 // Valid reference to a non-existing internal zettel
 	RefStateLocal                        // Valid reference to a non-zettel, but local hosted
@@ -101,7 +102,10 @@ func ParseReference(s string) *Reference {
 		if _, err := domain.ParseZettelID(u.Path); err == nil {
 			return &Reference{URL: u, Value: s, State: RefStateZettel}
 		}
-		if len(u.Path) > 1 && u.Path[0] == '/' {
+		if u.Path == "" && u.Fragment != "" {
+			return &Reference{URL: u, Value: s, State: RefStateZettelSelf}
+		}
+		if u.Path != "" && u.Path[0] == '/' {
 			return &Reference{URL: u, Value: s, State: RefStateLocal}
 		}
 	}
@@ -122,7 +126,7 @@ func (r *Reference) IsValid() bool { return r.State != RefStateInvalid }
 // IsZettel returns true if it is a referencen to a local zettel.
 func (r *Reference) IsZettel() bool {
 	switch r.State {
-	case RefStateZettel, RefStateZettelFound, RefStateZettelBroken:
+	case RefStateZettel, RefStateZettelSelf, RefStateZettelFound, RefStateZettelBroken:
 		return true
 	}
 	return false

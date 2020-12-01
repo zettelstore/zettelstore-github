@@ -326,6 +326,7 @@ func (v *detailVisitor) VisitBreak(bn *ast.BreakNode) {
 var mapRefState = map[ast.RefState]string{
 	ast.RefStateInvalid:      "invalid",
 	ast.RefStateZettel:       "zettel",
+	ast.RefStateZettelSelf:   "self",
 	ast.RefStateZettelFound:  "zettel",
 	ast.RefStateZettelBroken: "broken",
 	ast.RefStateLocal:        "local",
