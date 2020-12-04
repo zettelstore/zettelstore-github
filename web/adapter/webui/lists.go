@@ -22,6 +22,8 @@ import (
 
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/encoder"
+	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
@@ -259,4 +261,33 @@ func newPageURL(key byte, query url.Values, offset int, offsetKey, limitKey stri
 		urlBuilder.AppendQuery(offsetKey, strconv.Itoa(offset))
 	}
 	return urlBuilder.String()
+}
+
+type metaInfo struct {
+	Title template.HTML
+	URL   string
+}
+
+// buildHTMLMetaList builds a zettel list based on a meta list for HTML rendering.
+func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
+	defaultLang := config.GetDefaultLang()
+	langOption := encoder.StringOption{Key: "lang", Value: ""}
+	metas := make([]metaInfo, 0, len(metaList))
+	for _, meta := range metaList {
+		if lang, ok := meta.Get(domain.MetaKeyLang); ok {
+			langOption.Value = lang
+		} else {
+			langOption.Value = defaultLang
+		}
+		title, _ := meta.Get(domain.MetaKeyTitle)
+		htmlTitle, err := adapter.FormatInlines(parser.ParseTitle(title), "html", &langOption)
+		if err != nil {
+			return nil, err
+		}
+		metas = append(metas, metaInfo{
+			Title: template.HTML(htmlTitle),
+			URL:   adapter.NewURLBuilder('h').SetZid(meta.Zid).String(),
+		})
+	}
+	return metas, nil
 }

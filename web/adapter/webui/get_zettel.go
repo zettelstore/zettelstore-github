@@ -15,7 +15,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
+	"zettelstore.de/z/ast"
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
@@ -133,4 +135,47 @@ func MakeGetHTMLZettelHandler(
 			Content:      template.HTML(htmlContent),
 		})
 	}
+}
+
+func formatBlocks(bs ast.BlockSlice, format string, options ...encoder.Option) (string, error) {
+	enc := encoder.Create(format, options...)
+	if enc == nil {
+		return "", adapter.ErrNoSuchFormat
+	}
+
+	var content strings.Builder
+	_, err := enc.WriteBlocks(&content, bs)
+	if err != nil {
+		return "", err
+	}
+	return content.String(), nil
+}
+
+func formatMeta(meta *domain.Meta, format string, options ...encoder.Option) (string, error) {
+	enc := encoder.Create(format, options...)
+	if enc == nil {
+		return "", adapter.ErrNoSuchFormat
+	}
+
+	var content strings.Builder
+	_, err := enc.WriteMeta(&content, meta)
+	if err != nil {
+		return "", err
+	}
+	return content.String(), nil
+}
+
+func buildTagInfos(meta *domain.Meta) []simpleLink {
+	var tagInfos []simpleLink
+	if tags, ok := meta.GetList(domain.MetaKeyTags); ok {
+		tagInfos = make([]simpleLink, 0, len(tags))
+		ub := adapter.NewURLBuilder('h')
+		for _, t := range tags {
+			// Cast to template.HTML is ok, because "t" is a tag name
+			// and contains only legal characters by construction.
+			tagInfos = append(tagInfos, simpleLink{Text: template.HTML(t), URL: ub.AppendQuery("tags", t).String()})
+			ub.ClearQuery()
+		}
+	}
+	return tagInfos
 }
