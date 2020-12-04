@@ -24,8 +24,8 @@ type formZettelData struct {
 	baseData
 	Heading       template.HTML
 	MetaTitle     string
-	MetaTags      string
 	MetaRole      string
+	MetaTags      string
 	MetaSyntax    string
 	MetaPairsRest []domain.MetaPair
 	IsTextContent bool

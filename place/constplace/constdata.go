@@ -24,9 +24,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.ConfigurationID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Configuration",
-			domain.MetaKeySyntax:     "meta",
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     "meta",
 		},
 		"Zettelstore Configuration",
 	},
@@ -34,9 +34,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.BaseTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Base HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`<!DOCTYPE html>
@@ -109,9 +109,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.LoginTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Login Form HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "content"}}
@@ -140,9 +140,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.ListTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "List Meta HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "content"}}
@@ -166,9 +166,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.DetailTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Detail HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "meta-header"}}
@@ -196,9 +196,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.InfoTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Info HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "content"}}
@@ -257,9 +257,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.FormTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Form HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <article>
@@ -272,24 +272,24 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 <input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.MetaTitle}}" autofocus>
 </div>
 <div>
-<label for="tags">Tags</label>
-<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{.MetaTags}}">
-</div>
 <div>
 <label for="role">Role</label>
 <input class="zs-input" type="text" id="role" name="role" placeholder="role.." value="{{.MetaRole}}">
 </div>
-<div>
-<label for="syntax">Syntax</label>
-<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{.MetaSyntax}}">
+<label for="tags">Tags</label>
+<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{.MetaTags}}">
 </div>
 <div>
-<label for="meta">Meta</label>
-<textarea class="zs-input" id="meta" name="meta" rows="4" placeholder="key: value">
+<label for="meta">Metadata</label>
+<textarea class="zs-input" id="meta" name="meta" rows="4" placeholder="metakey: metavalue">
 {{- range .MetaPairsRest}}
 {{.Key}}: {{.Value}}
 {{- end -}}
 </textarea>
+</div>
+<div>
+<label for="syntax">Syntax</label>
+<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{.MetaSyntax}}">
 </div>
 <div>
 {{- if .IsTextContent}}
@@ -308,9 +308,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.RenameTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Rename Form HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <article>
@@ -338,9 +338,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.DeleteTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Delete HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <article>
@@ -363,9 +363,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.RolesTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "List Roles HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <h1>Currently used roles</h1>
@@ -378,9 +378,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.TagsTemplateID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "List Tags HTML Template",
-			domain.MetaKeySyntax:     syntaxTemplate,
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
+			domain.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <h1>Currently used tags</h1>
@@ -394,9 +394,9 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.BaseCSSID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "Base CSS",
-			domain.MetaKeySyntax:     "css",
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityPublic,
+			domain.MetaKeySyntax:     "css",
 		},
 		`/* Default CSS */
 *,*::before,*::after {
@@ -672,9 +672,9 @@ footer {
 	domain.TemplateNewZettelID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:   "New Zettel",
-			domain.MetaKeySyntax:  "zmk",
 			domain.MetaKeyRole:    domain.MetaValueRoleNewTemplate,
 			domain.MetaKeyNewRole: "zettel",
+			domain.MetaKeySyntax:  "zmk",
 		},
 		"",
 	},
@@ -682,12 +682,12 @@ footer {
 	domain.TemplateNewUserID: constZettel{
 		constHeader{
 			domain.MetaKeyTitle:      "New User",
-			domain.MetaKeySyntax:     "zmk",
 			domain.MetaKeyRole:       domain.MetaValueRoleNewTemplate,
 			domain.MetaKeyNewRole:    "user",
 			domain.MetaKeyCredential: "",
 			domain.MetaKeyUserID:     "",
 			domain.MetaKeyUserRole:   "reader",
+			domain.MetaKeySyntax:     "meta",
 		},
 		"",
 	},

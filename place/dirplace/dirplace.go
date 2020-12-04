@@ -477,11 +477,11 @@ func (dp *dirPlace) Reload(ctx context.Context) error {
 }
 
 func (dp *dirPlace) cleanupMeta(ctx context.Context, meta *domain.Meta) {
-	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-		meta.Set(domain.MetaKeySyntax, config.GetDefaultSyntax())
-	}
 	if role, ok := meta.Get(domain.MetaKeyRole); !ok || role == "" {
 		meta.Set(domain.MetaKeyRole, config.GetDefaultRole())
+	}
+	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
+		meta.Set(domain.MetaKeySyntax, config.GetDefaultSyntax())
 	}
 }
 

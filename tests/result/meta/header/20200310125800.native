@@ -1,5 +1,5 @@
 [Title "Header Test"]
-[Syntax "zmk"]
 [Role "zettel"]
+[Syntax "zmk"]
 [Header
  [x-no "00000000000000"]]

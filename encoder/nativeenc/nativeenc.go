@@ -111,9 +111,9 @@ func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
 		v.writeEscaped(meta.GetDefault(domain.MetaKeyTitle, ""))
 		v.b.WriteString("\"]")
 	}
+	v.writeMetaString(meta, domain.MetaKeyRole, "Role")
 	v.writeMetaList(meta, domain.MetaKeyTags, "Tags")
 	v.writeMetaString(meta, domain.MetaKeySyntax, "Syntax")
-	v.writeMetaString(meta, domain.MetaKeyRole, "Role")
 	if pairs := meta.PairsRest(); len(pairs) > 0 {
 		v.b.WriteString("\n[Header")
 		first := true

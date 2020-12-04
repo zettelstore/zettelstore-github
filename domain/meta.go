@@ -80,9 +80,9 @@ const (
 const (
 	MetaKeyID               = "id"
 	MetaKeyTitle            = "title"
+	MetaKeyRole             = "role"
 	MetaKeyTags             = "tags"
 	MetaKeySyntax           = "syntax"
-	MetaKeyRole             = "role"
 	MetaKeyCopyright        = "copyright"
 	MetaKeyCredential       = "credential"
 	MetaKeyDefaultCopyright = "default-copyright"
@@ -110,9 +110,9 @@ const (
 var keyTypeMap = map[string]byte{
 	MetaKeyID:               MetaTypeID,
 	MetaKeyTitle:            MetaTypeString,
+	MetaKeyRole:             MetaTypeWord,
 	MetaKeyTags:             MetaTypeTagSet,
 	MetaKeySyntax:           MetaTypeWord,
-	MetaKeyRole:             MetaTypeWord,
 	MetaKeyCopyright:        MetaTypeString,
 	MetaKeyCredential:       MetaTypeCredential,
 	MetaKeyDefaultCopyright: MetaTypeString,
@@ -178,7 +178,7 @@ type MetaPair struct {
 	Value string
 }
 
-var firstKeys = []string{MetaKeyTitle, MetaKeyTags, MetaKeySyntax, MetaKeyRole}
+var firstKeys = []string{MetaKeyTitle, MetaKeyRole, MetaKeyTags, MetaKeySyntax}
 var firstKeySet map[string]bool
 
 func init() {
