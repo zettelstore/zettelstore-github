@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"fmt"
@@ -24,6 +24,7 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
@@ -43,13 +44,13 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, ne
 			meta := origZettel.Meta
 			title := parser.ParseInlines(input.NewInput(config.GetTitle(meta)), "zmk")
 			langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
-			textTitle, err := formatInlines(title, "text", &langOption)
+			textTitle, err := adapter.FormatInlines(title, "text", &langOption)
 			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)
 				return
 			}
-			htmlTitle, err := formatInlines(title, "html", &langOption)
+			htmlTitle, err := adapter.FormatInlines(title, "html", &langOption)
 			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
 				log.Println(err)
@@ -61,7 +62,7 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, ne
 }
 
 func getOrigZettel(w http.ResponseWriter, r *http.Request, getZettel usecase.GetZettel, op string) (domain.Zettel, bool) {
-	if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
+	if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
 		http.Error(w, fmt.Sprintf("%v zettel not possible in format %q", op, format), http.StatusBadRequest)
 		return domain.Zettel{}, false
 	}
@@ -109,9 +110,9 @@ func MakePostCreateZettelHandler(createZettel usecase.CreateZettel) http.Handler
 		}
 
 		if newZid, err := createZettel.Run(r.Context(), zettel); err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 		} else {
-			http.Redirect(w, r, newURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
+			http.Redirect(w, r, adapter.NewURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
 		}
 	}
 }

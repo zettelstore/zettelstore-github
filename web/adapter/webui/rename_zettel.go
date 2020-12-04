@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"fmt"
@@ -19,6 +19,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
@@ -34,11 +35,11 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 		ctx := r.Context()
 		meta, err := getMeta.Run(ctx, zid)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
-		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
+		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Rename zettel %q not possible in format %q", zid.Format(), format), http.StatusBadRequest)
 			return
 		}
@@ -79,9 +80,9 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 		}
 
 		if err := renameZettel.Run(r.Context(), curZid, newZid); err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
-		http.Redirect(w, r, newURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
+		http.Redirect(w, r, adapter.NewURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
 	}
 }

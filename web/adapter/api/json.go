@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package api provides api handlers for web requests.
+package api
 
 import (
 	"context"
@@ -25,6 +25,7 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 )
 
 type jsonIDURL struct {
@@ -52,7 +53,7 @@ type jsonContent struct {
 
 func writeJSONZettel(w http.ResponseWriter, z *ast.ZettelNode, part string) error {
 	var outData interface{}
-	idData := jsonIDURL{ID: z.Zid.Format(), URL: newURLBuilder('z').SetZid(z.Zid).String()}
+	idData := jsonIDURL{ID: z.Zid.Format(), URL: adapter.NewURLBuilder('z').SetZid(z.Zid).String()}
 
 	switch part {
 	case "zettel":
@@ -145,7 +146,7 @@ func writeDJSONHeader(w http.ResponseWriter, zid domain.ZettelID) error {
 		_, err = w.Write(djsonHeader2)
 	}
 	if err == nil {
-		_, err = w.Write([]byte(newURLBuilder('z').SetZid(zid).String()))
+		_, err = w.Write([]byte(adapter.NewURLBuilder('z').SetZid(zid).String()))
 	}
 	if err == nil {
 		_, err = w.Write(djsonHeader3)
@@ -171,8 +172,8 @@ func writeDJSONContent(ctx context.Context, w io.Writer, z *ast.ZettelNode, part
 	_, err = w.Write(djsonContentHeader)
 	if err == nil {
 		err = writeContent(w, z, "djson",
-			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta, part, "djson")},
-			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
+			&encoder.AdaptLinkOption{Adapter: adapter.MakeLinkAdapter(ctx, 'z', getMeta, part, "djson")},
+			&encoder.AdaptImageOption{Adapter: adapter.MakeImageAdapter()},
 		)
 	}
 	return err
@@ -239,4 +240,24 @@ func renderListMetaXJSON(ctx context.Context, w http.ResponseWriter, metaList []
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		log.Println(err)
 	}
+}
+
+func writeContent(w io.Writer, zn *ast.ZettelNode, format string, options ...encoder.Option) error {
+	enc := encoder.Create(format, options...)
+	if enc == nil {
+		return adapter.ErrNoSuchFormat
+	}
+
+	_, err := enc.WriteContent(w, zn)
+	return err
+}
+
+func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder.Option) error {
+	enc := encoder.Create(format, options...)
+	if enc == nil {
+		return adapter.ErrNoSuchFormat
+	}
+
+	_, err := enc.WriteMeta(w, meta)
+	return err
 }

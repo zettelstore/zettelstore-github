@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
@@ -66,15 +67,15 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 		policy: pol,
 
 		version:       config.GetVersion().Build,
-		stylesheetURL: newURLBuilder('z').SetZid(domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery("_part", "content").String(),
-		homeURL:       newURLBuilder('/').String(),
-		listZettelURL: newURLBuilder('h').String(),
-		listRolesURL:  newURLBuilder('k').SetZid(2).String(),
-		listTagsURL:   newURLBuilder('k').SetZid(3).String(),
+		stylesheetURL: adapter.NewURLBuilder('z').SetZid(domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery("_part", "content").String(),
+		homeURL:       adapter.NewURLBuilder('/').String(),
+		listZettelURL: adapter.NewURLBuilder('h').String(),
+		listRolesURL:  adapter.NewURLBuilder('k').SetZid(2).String(),
+		listTagsURL:   adapter.NewURLBuilder('k').SetZid(3).String(),
 		withAuth:      config.WithAuth(),
-		loginURL:      newURLBuilder('a').String(),
-		reloadURL:     newURLBuilder('c').AppendQuery("_format", "html").String(),
-		searchURL:     newURLBuilder('s').String(),
+		loginURL:      adapter.NewURLBuilder('a').String(),
+		reloadURL:     adapter.NewURLBuilder('c').AppendQuery("_format", "html").String(),
+		searchURL:     adapter.NewURLBuilder('s').String(),
 	}
 	te.observe(true, domain.InvalidZettelID)
 	p.RegisterChangeObserver(te.observe)
@@ -195,9 +196,9 @@ func (te *TemplateEngine) makeBaseData(
 	}
 	userIsValid := user != nil
 	if userIsValid {
-		userZettelURL = newURLBuilder('h').SetZid(user.Zid).String()
+		userZettelURL = adapter.NewURLBuilder('h').SetZid(user.Zid).String()
 		userIdent = user.GetDefault(domain.MetaKeyUserID, "")
-		userLogoutURL = newURLBuilder('a').SetZid(user.Zid).String()
+		userLogoutURL = adapter.NewURLBuilder('a').SetZid(user.Zid).String()
 	}
 
 	return baseData{
@@ -257,16 +258,16 @@ func (te *TemplateEngine) fetchNewTemplates(ctx context.Context, user *domain.Me
 			title := config.GetTitle(meta)
 			langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
 			astTitle := parser.ParseInlines(input.NewInput(config.GetTitle(meta)), "zmk")
-			menuTitle, err := formatInlines(astTitle, "html", &langOption)
+			menuTitle, err := adapter.FormatInlines(astTitle, "html", &langOption)
 			if err != nil {
-				menuTitle, err = formatInlines(astTitle, "text", &langOption)
+				menuTitle, err = adapter.FormatInlines(astTitle, "text", &langOption)
 				if err != nil {
 					menuTitle = title
 				}
 			}
 			result = append(result, simpleLink{
 				Text: template.HTML(menuTitle),
-				URL:  newURLBuilder('n').SetZid(meta.Zid).String(),
+				URL:  adapter.NewURLBuilder('n').SetZid(meta.Zid).String(),
 			})
 		}
 	}

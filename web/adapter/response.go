@@ -19,7 +19,8 @@ import (
 	"zettelstore.de/z/place"
 )
 
-func checkUsecaseError(w http.ResponseWriter, err error) {
+// ReportUsecaseError returns an appropriate HTTP status code for errors in use cases.
+func ReportUsecaseError(w http.ResponseWriter, err error) {
 	if err, ok := err.(*place.ErrUnknownID); ok {
 		http.Error(w, fmt.Sprintf("Zettel %q not found", err.Zid.Format()), http.StatusNotFound)
 		return

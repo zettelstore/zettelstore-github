@@ -14,53 +14,23 @@ package adapter
 import (
 	"context"
 	"errors"
-	"html/template"
-	"io"
 	"strings"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
-	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
 )
 
-var errNoSuchFormat = errors.New("no such format")
+// ErrNoSuchFormat signals an unsupported encoding format
+var ErrNoSuchFormat = errors.New("no such format")
 
-func formatBlocks(bs ast.BlockSlice, format string, options ...encoder.Option) (string, error) {
+// FormatInlines returns a string representation of the inline slice.
+func FormatInlines(is ast.InlineSlice, format string, options ...encoder.Option) (string, error) {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
-		return "", errNoSuchFormat
-	}
-
-	var content strings.Builder
-	_, err := enc.WriteBlocks(&content, bs)
-	if err != nil {
-		return "", err
-	}
-	return content.String(), nil
-}
-
-func formatMeta(meta *domain.Meta, format string, options ...encoder.Option) (string, error) {
-	enc := encoder.Create(format, options...)
-	if enc == nil {
-		return "", errNoSuchFormat
-	}
-
-	var content strings.Builder
-	_, err := enc.WriteMeta(&content, meta)
-	if err != nil {
-		return "", err
-	}
-	return content.String(), nil
-}
-
-func formatInlines(is ast.InlineSlice, format string, options ...encoder.Option) (string, error) {
-	enc := encoder.Create(format, options...)
-	if enc == nil {
-		return "", errNoSuchFormat
+		return "", ErrNoSuchFormat
 	}
 
 	var content strings.Builder
@@ -71,27 +41,8 @@ func formatInlines(is ast.InlineSlice, format string, options ...encoder.Option)
 	return content.String(), nil
 }
 
-func writeContent(w io.Writer, zn *ast.ZettelNode, format string, options ...encoder.Option) error {
-	enc := encoder.Create(format, options...)
-	if enc == nil {
-		return errNoSuchFormat
-	}
-
-	_, err := enc.WriteContent(w, zn)
-	return err
-}
-
-func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder.Option) error {
-	enc := encoder.Create(format, options...)
-	if enc == nil {
-		return errNoSuchFormat
-	}
-
-	_, err := enc.WriteMeta(w, meta)
-	return err
-}
-
-func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, part, format string) func(*ast.LinkNode) ast.InlineNode {
+// MakeLinkAdapter creates an adapter to change a link node during encoding.
+func MakeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, part, format string) func(*ast.LinkNode) ast.InlineNode {
 	return func(origLink *ast.LinkNode) ast.InlineNode {
 		origRef := origLink.Ref
 		if origRef == nil || origRef.State != ast.RefStateZettel {
@@ -104,7 +55,7 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, par
 		_, err = getMeta.Run(ctx, zid)
 		newLink := *origLink
 		if err == nil {
-			u := newURLBuilder(key).SetZid(zid)
+			u := NewURLBuilder(key).SetZid(zid)
 			if part != "" {
 				u.AppendQuery("_part", part)
 			}
@@ -133,7 +84,8 @@ func makeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, par
 	}
 }
 
-func makeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
+// MakeImageAdapter creates an adapter to change an image node during encoding.
+func MakeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 	return func(origImage *ast.ImageNode) ast.InlineNode {
 		if origImage.Ref == nil || origImage.Ref.State != ast.RefStateZettel {
 			return origImage
@@ -143,54 +95,8 @@ func makeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 		if err != nil {
 			panic(err)
 		}
-		newImage.Ref = ast.ParseReference(newURLBuilder('z').SetZid(zid).AppendQuery("_part", "content").AppendQuery("_format", "raw").String())
+		newImage.Ref = ast.ParseReference(NewURLBuilder('z').SetZid(zid).AppendQuery("_part", "content").AppendQuery("_format", "raw").String())
 		newImage.Ref.State = ast.RefStateZettelFound
 		return &newImage
 	}
-}
-
-type metaInfo struct {
-	Title template.HTML
-	URL   string
-	Tags  []simpleLink
-}
-
-// buildHTMLMetaList builds a zettel list based on a meta list for HTML rendering.
-func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
-	defaultLang := config.GetDefaultLang()
-	langOption := encoder.StringOption{Key: "lang", Value: ""}
-	metas := make([]metaInfo, 0, len(metaList))
-	for _, meta := range metaList {
-		if lang, ok := meta.Get(domain.MetaKeyLang); ok {
-			langOption.Value = lang
-		} else {
-			langOption.Value = defaultLang
-		}
-		title, _ := meta.Get(domain.MetaKeyTitle)
-		htmlTitle, err := formatInlines(parser.ParseTitle(title), "html", &langOption)
-		if err != nil {
-			return nil, err
-		}
-		metas = append(metas, metaInfo{
-			Title: template.HTML(htmlTitle),
-			URL:   newURLBuilder('h').SetZid(meta.Zid).String(),
-			Tags:  buildTagInfos(meta),
-		})
-	}
-	return metas, nil
-}
-
-func buildTagInfos(meta *domain.Meta) []simpleLink {
-	var tagInfos []simpleLink
-	if tags, ok := meta.GetList(domain.MetaKeyTags); ok {
-		tagInfos = make([]simpleLink, 0, len(tags))
-		ub := newURLBuilder('h')
-		for _, t := range tags {
-			// Cast to template.HTML is ok, because "t" is a tag name
-			// and contains only legal characters by construction.
-			tagInfos = append(tagInfos, simpleLink{Text: template.HTML(t), URL: ub.AppendQuery("tags", t).String()})
-			ub.ClearQuery()
-		}
-	}
-	return tagInfos
 }

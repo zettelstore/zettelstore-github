@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
@@ -55,7 +56,7 @@ func MakeWebUIListsHandler(te *TemplateEngine, listMeta usecase.ListMeta, listRo
 
 func renderWebUIZettelList(w http.ResponseWriter, r *http.Request, te *TemplateEngine, listMeta usecase.ListMeta) {
 	query := r.URL.Query()
-	filter, sorter := getFilterSorter(query, false)
+	filter, sorter := adapter.GetFilterSorter(query, false)
 	ctx := r.Context()
 	renderWebUIMetaList(
 		ctx, w, te, sorter,
@@ -74,13 +75,13 @@ func renderWebUIRolesList(w http.ResponseWriter, r *http.Request, te *TemplateEn
 	ctx := r.Context()
 	roleList, err := listRole.Run(ctx)
 	if err != nil {
-		checkUsecaseError(w, err)
+		adapter.ReportUsecaseError(w, err)
 		return
 	}
 
 	roleInfos := make([]roleInfo, 0, len(roleList))
 	for _, r := range roleList {
-		roleInfos = append(roleInfos, roleInfo{r, newURLBuilder('h').AppendQuery("role", r).String()})
+		roleInfos = append(roleInfos, roleInfo{r, adapter.NewURLBuilder('h').AppendQuery("role", r).String()})
 	}
 
 	user := session.GetUser(ctx)
@@ -113,14 +114,14 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 	iMinCount, _ := strconv.Atoi(r.URL.Query().Get("min"))
 	tagData, err := listTags.Run(ctx, iMinCount)
 	if err != nil {
-		checkUsecaseError(w, err)
+		adapter.ReportUsecaseError(w, err)
 		return
 	}
 
 	user := session.GetUser(ctx)
 	tagsList := make([]tagInfo, 0, len(tagData))
 	countMap := make(map[int]int)
-	baseTagListURL := newURLBuilder('h')
+	baseTagListURL := adapter.NewURLBuilder('h')
 	for tag, ml := range tagData {
 		count := len(ml)
 		countMap[count]++
@@ -165,9 +166,9 @@ func renderWebUITagsList(w http.ResponseWriter, r *http.Request, te *TemplateEng
 func MakeSearchHandler(te *TemplateEngine, search usecase.Search, getMeta usecase.GetMeta, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
-		filter, sorter := getFilterSorter(query, true)
+		filter, sorter := adapter.GetFilterSorter(query, true)
 		if filter == nil || len(filter.Expr) == 0 {
-			http.Redirect(w, r, newURLBuilder('h').String(), http.StatusFound)
+			http.Redirect(w, r, adapter.NewURLBuilder('h').String(), http.StatusFound)
 			return
 		}
 
@@ -191,14 +192,14 @@ func renderWebUIMetaList(
 	var err error
 	var prevURL, nextURL string
 	if lps := config.GetListPageSize(); lps > 0 {
-		sorter = ensureSorter(sorter)
+		sorter = adapter.EnsureSorter(sorter)
 		if sorter.Limit < lps {
 			sorter.Limit = lps + 1
 		}
 
 		metaList, err = ucMetaList(sorter)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 		if offset := sorter.Offset; offset > 0 {
@@ -215,7 +216,7 @@ func renderWebUIMetaList(
 	} else {
 		metaList, err = ucMetaList(sorter)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 	}
@@ -246,7 +247,7 @@ func renderWebUIMetaList(
 }
 
 func newPageURL(key byte, query url.Values, offset int, offsetKey, limitKey string) string {
-	urlBuilder := newURLBuilder(key)
+	urlBuilder := adapter.NewURLBuilder(key)
 	for key, values := range query {
 		if key != offsetKey && key != limitKey {
 			for _, val := range values {

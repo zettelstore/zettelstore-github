@@ -21,7 +21,8 @@ import (
 	"zettelstore.de/z/place"
 )
 
-func getFormat(r *http.Request, q url.Values, defFormat string) string {
+// GetFormat returns the data format selected by the caller.
+func GetFormat(r *http.Request, q url.Values, defFormat string) string {
 	format := q.Get("_format")
 	if len(format) > 0 {
 		return format
@@ -46,15 +47,19 @@ func getOneFormat(r *http.Request, key string) (string, bool) {
 	return "", false
 }
 
-func getPart(q url.Values, defPart string) string {
-	part := q.Get("_part")
-	if len(part) == 0 {
-		part = defPart
-	}
-	return part
+var mapCT2format = map[string]string{
+	"application/json": "json",
+	"text/html":        "html",
 }
 
-func getFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter *place.Sorter) {
+func contentType2format(contentType string) (string, bool) {
+	// TODO: only check before first ';'
+	format, ok := mapCT2format[contentType]
+	return format, ok
+}
+
+// GetFilterSorter retrieves the specified filter and sorting options from a query.
+func GetFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter *place.Sorter) {
 	sortKey, offsetKey, limitKey, negateKey, sKey := getQueryKeys(forSearch)
 	for key, values := range q {
 		switch key {
@@ -67,7 +72,7 @@ func getFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter
 					sortkey = sortkey[1:]
 				}
 				if domain.KeyIsValid(sortkey) {
-					sorter = ensureSorter(sorter)
+					sorter = EnsureSorter(sorter)
 					sorter.Order = sortkey
 					sorter.Descending = descending
 				}
@@ -75,14 +80,14 @@ func getFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter
 		case offsetKey:
 			if len(values) > 0 {
 				if offset, err := strconv.Atoi(values[0]); err == nil {
-					sorter = ensureSorter(sorter)
+					sorter = EnsureSorter(sorter)
 					sorter.Offset = offset
 				}
 			}
 		case limitKey:
 			if len(values) > 0 {
 				if limit, err := strconv.Atoi(values[0]); err == nil {
-					sorter = ensureSorter(sorter)
+					sorter = EnsureSorter(sorter)
 					sorter.Limit = limit
 				}
 			}
@@ -125,7 +130,8 @@ func ensureFilter(filter *place.Filter) *place.Filter {
 	return filter
 }
 
-func ensureSorter(sorter *place.Sorter) *place.Sorter {
+// EnsureSorter makes sure that there is a sorter object.
+func EnsureSorter(sorter *place.Sorter) *place.Sorter {
 	if sorter == nil {
 		sorter = new(place.Sorter)
 	}

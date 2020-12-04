@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"fmt"
@@ -18,6 +18,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
@@ -33,11 +34,11 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
-		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
+		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format), http.StatusBadRequest)
 			return
 		}
@@ -72,9 +73,9 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 		}
 
 		if err := updateZettel.Run(r.Context(), zettel, hasContent); err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
-		http.Redirect(w, r, newURLBuilder('h').SetZid(zid).String(), http.StatusFound)
+		http.Redirect(w, r, adapter.NewURLBuilder('h').SetZid(zid).String(), http.StatusFound)
 	}
 }

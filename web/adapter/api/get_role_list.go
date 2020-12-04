@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package api provides api handlers for web requests.
+package api
 
 import (
 	"fmt"
@@ -18,19 +18,20 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/encoder/jsonenc"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 )
 
 // MakeListRoleHandler creates a new HTTP handler for the use case "list some zettel".
-func MakeListRoleHandler(te *TemplateEngine, listRole usecase.ListRole) http.HandlerFunc {
+func MakeListRoleHandler(listRole usecase.ListRole) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		roleList, err := listRole.Run(ctx)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
-		format := getFormat(r, r.URL.Query(), encoder.GetDefaultFormat())
+		format := adapter.GetFormat(r, r.URL.Query(), encoder.GetDefaultFormat())
 		switch format {
 		case "json":
 			w.Header().Set("Content-Type", format2ContentType(format))

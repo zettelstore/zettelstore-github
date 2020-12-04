@@ -19,20 +19,20 @@ import (
 )
 
 // MakeReloadHandler creates a new HTTP handler for the use case "reload".
-func MakeReloadHandler(reload usecase.Reload) http.HandlerFunc {
+func MakeReloadHandler(
+	reload usecase.Reload,
+	apiHandler func(http.ResponseWriter, *http.Request, string),
+	htmlHandler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := reload.Run(r.Context())
 		if err != nil {
-			checkUsecaseError(w, err)
+			ReportUsecaseError(w, err)
 			return
 		}
 
-		format := getFormat(r, r.URL.Query(), encoder.GetDefaultFormat())
-		if format == "html" {
-			http.Redirect(w, r, newURLBuilder('/').String(), http.StatusFound)
-			return
+		if format := GetFormat(r, r.URL.Query(), encoder.GetDefaultFormat()); format != "html" {
+			apiHandler(w, r, format)
 		}
-		w.Header().Set("Content-Type", format2ContentType(format))
-		w.WriteHeader(http.StatusNoContent)
+		htmlHandler(w, r)
 	}
 }

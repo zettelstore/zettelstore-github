@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package api provides api handlers for web requests.
+package api
 
 import (
 	"encoding/json"
@@ -20,6 +20,7 @@ import (
 	"zettelstore.de/z/collect"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 )
 
 type jsonGetLinks struct {
@@ -51,7 +52,7 @@ func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
 		q := r.URL.Query()
 		zn, err := parseZettel.Run(ctx, zid, q.Get("syntax"))
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 		summary := collect.References(zn)
@@ -65,7 +66,7 @@ func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
 
 		outData := jsonGetLinks{
 			ID:  zid.Format(),
-			URL: newURLBuilder('z').SetZid(zid).String(),
+			URL: adapter.NewURLBuilder('z').SetZid(zid).String(),
 		}
 		if kind&kindLink != 0 {
 			if matter&matterIncoming != 0 {
@@ -110,7 +111,7 @@ func idURLRefs(refs []*ast.Reference) []jsonIDURL {
 	result := make([]jsonIDURL, 0, len(refs))
 	for _, ref := range refs {
 		path := ref.URL.Path
-		ub := newURLBuilder('z').AppendPath(path)
+		ub := adapter.NewURLBuilder('z').AppendPath(path)
 		if fragment := ref.URL.Fragment; len(fragment) > 0 {
 			ub.SetFragment(fragment)
 		}

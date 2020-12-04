@@ -20,19 +20,23 @@ import (
 )
 
 type urlQuery struct{ key, val string }
-type urlBuilder struct {
+
+// URLBuilder should be used to create zettelstore URLs.
+type URLBuilder struct {
 	key      byte
 	path     []string
 	query    []urlQuery
 	fragment string
 }
 
-func newURLBuilder(key byte) *urlBuilder {
-	return &urlBuilder{key: key}
+// NewURLBuilder creates a new URLBuilder.
+func NewURLBuilder(key byte) *URLBuilder {
+	return &URLBuilder{key: key}
 }
 
-func (ub *urlBuilder) Clone() *urlBuilder {
-	copy := new(urlBuilder)
+// Clone an URLBuilder
+func (ub *URLBuilder) Clone() *URLBuilder {
+	copy := new(URLBuilder)
 	copy.key = ub.key
 	if len(ub.path) > 0 {
 		copy.path = make([]string, 0, len(ub.path))
@@ -50,7 +54,8 @@ func (ub *urlBuilder) Clone() *urlBuilder {
 	return copy
 }
 
-func (ub *urlBuilder) SetZid(zid domain.ZettelID) *urlBuilder {
+// SetZid sets the zettel identifier.
+func (ub *URLBuilder) SetZid(zid domain.ZettelID) *URLBuilder {
 	if len(ub.path) > 0 {
 		panic("Cannot add Zid")
 	}
@@ -58,28 +63,33 @@ func (ub *urlBuilder) SetZid(zid domain.ZettelID) *urlBuilder {
 	return ub
 }
 
-func (ub *urlBuilder) AppendPath(p string) *urlBuilder {
+// AppendPath adds a new path element
+func (ub *URLBuilder) AppendPath(p string) *URLBuilder {
 	ub.path = append(ub.path, p)
 	return ub
 }
 
-func (ub *urlBuilder) AppendQuery(key string, value string) *urlBuilder {
+// AppendQuery adds a new query parameter
+func (ub *URLBuilder) AppendQuery(key string, value string) *URLBuilder {
 	ub.query = append(ub.query, urlQuery{key, value})
 	return ub
 }
 
-func (ub *urlBuilder) ClearQuery() *urlBuilder {
+// ClearQuery removes all query parameters.
+func (ub *URLBuilder) ClearQuery() *URLBuilder {
 	ub.query = nil
 	ub.fragment = ""
 	return ub
 }
 
-func (ub *urlBuilder) SetFragment(s string) *urlBuilder {
+// SetFragment stores the fragment
+func (ub *URLBuilder) SetFragment(s string) *URLBuilder {
 	ub.fragment = s
 	return ub
 }
 
-func (ub *urlBuilder) String() string {
+// String produces a string value.
+func (ub *URLBuilder) String() string {
 	var sb strings.Builder
 
 	sb.WriteString(config.URLPrefix())

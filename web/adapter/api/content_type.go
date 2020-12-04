@@ -8,23 +8,10 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
-
-import ()
+// Package api provides api handlers for web requests.
+package api
 
 const plainText = "text/plain; charset=utf-8"
-
-var mapCT2format = map[string]string{
-	"application/json": "json",
-	"text/html":        "html",
-}
-
-func contentType2format(contentType string) (string, bool) {
-	// TODO: only check before first ';'
-	format, ok := mapCT2format[contentType]
-	return format, ok
-}
 
 var mapFormat2CT = map[string]string{
 	"html":   "text/html; charset=utf-8",

@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package api provides api handlers for web requests.
+package api
 
 import (
 	"fmt"
@@ -20,6 +20,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 )
 
 // MakeGetZettelHandler creates a new HTTP handler to return a rendered zettel.
@@ -35,11 +36,11 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 		q := r.URL.Query()
 		zn, err := parseZettel.Run(ctx, zid, q.Get("syntax"))
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
-		format := getFormat(r, q, encoder.GetDefaultFormat())
+		format := adapter.GetFormat(r, q, encoder.GetDefaultFormat())
 		part := getPart(q, "zettel")
 		switch format {
 		case "json", "djson":
@@ -63,8 +64,8 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 		}
 
 		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(zn.InhMeta)}
-		linkAdapter := encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'z', getMeta, part, format)}
-		imageAdapter := encoder.AdaptImageOption{Adapter: makeImageAdapter()}
+		linkAdapter := encoder.AdaptLinkOption{Adapter: adapter.MakeLinkAdapter(ctx, 'z', getMeta, part, format)}
+		imageAdapter := encoder.AdaptImageOption{Adapter: adapter.MakeImageAdapter()}
 
 		switch part {
 		case "zettel":
@@ -84,7 +85,7 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 				},
 			)
 			if enc == nil {
-				err = errNoSuchFormat
+				err = adapter.ErrNoSuchFormat
 			} else {
 				_, err = enc.WriteZettel(w, zn, inhMeta)
 			}
@@ -114,7 +115,7 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 			return
 		}
 		if err != nil {
-			if err == errNoSuchFormat {
+			if err == adapter.ErrNoSuchFormat {
 				http.Error(w, fmt.Sprintf("Zettel %q not available in format %q", zid.Format(), format), http.StatusBadRequest)
 				return
 			}

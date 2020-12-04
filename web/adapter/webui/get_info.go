@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"fmt"
@@ -28,6 +28,7 @@ import (
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
@@ -53,7 +54,7 @@ type matrixElement struct {
 func MakeGetInfoHandler(te *TemplateEngine, parseZettel usecase.ParseZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
-		if format := getFormat(r, q, "html"); format != "html" {
+		if format := adapter.GetFormat(r, q, "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Zettel info not available in format %q", format), http.StatusBadRequest)
 			return
 		}
@@ -67,7 +68,7 @@ func MakeGetInfoHandler(te *TemplateEngine, parseZettel usecase.ParseZettel, get
 		ctx := r.Context()
 		zn, err := parseZettel.Run(ctx, zid, q.Get("syntax"))
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
@@ -81,7 +82,7 @@ func MakeGetInfoHandler(te *TemplateEngine, parseZettel usecase.ParseZettel, get
 				return "", 0
 			}
 			astTitle := parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
-			title, err := formatInlines(astTitle, "html", langOption)
+			title, err := adapter.FormatInlines(astTitle, "html", langOption)
 			if err == nil {
 				return title, 1
 			}
@@ -90,7 +91,7 @@ func MakeGetInfoHandler(te *TemplateEngine, parseZettel usecase.ParseZettel, get
 		summary := collect.References(zn)
 		zetLinks, locLinks, extLinks := splitIntExtLinks(getTitle, append(summary.Links, summary.Images...))
 
-		textTitle, err := formatInlines(zn.Title, "text", nil, langOption)
+		textTitle, err := adapter.FormatInlines(zn.Title, "text", nil, langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -107,7 +108,7 @@ func MakeGetInfoHandler(te *TemplateEngine, parseZettel usecase.ParseZettel, get
 		defFormat := encoder.GetDefaultFormat()
 		parts := []string{"zettel", "meta", "content"}
 		matrix := make([][]matrixElement, 0, len(parts))
-		u := newURLBuilder('z').SetZid(zid)
+		u := adapter.NewURLBuilder('z').SetZid(zid)
 		for _, part := range parts {
 			row := make([]matrixElement, 0, len(formats)+1)
 			row = append(row, matrixElement{part, false, ""})
@@ -150,17 +151,17 @@ func MakeGetInfoHandler(te *TemplateEngine, parseZettel usecase.ParseZettel, get
 		}{
 			baseData:     base,
 			Zid:          zid.Format(),
-			WebURL:       newURLBuilder('h').SetZid(zid).String(),
+			WebURL:       adapter.NewURLBuilder('h').SetZid(zid).String(),
 			CanWrite:     te.canWrite(ctx, user, zn.Zettel),
-			EditURL:      newURLBuilder('e').SetZid(zid).String(),
+			EditURL:      adapter.NewURLBuilder('e').SetZid(zid).String(),
 			CanClone:     canClone,
-			CloneURL:     newURLBuilder('c').SetZid(zid).String(),
+			CloneURL:     adapter.NewURLBuilder('c').SetZid(zid).String(),
 			CanNew:       canClone && zn.Zettel.Meta.GetDefault(domain.MetaKeyRole, "") == domain.MetaValueRoleNewTemplate,
-			NewURL:       newURLBuilder('n').SetZid(zid).String(),
+			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			CanRename:    te.canRename(ctx, user, zn.Zettel.Meta),
-			RenameURL:    newURLBuilder('r').SetZid(zid).String(),
+			RenameURL:    adapter.NewURLBuilder('r').SetZid(zid).String(),
 			CanDelete:    te.canDelete(ctx, user, zn.Zettel.Meta),
-			DeleteURL:    newURLBuilder('d').SetZid(zid).String(),
+			DeleteURL:    adapter.NewURLBuilder('d').SetZid(zid).String(),
 			MetaData:     metaData,
 			HasLinks:     len(zetLinks)+len(extLinks)+len(locLinks) > 0,
 			HasZetLinks:  len(zetLinks) > 0,
@@ -192,7 +193,7 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 		if err != nil {
 			return template.HTML(value)
 		}
-		return template.HTML("<a href=\"" + newURLBuilder('h').SetZid(zid).String() + "\">" + value + "</a>")
+		return template.HTML("<a href=\"" + adapter.NewURLBuilder('h').SetZid(zid).String() + "\">" + value + "</a>")
 
 	case domain.MetaTypeTagSet, domain.MetaTypeWordSet:
 		values, _ := meta.GetList(key)
@@ -227,7 +228,7 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 
 func writeLink(b *strings.Builder, key, value string) {
 	b.WriteString("<a href=\"")
-	b.WriteString(newURLBuilder('h').String())
+	b.WriteString(adapter.NewURLBuilder('h').String())
 	b.WriteByte('?')
 	b.WriteString(template.URLQueryEscaper(key))
 	b.WriteByte('=')
@@ -257,7 +258,7 @@ func splitIntExtLinks(getTitle func(domain.ZettelID) (string, int), links []*ast
 				}
 				var u string
 				if found == 1 {
-					ub := newURLBuilder('h').SetZid(zid)
+					ub := adapter.NewURLBuilder('h').SetZid(zid)
 					if fragment := ref.URL.EscapedFragment(); len(fragment) > 0 {
 						ub.SetFragment(fragment)
 					}

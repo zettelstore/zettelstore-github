@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"fmt"
@@ -18,13 +18,14 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
 // MakeGetDeleteZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
 func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if format := getFormat(r, r.URL.Query(), "html"); format != "html" {
+		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(w, fmt.Sprintf("Delete zettel not possible in format %q", format), http.StatusBadRequest)
 			return
 		}
@@ -38,7 +39,7 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 		ctx := r.Context()
 		zettel, err := getZettel.Run(ctx, zid)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
@@ -66,9 +67,9 @@ func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.Handler
 		}
 
 		if err := deleteZettel.Run(r.Context(), zid); err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
-		http.Redirect(w, r, newURLBuilder('/').String(), http.StatusFound)
+		http.Redirect(w, r, adapter.NewURLBuilder('/').String(), http.StatusFound)
 	}
 }

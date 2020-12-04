@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package api provides api handlers for web requests.
+package api
 
 import (
 	"fmt"
@@ -21,20 +21,21 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 )
 
 // MakeListMetaHandler creates a new HTTP handler for the use case "list some zettel".
-func MakeListMetaHandler(te *TemplateEngine, listMeta usecase.ListMeta, getMeta usecase.GetMeta, parseZettel usecase.ParseZettel) http.HandlerFunc {
+func MakeListMetaHandler(listMeta usecase.ListMeta, getMeta usecase.GetMeta, parseZettel usecase.ParseZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
-		filter, sorter := getFilterSorter(q, false)
+		filter, sorter := adapter.GetFilterSorter(q, false)
 		metaList, err := listMeta.Run(r.Context(), filter, sorter)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
-		format := getFormat(r, q, encoder.GetDefaultFormat())
+		format := adapter.GetFormat(r, q, encoder.GetDefaultFormat())
 		part := getPart(q, "meta")
 		w.Header().Set("Content-Type", format2ContentType(format))
 		switch format {
@@ -57,14 +58,14 @@ func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
 	buf.WriteStrings("<html lang=\"", config.GetDefaultLang(), "\">\n<body>\n<ul>\n")
 	for _, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
-		htmlTitle, err := formatInlines(parser.ParseTitle(title), "html")
+		htmlTitle, err := adapter.FormatInlines(parser.ParseTitle(title), "html")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
 		buf.WriteStrings(
-			"<li><a href=\"", newURLBuilder('z').SetZid(meta.Zid).AppendQuery("format", "html").String(), "\">",
+			"<li><a href=\"", adapter.NewURLBuilder('z').SetZid(meta.Zid).AppendQuery("format", "html").String(), "\">",
 			htmlTitle, "</a></li>\n")
 	}
 	buf.WriteString("</ul>\n</body>\n</html>")

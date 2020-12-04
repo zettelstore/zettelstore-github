@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package adapter provides handlers for web requests.
-package adapter
+// Package webui provides wet-UI handlers for web requests.
+package webui
 
 import (
 	"html/template"
@@ -20,6 +20,7 @@ import (
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
+	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
@@ -39,7 +40,7 @@ func MakeGetHTMLZettelHandler(
 		syntax := r.URL.Query().Get("syntax")
 		zn, err := parseZettel.Run(ctx, zid, syntax)
 		if err != nil {
-			checkUsecaseError(w, err)
+			adapter.ReportUsecaseError(w, err)
 			return
 		}
 
@@ -57,13 +58,13 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(zn.InhMeta)}
-		htmlTitle, err := formatInlines(zn.Title, "html", &langOption)
+		htmlTitle, err := adapter.FormatInlines(zn.Title, "html", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
 			return
 		}
-		textTitle, err := formatInlines(zn.Title, "text", &langOption)
+		textTitle, err := adapter.FormatInlines(zn.Title, "text", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			log.Println(err)
@@ -76,8 +77,8 @@ func MakeGetHTMLZettelHandler(
 			&langOption,
 			&encoder.StringOption{Key: domain.MetaKeyMarkerExternal, Value: config.GetMarkerExternal()},
 			&encoder.BoolOption{Key: "newwindow", Value: newWindow},
-			&encoder.AdaptLinkOption{Adapter: makeLinkAdapter(ctx, 'h', getMeta, "", "")},
-			&encoder.AdaptImageOption{Adapter: makeImageAdapter()},
+			&encoder.AdaptLinkOption{Adapter: adapter.MakeLinkAdapter(ctx, 'h', getMeta, "", "")},
+			&encoder.AdaptImageOption{Adapter: adapter.MakeImageAdapter()},
 		)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -115,17 +116,17 @@ func MakeGetHTMLZettelHandler(
 			MetaHeader:   template.HTML(metaHeader),
 			HTMLTitle:    template.HTML(htmlTitle),
 			CanWrite:     te.canWrite(ctx, user, zn.Zettel),
-			EditURL:      newURLBuilder('e').SetZid(zid).String(),
+			EditURL:      adapter.NewURLBuilder('e').SetZid(zid).String(),
 			Zid:          zid.Format(),
-			InfoURL:      newURLBuilder('i').SetZid(zid).String(),
+			InfoURL:      adapter.NewURLBuilder('i').SetZid(zid).String(),
 			RoleText:     roleText,
-			RoleURL:      newURLBuilder('h').AppendQuery("role", roleText).String(),
+			RoleURL:      adapter.NewURLBuilder('h').AppendQuery("role", roleText).String(),
 			HasTags:      len(tags) > 0,
 			Tags:         tags,
 			CanClone:     canClone,
-			CloneURL:     newURLBuilder('c').SetZid(zid).String(),
+			CloneURL:     adapter.NewURLBuilder('c').SetZid(zid).String(),
 			CanNew:       canClone && roleText == domain.MetaValueRoleNewTemplate,
-			NewURL:       newURLBuilder('n').SetZid(zid).String(),
+			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			ExtURL:       extURL,
 			HasExtURL:    hasExtURL,
 			ExtNewWindow: htmlAttrNewWindow(newWindow && hasExtURL),
