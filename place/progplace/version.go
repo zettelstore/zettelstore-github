@@ -29,7 +29,9 @@ func getVersionMeta(zid domain.ZettelID, title string) *domain.Meta {
 }
 
 func genVersionBuildM(zid domain.ZettelID) *domain.Meta {
-	return getVersionMeta(zid, "Zettelstore Version")
+	meta := getVersionMeta(zid, "Zettelstore Version")
+	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityPublic)
+	return meta
 }
 func genVersionBuildC(meta *domain.Meta) string { return config.GetVersion().Build }
 

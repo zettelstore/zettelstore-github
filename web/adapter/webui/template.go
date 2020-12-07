@@ -48,7 +48,6 @@ type TemplateEngine struct {
 	mxCache       sync.RWMutex
 	policy        policy.Policy
 
-	version       string
 	stylesheetURL string
 	homeURL       string
 	listZettelURL string
@@ -66,7 +65,6 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 		place:  p,
 		policy: pol,
 
-		version:       config.GetVersion().Build,
 		stylesheetURL: adapter.NewURLBuilder('z').SetZid(domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery("_part", "content").String(),
 		homeURL:       adapter.NewURLBuilder('/').String(),
 		listZettelURL: adapter.NewURLBuilder('h').String(),
@@ -160,7 +158,6 @@ type simpleLink struct {
 
 type baseData struct {
 	Lang           string
-	Version        string
 	StylesheetURL  string
 	Title          string
 	HomeURL        string
@@ -203,7 +200,6 @@ func (te *TemplateEngine) makeBaseData(
 
 	return baseData{
 		Lang:           lang,
-		Version:        te.version,
 		StylesheetURL:  te.stylesheetURL,
 		Title:          title,
 		HomeURL:        te.homeURL,
