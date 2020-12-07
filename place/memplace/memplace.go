@@ -253,10 +253,17 @@ func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 		}
 		return nil
 	}
-	_, ok = mp.zettel[newZid]
-	if ok {
+
+	// Check that there is no zettel with newZid, neither local nor in the next place
+	if _, ok = mp.zettel[newZid]; ok {
 		return &place.ErrInvalidID{Zid: newZid}
 	}
+	if mp.next != nil {
+		if _, err := mp.next.GetMeta(ctx, newZid); err == nil {
+			return &place.ErrInvalidID{Zid: newZid}
+		}
+	}
+
 	meta := zettel.Meta.Clone()
 	meta.Zid = newZid
 	meta.Freeze()

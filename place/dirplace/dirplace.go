@@ -383,7 +383,7 @@ func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bo
 	return canLocalRename && (dp.next == nil || dp.next.CanRenameZettel(ctx, zid))
 }
 
-// Rename changes the current id to a new id.
+// Rename changes the current zettel id to a new zettel id.
 func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
 	if dp.isStopped() {
 		return place.ErrStopped
@@ -395,32 +395,35 @@ func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 		return nil
 	}
 	curEntry := dp.dirSrv.GetEntry(curZid)
-	if curEntry.IsValid() {
-		newEntry := directory.Entry{
-			Zid:         newZid,
-			MetaSpec:    curEntry.MetaSpec,
-			MetaPath:    renamePath(curEntry.MetaPath, curZid, newZid),
-			ContentPath: renamePath(curEntry.ContentPath, curZid, newZid),
-			ContentExt:  curEntry.ContentExt,
+	if !curEntry.IsValid() {
+		if dp.next != nil {
+			return dp.next.RenameZettel(ctx, curZid, newZid)
 		}
-		dp.notifyChanged(false, curZid)
-		if err := dp.dirSrv.RenameEntry(&curEntry, &newEntry); err != nil {
-			return err
-		}
-
-		rc := make(chan resRenameZettel)
-		dp.getFileChan(newZid) <- &fileRenameZettel{&curEntry, &newEntry, rc}
-		err := <-rc
-		close(rc)
-		if err != nil {
-			return err
-		}
+		return nil
 	}
 
-	if dp.next != nil {
-		return dp.next.RenameZettel(ctx, curZid, newZid)
+	// Check whether zettel with new ID already exists in this place or in next places
+	if _, err := dp.GetMeta(ctx, newZid); err == nil {
+		return &place.ErrInvalidID{Zid: newZid}
 	}
-	return nil
+
+	newEntry := directory.Entry{
+		Zid:         newZid,
+		MetaSpec:    curEntry.MetaSpec,
+		MetaPath:    renamePath(curEntry.MetaPath, curZid, newZid),
+		ContentPath: renamePath(curEntry.ContentPath, curZid, newZid),
+		ContentExt:  curEntry.ContentExt,
+	}
+	dp.notifyChanged(false, curZid)
+	if err := dp.dirSrv.RenameEntry(&curEntry, &newEntry); err != nil {
+		return err
+	}
+
+	rc := make(chan resRenameZettel)
+	dp.getFileChan(newZid) <- &fileRenameZettel{&curEntry, &newEntry, rc}
+	err := <-rc
+	close(rc)
+	return err
 }
 
 func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {

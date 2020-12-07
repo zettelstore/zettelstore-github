@@ -17,12 +17,13 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/usecase"
 )
 
 // ReportUsecaseError returns an appropriate HTTP status code for errors in use cases.
 func ReportUsecaseError(w http.ResponseWriter, err error) {
 	if err, ok := err.(*place.ErrUnknownID); ok {
-		http.Error(w, fmt.Sprintf("Zettel %q not found", err.Zid.Format()), http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("Zettel %q not found.", err.Zid.Format()), http.StatusNotFound)
 		return
 	}
 	if err, ok := err.(*place.ErrNotAllowed); ok {
@@ -30,11 +31,15 @@ func ReportUsecaseError(w http.ResponseWriter, err error) {
 		return
 	}
 	if err, ok := err.(*place.ErrInvalidID); ok {
-		http.Error(w, fmt.Sprintf("Zettel-ID %q not appropriate in this context", err.Zid.Format()), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Zettel-ID %q not appropriate in this context.", err.Zid.Format()), http.StatusBadRequest)
+		return
+	}
+	if err, ok := err.(*usecase.ErrZidInUse); ok {
+		http.Error(w, fmt.Sprintf("Zettel-ID %q already in use.", err.Zid.Format()), http.StatusBadRequest)
 		return
 	}
 	if err == place.ErrStopped {
-		http.Error(w, "Zettelstore not operational", http.StatusInternalServerError)
+		http.Error(w, "Zettelstore not operational.", http.StatusInternalServerError)
 		return
 	}
 	http.Error(w, "Unknown internal error", http.StatusInternalServerError)
