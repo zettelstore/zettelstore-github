@@ -22,6 +22,7 @@ import (
 	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/place/progplace"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/adapter/api"
@@ -103,7 +104,7 @@ func getPlaceURIs(cfg *domain.Meta) []string {
 
 func connectPlaces(placeURIs []string) (place.Place, error) {
 	if len(placeURIs) == 0 {
-		return nil, nil
+		return progplace.Get(), nil
 	}
 	next, err := connectPlaces(placeURIs[1:])
 	if err != nil {
@@ -170,7 +171,10 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 
 func fullLocation(p place.Place) string {
 	if n := p.Next(); n != nil {
-		return p.Location() + ", " + fullLocation(n)
+		if rest := fullLocation(n); len(rest) > 0 {
+			return p.Location() + ", " + fullLocation(n)
+		}
+		return p.Location()
 	}
 	return p.Location()
 }
