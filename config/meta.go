@@ -103,7 +103,7 @@ func GetVisibility(meta *domain.Meta) Visibility {
 			return vis
 		}
 	}
-	return VisibilityLogin
+	return GetDefaultVisibility()
 }
 
 // UserRole enumerates the supported values of meta key 'user-role'.

@@ -78,65 +78,67 @@ const (
 
 // Predefined keys.
 const (
-	MetaKeyID               = "id"
-	MetaKeyTitle            = "title"
-	MetaKeyRole             = "role"
-	MetaKeyTags             = "tags"
-	MetaKeySyntax           = "syntax"
-	MetaKeyCopyright        = "copyright"
-	MetaKeyCredential       = "credential"
-	MetaKeyDefaultCopyright = "default-copyright"
-	MetaKeyDefaultLang      = "default-lang"
-	MetaKeyDefaultLicense   = "default-license"
-	MetaKeyDefaultRole      = "default-role"
-	MetaKeyDefaultSyntax    = "default-syntax"
-	MetaKeyDefaultTitle     = "default-title"
-	MetaKeyFooterHTML       = "footer-html"
-	MetaKeyLang             = "lang"
-	MetaKeyLicense          = "license"
-	MetaKeyListPageSize     = "list-page-size"
-	MetaKeyNewRole          = "new-role"
-	MetaKeyMarkerExternal   = "marker-external"
-	MetaKeyReadOnly         = "read-only"
-	MetaKeySiteName         = "site-name"
-	MetaKeyStart            = "start"
-	MetaKeyURL              = "url"
-	MetaKeyUserID           = "user-id"
-	MetaKeyUserRole         = "user-role"
-	MetaKeyVisibility       = "visibility"
-	MetaKeyYAMLHeader       = "yaml-header"
-	MetaKeyZettelFileSyntax = "zettel-file-syntax"
+	MetaKeyID                = "id"
+	MetaKeyTitle             = "title"
+	MetaKeyRole              = "role"
+	MetaKeyTags              = "tags"
+	MetaKeySyntax            = "syntax"
+	MetaKeyCopyright         = "copyright"
+	MetaKeyCredential        = "credential"
+	MetaKeyDefaultCopyright  = "default-copyright"
+	MetaKeyDefaultLang       = "default-lang"
+	MetaKeyDefaultLicense    = "default-license"
+	MetaKeyDefaultRole       = "default-role"
+	MetaKeyDefaultSyntax     = "default-syntax"
+	MetaKeyDefaultTitle      = "default-title"
+	MetaKeyDefaultVisibility = "default-visibility"
+	MetaKeyFooterHTML        = "footer-html"
+	MetaKeyLang              = "lang"
+	MetaKeyLicense           = "license"
+	MetaKeyListPageSize      = "list-page-size"
+	MetaKeyNewRole           = "new-role"
+	MetaKeyMarkerExternal    = "marker-external"
+	MetaKeyReadOnly          = "read-only"
+	MetaKeySiteName          = "site-name"
+	MetaKeyStart             = "start"
+	MetaKeyURL               = "url"
+	MetaKeyUserID            = "user-id"
+	MetaKeyUserRole          = "user-role"
+	MetaKeyVisibility        = "visibility"
+	MetaKeyYAMLHeader        = "yaml-header"
+	MetaKeyZettelFileSyntax  = "zettel-file-syntax"
 )
 
 var keyTypeMap = map[string]byte{
-	MetaKeyID:               MetaTypeID,
-	MetaKeyTitle:            MetaTypeString,
-	MetaKeyRole:             MetaTypeWord,
-	MetaKeyTags:             MetaTypeTagSet,
-	MetaKeySyntax:           MetaTypeWord,
-	MetaKeyCopyright:        MetaTypeString,
-	MetaKeyCredential:       MetaTypeCredential,
-	MetaKeyDefaultCopyright: MetaTypeString,
-	MetaKeyDefaultLicense:   MetaTypeEmpty,
-	MetaKeyDefaultLang:      MetaTypeWord,
-	MetaKeyDefaultRole:      MetaTypeWord,
-	MetaKeyDefaultSyntax:    MetaTypeWord,
-	MetaKeyDefaultTitle:     MetaTypeString,
-	MetaKeyFooterHTML:       MetaTypeString,
-	MetaKeyUserID:           MetaTypeWord,
-	MetaKeyLang:             MetaTypeWord,
-	MetaKeyLicense:          MetaTypeEmpty,
-	MetaKeyListPageSize:     MetaTypeNumber,
-	MetaKeyNewRole:          MetaTypeWord,
-	MetaKeyMarkerExternal:   MetaTypeEmpty,
-	MetaKeyReadOnly:         MetaTypeWord,
-	MetaKeySiteName:         MetaTypeString,
-	MetaKeyStart:            MetaTypeID,
-	MetaKeyURL:              MetaTypeURL,
-	MetaKeyUserRole:         MetaTypeWord,
-	MetaKeyVisibility:       MetaTypeWord,
-	MetaKeyYAMLHeader:       MetaTypeBool,
-	MetaKeyZettelFileSyntax: MetaTypeWordSet,
+	MetaKeyID:                MetaTypeID,
+	MetaKeyTitle:             MetaTypeString,
+	MetaKeyRole:              MetaTypeWord,
+	MetaKeyTags:              MetaTypeTagSet,
+	MetaKeySyntax:            MetaTypeWord,
+	MetaKeyCopyright:         MetaTypeString,
+	MetaKeyCredential:        MetaTypeCredential,
+	MetaKeyDefaultCopyright:  MetaTypeString,
+	MetaKeyDefaultLicense:    MetaTypeEmpty,
+	MetaKeyDefaultLang:       MetaTypeWord,
+	MetaKeyDefaultRole:       MetaTypeWord,
+	MetaKeyDefaultSyntax:     MetaTypeWord,
+	MetaKeyDefaultTitle:      MetaTypeString,
+	MetaKeyDefaultVisibility: MetaTypeWord,
+	MetaKeyFooterHTML:        MetaTypeString,
+	MetaKeyUserID:            MetaTypeWord,
+	MetaKeyLang:              MetaTypeWord,
+	MetaKeyLicense:           MetaTypeEmpty,
+	MetaKeyListPageSize:      MetaTypeNumber,
+	MetaKeyNewRole:           MetaTypeWord,
+	MetaKeyMarkerExternal:    MetaTypeEmpty,
+	MetaKeyReadOnly:          MetaTypeWord,
+	MetaKeySiteName:          MetaTypeString,
+	MetaKeyStart:             MetaTypeID,
+	MetaKeyURL:               MetaTypeURL,
+	MetaKeyUserRole:          MetaTypeWord,
+	MetaKeyVisibility:        MetaTypeWord,
+	MetaKeyYAMLHeader:        MetaTypeBool,
+	MetaKeyZettelFileSyntax:  MetaTypeWordSet,
 }
 
 // Important values for some keys.

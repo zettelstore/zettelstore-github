@@ -135,6 +135,18 @@ func GetStart() domain.ZettelID {
 	return domain.InvalidZettelID
 }
 
+// GetDefaultVisibility returns the default value for zettel visibility.
+func GetDefaultVisibility() Visibility {
+	if config := getConfigurationMeta(); config != nil {
+		if value, ok := config.Get(domain.MetaKeyDefaultVisibility); ok {
+			if vis, ok := visMap[value]; ok {
+				return vis
+			}
+		}
+	}
+	return VisibilityLogin
+}
+
 // GetYAMLHeader returns the current value of the "yaml-header" key.
 func GetYAMLHeader() bool {
 	if config := getConfigurationMeta(); config != nil {
