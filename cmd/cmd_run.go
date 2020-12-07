@@ -113,21 +113,8 @@ func connectPlaces(placeURIs []string) (place.Place, error) {
 	return p, err
 }
 
-func wrapPolicyPlace(p place.Place, pol policy.Policy) place.Place {
-	if n := p.Next(); n != nil {
-		return policy.NewPlace(p, pol, wrapPolicyPlace(n, pol))
-	}
-	return policy.NewPlace(p, pol, nil)
-}
 func setupRouting(up place.Place, readonly bool) http.Handler {
-	pp := up
-	var pol policy.Policy
-	if config.WithAuth() || readonly {
-		pol = policy.NewPolicy("default")
-		pp = wrapPolicyPlace(up, pol)
-	} else {
-		pol = policy.NewPolicy("all")
-	}
+	pp, pol := policy.PlaceWithPolicy(up, config.WithAuth(), config.Owner(), readonly)
 	te := webui.NewTemplateEngine(up, pol)
 
 	ucAuthenticate := usecase.NewAuthenticate(up)

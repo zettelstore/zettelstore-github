@@ -112,17 +112,30 @@ type UserRole int
 // Supported values for user roles.
 const (
 	_ UserRole = iota
+	UserRoleUnknown
 	UserRoleReader
 	UserRoleWriter
+	UserRoleOwner
 )
 
 var urMap = map[string]UserRole{
 	"reader": UserRoleReader,
 	"writer": UserRoleWriter,
+	"owner":  UserRoleOwner,
 }
 
 // GetUserRole role returns the user role of the given user zettel.
 func GetUserRole(user *domain.Meta) UserRole {
+	owner := Owner()
+	if user == nil {
+		if owner.IsValid() {
+			return UserRoleUnknown
+		}
+		return UserRoleOwner
+	}
+	if user.Zid == owner {
+		return UserRoleOwner
+	}
 	if val, ok := user.Get(domain.MetaKeyUserRole); ok {
 		if ur, ok := urMap[val]; ok {
 			return ur

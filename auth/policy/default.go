@@ -16,78 +16,63 @@ import (
 	"zettelstore.de/z/domain"
 )
 
-type defaultPolicy struct{}
+type defaultPolicy struct {
+	owner domain.ZettelID
+}
 
 func (d *defaultPolicy) CanReload(user *domain.Meta) bool {
-	return false
+	return true
 }
 
 func (d *defaultPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
-	if user == nil || config.GetUserRole(user) == config.UserRoleReader {
-		return false
-	}
-	if role, ok := newMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
-		return false
-	}
 	return true
 }
 
 func (d *defaultPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
-	switch visibility := config.GetVisibility(meta); visibility {
-	case config.VisibilityOwner:
-		return false
-	case config.VisibilityPublic:
-		return true
-	}
-	if user == nil {
-		return false
-	}
-	role, ok := meta.Get(domain.MetaKeyRole)
-	if !ok {
-		return false
-	}
-	if role == domain.MetaValueRoleUser {
-		// Only the user can read its own zettel
-		return user.Zid == meta.Zid
-	}
 	return true
 }
 
-var noChangeUser = []string{
-	domain.MetaKeyID,
-	domain.MetaKeyRole,
-	domain.MetaKeyUserID,
-	domain.MetaKeyUserRole,
-}
-
 func (d *defaultPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
-	if !d.CanRead(user, oldMeta) {
-		return false
-	}
-	if user == nil {
-		return false
-	}
-	if role, ok := oldMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
-		if user.Zid != newMeta.Zid {
-			return false
-		}
-		for _, key := range noChangeUser {
-			if oldMeta.GetDefault(key, "") != newMeta.GetDefault(key, "") {
-				return false
-			}
-		}
-		return true
-	}
-	if config.GetUserRole(user) == config.UserRoleReader {
-		return false
-	}
-	return d.CanCreate(user, newMeta)
+	return d.canChange(user, oldMeta)
 }
 
 func (d *defaultPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
-	return false
+	return d.canChange(user, meta)
 }
 
 func (d *defaultPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
-	return false
+	return d.canChange(user, meta)
+}
+
+func (d *defaultPolicy) canChange(user *domain.Meta, meta *domain.Meta) bool {
+	if meta == nil {
+		return false
+	}
+	metaRo, ok := meta.Get(domain.MetaKeyReadOnly)
+	if !ok {
+		return true
+	}
+	if user == nil {
+		// Either there is no owner (ie no authentication) or no authenticated user
+		if d.owner.IsValid() {
+			// If there is an owner and no authenticated user
+			return false
+		}
+		// No owner: check for owner-like restriction, since the user acts as an owner
+		if metaRo == "owner" || domain.BoolValue(metaRo) {
+			return false
+		}
+		return true
+	}
+
+	userRole := config.GetUserRole(user)
+	switch metaRo {
+	case "reader":
+		return userRole > config.UserRoleReader
+	case "writer":
+		return userRole > config.UserRoleWriter
+	case "owner":
+		return false
+	}
+	return !domain.BoolValue(metaRo)
 }

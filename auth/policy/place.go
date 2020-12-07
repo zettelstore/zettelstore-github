@@ -19,15 +19,39 @@ import (
 	"zettelstore.de/z/web/session"
 )
 
-// pol implements a policy place.
+// PlaceWithPolicy wraps the given place inside a policy place.
+func PlaceWithPolicy(place place.Place, withAuth bool, owner domain.ZettelID, readonly bool) (place.Place, Policy) {
+	var pol Policy
+	if readonly {
+		pol = &roPolicy{}
+	} else {
+		pol = &defaultPolicy{owner: owner}
+	}
+	if withAuth {
+		pol = &ownerPolicy{
+			owner: owner,
+			pre:   pol,
+		}
+	}
+	return wrapPolicyPlace(place, pol), pol
+}
+
+func wrapPolicyPlace(p place.Place, pol Policy) place.Place {
+	if n := p.Next(); n != nil {
+		return newPlace(p, pol, wrapPolicyPlace(n, pol))
+	}
+	return newPlace(p, pol, nil)
+}
+
+// polPlace implements a policy place.
 type polPlace struct {
 	place  place.Place
 	policy Policy
 	next   place.Place
 }
 
-// NewPlace creates a new policy place.
-func NewPlace(place place.Place, policy Policy, next place.Place) place.Place {
+// newPlace creates a new policy place.
+func newPlace(place place.Place, policy Policy, next place.Place) place.Place {
 	return &polPlace{
 		place:  place,
 		policy: policy,

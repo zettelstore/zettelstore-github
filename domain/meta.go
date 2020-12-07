@@ -97,6 +97,7 @@ const (
 	MetaKeyListPageSize     = "list-page-size"
 	MetaKeyNewRole          = "new-role"
 	MetaKeyMarkerExternal   = "marker-external"
+	MetaKeyReadOnly         = "read-only"
 	MetaKeySiteName         = "site-name"
 	MetaKeyStart            = "start"
 	MetaKeyURL              = "url"
@@ -128,6 +129,7 @@ var keyTypeMap = map[string]byte{
 	MetaKeyListPageSize:     MetaTypeNumber,
 	MetaKeyNewRole:          MetaTypeWord,
 	MetaKeyMarkerExternal:   MetaTypeEmpty,
+	MetaKeyReadOnly:         MetaTypeWord,
 	MetaKeySiteName:         MetaTypeString,
 	MetaKeyStart:            MetaTypeID,
 	MetaKeyURL:              MetaTypeURL,

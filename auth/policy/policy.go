@@ -12,7 +12,6 @@
 package policy
 
 import (
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 )
 
@@ -35,17 +34,4 @@ type Policy interface {
 
 	// User is allowed to delete zettel
 	CanDelete(user *domain.Meta, meta *domain.Meta) bool
-}
-
-// NewPolicy creates a new policy object to check access autheorization.
-func NewPolicy(name string) Policy {
-	switch name {
-	case "all":
-		return &allPolicy{}
-	}
-	return &ownerPolicy{
-		base:     &defaultPolicy{},
-		owner:    config.Owner(),
-		readonly: config.IsReadOnly(),
-	}
 }
