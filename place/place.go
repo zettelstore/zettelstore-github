@@ -155,6 +155,7 @@ func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid
 type Filter struct {
 	Expr   FilterExpr
 	Negate bool
+	Select func(*domain.Meta) bool
 }
 
 // FilterExpr is the encoding of a search filter.

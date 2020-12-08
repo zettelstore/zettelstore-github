@@ -122,18 +122,20 @@ func (pp *polPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
 func (pp *polPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
-	metaList, err := pp.place.SelectMeta(ctx, f, s)
-	if err != nil {
-		return nil, err
-	}
 	user := session.GetUser(ctx)
-	result := make([]*domain.Meta, 0, len(metaList))
-	for _, meta := range metaList {
-		if pp.policy.CanRead(user, meta) {
-			result = append(result, meta)
+	f = place.EnsureFilter(f)
+	canRead := pp.policy.CanRead
+	if sel := f.Select; sel != nil {
+		f.Select = func(meta *domain.Meta) bool {
+			return canRead(user, meta) && sel(meta)
+		}
+	} else {
+		f.Select = func(meta *domain.Meta) bool {
+			return canRead(user, meta)
 		}
 	}
-	return result, nil
+	result, err := pp.place.SelectMeta(ctx, f, s)
+	return result, err
 }
 
 func (pp *polPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {

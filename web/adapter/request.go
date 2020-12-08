@@ -72,7 +72,7 @@ func GetFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter
 					sortkey = sortkey[1:]
 				}
 				if domain.KeyIsValid(sortkey) {
-					sorter = EnsureSorter(sorter)
+					sorter = place.EnsureSorter(sorter)
 					sorter.Order = sortkey
 					sorter.Descending = descending
 				}
@@ -80,19 +80,19 @@ func GetFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter
 		case offsetKey:
 			if len(values) > 0 {
 				if offset, err := strconv.Atoi(values[0]); err == nil {
-					sorter = EnsureSorter(sorter)
+					sorter = place.EnsureSorter(sorter)
 					sorter.Offset = offset
 				}
 			}
 		case limitKey:
 			if len(values) > 0 {
 				if limit, err := strconv.Atoi(values[0]); err == nil {
-					sorter = EnsureSorter(sorter)
+					sorter = place.EnsureSorter(sorter)
 					sorter.Limit = limit
 				}
 			}
 		case negateKey:
-			filter = ensureFilter(filter)
+			filter = place.EnsureFilter(filter)
 			filter.Negate = true
 		case sKey:
 			cleanedValues := make([]string, 0, len(values))
@@ -102,12 +102,12 @@ func GetFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter
 				}
 			}
 			if len(cleanedValues) > 0 {
-				filter = ensureFilter(filter)
+				filter = place.EnsureFilter(filter)
 				filter.Expr[""] = cleanedValues
 			}
 		default:
 			if !forSearch && domain.KeyIsValid(key) {
-				filter = ensureFilter(filter)
+				filter = place.EnsureFilter(filter)
 				filter.Expr[key] = values
 			}
 		}
@@ -120,20 +120,4 @@ func getQueryKeys(forSearch bool) (string, string, string, string, string) {
 		return "sort", "offset", "limit", "negate", "s"
 	}
 	return "_sort", "_offset", "_limit", "_negate", "_s"
-}
-
-func ensureFilter(filter *place.Filter) *place.Filter {
-	if filter == nil {
-		filter = new(place.Filter)
-		filter.Expr = make(place.FilterExpr)
-	}
-	return filter
-}
-
-// EnsureSorter makes sure that there is a sorter object.
-func EnsureSorter(sorter *place.Sorter) *place.Sorter {
-	if sorter == nil {
-		sorter = new(place.Sorter)
-	}
-	return sorter
 }

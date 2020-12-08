@@ -194,7 +194,7 @@ func renderWebUIMetaList(
 	var err error
 	var prevURL, nextURL string
 	if lps := config.GetListPageSize(); lps > 0 {
-		sorter = adapter.EnsureSorter(sorter)
+		sorter = place.EnsureSorter(sorter)
 		if sorter.Limit < lps {
 			sorter.Limit = lps + 1
 		}

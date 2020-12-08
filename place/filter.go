@@ -17,6 +17,15 @@ import (
 	"zettelstore.de/z/domain"
 )
 
+// EnsureFilter make sure that there is a current filter.
+func EnsureFilter(filter *Filter) *Filter {
+	if filter == nil {
+		filter = new(Filter)
+		filter.Expr = make(FilterExpr)
+	}
+	return filter
+}
+
 // FilterFunc is a predicate to check if given meta must be selected.
 type FilterFunc func(*domain.Meta) bool
 
@@ -37,6 +46,7 @@ func CreateFilterFunc(filter *Filter) FilterFunc {
 	if filter == nil {
 		return selectAll
 	}
+
 	specs := make([]matchSpec, 0, len(filter.Expr))
 	var searchAll FilterFunc
 	for key, values := range filter.Expr {
@@ -54,9 +64,12 @@ func CreateFilterFunc(filter *Filter) FilterFunc {
 	}
 	if len(specs) == 0 {
 		if searchAll == nil {
+			if sel := filter.Select; sel != nil {
+				return sel
+			}
 			return selectAll
 		}
-		return searchAll
+		return addSelectFunc(filter, searchAll)
 	}
 	negate := filter.Negate
 	searchMeta := func(m *domain.Meta) bool {
@@ -69,11 +82,23 @@ func CreateFilterFunc(filter *Filter) FilterFunc {
 		return !negate
 	}
 	if searchAll == nil {
-		return searchMeta
+		return addSelectFunc(filter, searchMeta)
 	}
-	return func(meta *domain.Meta) bool {
+	return addSelectFunc(filter, func(meta *domain.Meta) bool {
 		return searchAll(meta) || searchMeta(meta)
+	})
+}
+
+func addSelectFunc(filter *Filter, f FilterFunc) FilterFunc {
+	if filter == nil {
+		return f
 	}
+	if sel := filter.Select; sel != nil {
+		return func(meta *domain.Meta) bool {
+			return sel(meta) && f(meta)
+		}
+	}
+	return f
 }
 
 func createMatchFunc(key string, values []string) matchFunc {

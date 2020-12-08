@@ -18,6 +18,14 @@ import (
 	"zettelstore.de/z/domain"
 )
 
+// EnsureSorter makes sure that there is a sorter object.
+func EnsureSorter(sorter *Sorter) *Sorter {
+	if sorter == nil {
+		sorter = new(Sorter)
+	}
+	return sorter
+}
+
 // ApplySorter applies the given sorter to the slide of meta data.
 func ApplySorter(metaList []*domain.Meta, s *Sorter) []*domain.Meta {
 	if len(metaList) == 0 {
