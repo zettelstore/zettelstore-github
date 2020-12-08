@@ -36,14 +36,14 @@ var myPlace *progPlace
 // Get returns the one program place.
 func Get() place.Place {
 	if myPlace == nil {
-		myPlace = &progPlace{
-			zettel: map[domain.ZettelID]zettelGen{
-				domain.ZettelID(1):  {genVersionBuildM, genVersionBuildC},
-				domain.ZettelID(2):  {genVersionHostM, genVersionHostC},
-				domain.ZettelID(3):  {genVersionOSM, genVersionOSC},
-				domain.ZettelID(4):  {genVersionGoM, genVersionGoC},
-				domain.ZettelID(99): {genConfigM, genConfigC},
-			},
+		myPlace = &progPlace{}
+		myPlace.zettel = map[domain.ZettelID]zettelGen{
+			domain.ZettelID(1):  {genVersionBuildM, genVersionBuildC},
+			domain.ZettelID(2):  {genVersionHostM, genVersionHostC},
+			domain.ZettelID(3):  {genVersionOSM, genVersionOSC},
+			domain.ZettelID(4):  {genVersionGoM, genVersionGoC},
+			domain.ZettelID(5):  {genRuntimeM, myPlace.genRuntimeC},
+			domain.ZettelID(99): {genConfigM, genConfigC},
 		}
 	}
 	return myPlace
