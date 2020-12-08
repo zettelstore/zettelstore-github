@@ -23,12 +23,12 @@ const (
 var constZettelMap = map[domain.ZettelID]constZettel{
 	domain.ConfigurationID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Configuration",
+			domain.MetaKeyTitle:      "Zettelstore Runtime Configuration",
 			domain.MetaKeyRole:       roleConfiguration,
 			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
 			domain.MetaKeySyntax:     "meta",
 		},
-		"Zettelstore Configuration",
+		"Zettelstore Runtime Configuration",
 	},
 
 	domain.BaseTemplateID: constZettel{

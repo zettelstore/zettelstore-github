@@ -25,21 +25,41 @@ type (
 	}
 
 	progPlace struct {
-		zettel map[domain.ZettelID]zettelGen
+		zettel      map[domain.ZettelID]zettelGen
+		startConfig *domain.Meta
+		startPlace  place.Place
 	}
 )
 
-var myPlace = progPlace{
-	zettel: map[domain.ZettelID]zettelGen{
-		domain.ZettelID(1): {genVersionBuildM, genVersionBuildC},
-		domain.ZettelID(2): {genVersionHostM, genVersionHostC},
-		domain.ZettelID(3): {genVersionOSM, genVersionOSC},
-		domain.ZettelID(4): {genVersionGoM, genVersionGoC},
-	},
-}
+var myPlace *progPlace
 
 // Get returns the one program place.
-func Get() place.Place { return &myPlace }
+func Get() place.Place {
+	if myPlace == nil {
+		myPlace = &progPlace{
+			zettel: map[domain.ZettelID]zettelGen{
+				domain.ZettelID(1):  {genVersionBuildM, genVersionBuildC},
+				domain.ZettelID(2):  {genVersionHostM, genVersionHostC},
+				domain.ZettelID(3):  {genVersionOSM, genVersionOSC},
+				domain.ZettelID(4):  {genVersionGoM, genVersionGoC},
+				domain.ZettelID(99): {genConfigM, genConfigC},
+			},
+		}
+	}
+	return myPlace
+}
+
+// Setup remembers important values.
+func Setup(startConfig *domain.Meta, startPlace place.Place) {
+	if myPlace == nil {
+		panic("progplace.Get not called")
+	}
+	if myPlace.startConfig != nil || myPlace.startPlace != nil {
+		panic("progplace.Setup already called")
+	}
+	myPlace.startConfig = startConfig.Clone()
+	myPlace.startPlace = startPlace
+}
 
 func (pp *progPlace) Next() place.Place { return nil }
 

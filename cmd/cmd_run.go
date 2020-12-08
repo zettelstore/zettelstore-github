@@ -69,6 +69,7 @@ func setupPlaces(cfg *domain.Meta) (place.Place, int, error) {
 		return nil, 2, err
 	}
 	config.SetupConfiguration(p)
+	progplace.Setup(cfg, p)
 	return p, 0, nil
 }
 
