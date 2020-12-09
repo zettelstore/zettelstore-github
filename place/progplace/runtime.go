@@ -12,7 +12,6 @@
 package progplace
 
 import (
-	"context"
 	"fmt"
 	"runtime"
 	"strings"
@@ -34,7 +33,7 @@ func genRuntimeM(zid domain.ZettelID) *domain.Meta {
 	return meta
 }
 
-func (pp *progPlace) genRuntimeC(meta *domain.Meta) string {
+func genRuntimeC(meta *domain.Meta) string {
 	var sb strings.Builder
 	sb.WriteString("|=Name|=Value>\n")
 	fmt.Fprintf(&sb, "|Number of CPUs|%v\n", runtime.NumCPU())
@@ -42,10 +41,7 @@ func (pp *progPlace) genRuntimeC(meta *domain.Meta) string {
 	fmt.Fprintf(&sb, "|Number of Cgo calls|%v\n", runtime.NumCgoCall())
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	fmt.Fprintf(&sb, "|Total allocates bytes|%v\n", m.TotalAlloc)
 	fmt.Fprintf(&sb, "|Memory from OS|%v\n", m.Sys)
-	fmt.Fprintf(&sb, "|Objects allocated|%v\n", m.Mallocs)
-	fmt.Fprintf(&sb, "|Objects freed|%v\n", m.Frees)
 	fmt.Fprintf(&sb, "|Objects active|%v\n", m.Mallocs-m.Frees)
 	fmt.Fprintf(&sb, "|Heap alloc|%v\n", m.HeapAlloc)
 	fmt.Fprintf(&sb, "|Heap sys|%v\n", m.HeapSys)
@@ -61,8 +57,5 @@ func (pp *progPlace) genRuntimeC(meta *domain.Meta) string {
 	fmt.Fprintf(&sb, "|Garbage collections|%v\n", m.NumGC)
 	fmt.Fprintf(&sb, "|Forced garbage collections|%v\n", m.NumForcedGC)
 	fmt.Fprintf(&sb, "|Garbage collection fraction|%.3f%%\n", m.GCCPUFraction*100.0)
-	if p := pp.startPlace; p != nil {
-		p.Reload(context.Background())
-	}
 	return sb.String()
 }

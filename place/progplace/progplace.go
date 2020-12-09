@@ -42,7 +42,7 @@ func Get() place.Place {
 			domain.ZettelID(2):  {genVersionHostM, genVersionHostC},
 			domain.ZettelID(3):  {genVersionOSM, genVersionOSC},
 			domain.ZettelID(4):  {genVersionGoM, genVersionGoC},
-			domain.ZettelID(5):  {genRuntimeM, myPlace.genRuntimeC},
+			domain.ZettelID(5):  {genRuntimeM, genRuntimeC},
 			domain.ZettelID(99): {genConfigM, genConfigC},
 		}
 	}
