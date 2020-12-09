@@ -112,6 +112,10 @@ func (dp *dirPlace) Start(ctx context.Context) error {
 			return err
 		}
 	}
+	return dp.localStart(ctx)
+}
+
+func (dp *dirPlace) localStart(ctx context.Context) error {
 	dp.mxCmds.Lock()
 	dp.fCmds = make([]chan fileCmd, 0, dp.fSrvs)
 	for i := uint32(0); i < dp.fSrvs; i++ {
@@ -152,14 +156,22 @@ func (dp *dirPlace) Stop(ctx context.Context) error {
 	if dp.isStopped() {
 		return place.ErrStopped
 	}
+	if err := dp.localStop(ctx); err != nil {
+		return err
+	}
+	if dp.next != nil {
+		return dp.next.Stop(ctx)
+	}
+	return nil
+}
+
+func (dp *dirPlace) localStop(ctx context.Context) error {
+
 	dirSrv := dp.dirSrv
 	dp.dirSrv = nil
 	dirSrv.Stop()
 	for _, c := range dp.fCmds {
 		close(c)
-	}
-	if dp.next != nil {
-		return dp.next.Stop(ctx)
 	}
 	return nil
 }
@@ -466,9 +478,9 @@ func (dp *dirPlace) Reload(ctx context.Context) error {
 
 	// Brute force: stop everything, then start everything.
 	// Could be done better in the future...
-	err := dp.Stop(ctx)
+	err := dp.localStop(ctx)
 	if err == nil {
-		err = dp.Start(ctx)
+		err = dp.localStart(ctx)
 	}
 	if dp.next != nil {
 		err1 := dp.next.Reload(ctx)

@@ -22,7 +22,8 @@ import (
 // Service specifies a directory scan service.
 type Service struct {
 	dirPath     string
-	ticker      *time.Ticker
+	rescanTime  time.Duration
+	done        chan struct{}
 	cmds        chan dirCmd
 	changeFuncs []place.ObserverFunc
 	mxFuncs     sync.RWMutex
@@ -31,31 +32,36 @@ type Service struct {
 // NewService creates a new directory service.
 func NewService(directoryPath string, rescanTime time.Duration) *Service {
 	srv := &Service{
-		dirPath: directoryPath,
-		ticker:  time.NewTicker(rescanTime),
-		cmds:    make(chan dirCmd),
+		dirPath:    directoryPath,
+		rescanTime: rescanTime,
+		cmds:       make(chan dirCmd),
 	}
 	return srv
 }
 
 // Start makes the directory service operational.
 func (srv *Service) Start() {
-	done := make(chan struct{})
+	tick := make(chan struct{})
 	rawEvents := make(chan *fileEvent)
 	events := make(chan *fileEvent)
 
 	ready := make(chan int)
 	go srv.directoryService(events, ready)
 	go collectEvents(events, rawEvents)
-	go watchDirectory(srv.dirPath, rawEvents, done)
-	go ping(done, srv.ticker)
+	go watchDirectory(srv.dirPath, rawEvents, tick)
+
+	if srv.done != nil {
+		panic("src.done already set")
+	}
+	srv.done = make(chan struct{})
+	go ping(tick, srv.rescanTime, srv.done)
 	<-ready
 }
 
 // Stop stops the directory service.
 func (srv *Service) Stop() {
-	srv.ticker.Stop()
-	srv.ticker = nil
+	close(srv.done)
+	srv.done = nil
 }
 
 // Subscribe to invalidation events.

@@ -56,7 +56,7 @@ const (
 	sendExit
 )
 
-func watchDirectory(directory string, events chan<- *fileEvent, done <-chan struct{}) {
+func watchDirectory(directory string, events chan<- *fileEvent, tick <-chan struct{}) {
 	defer close(events)
 
 	var watcher *fsnotify.Watcher
@@ -69,7 +69,7 @@ func watchDirectory(directory string, events chan<- *fileEvent, done <-chan stru
 	sendEvent := func(ev *fileEvent) sendResult {
 		select {
 		case events <- ev:
-		case _, ok := <-done:
+		case _, ok := <-tick:
 			if ok {
 				return sendReload
 			}
@@ -184,7 +184,7 @@ func watchDirectory(directory string, events chan<- *fileEvent, done <-chan stru
 				if res := sendError(err); res != sendDone {
 					return res == sendReload
 				}
-			case _, ok := <-done:
+			case _, ok := <-tick:
 				return ok
 			}
 		}
@@ -193,7 +193,7 @@ func watchDirectory(directory string, events chan<- *fileEvent, done <-chan stru
 	pause := func() bool {
 		for {
 			select {
-			case _, ok := <-done:
+			case _, ok := <-tick:
 				return ok
 			}
 		}

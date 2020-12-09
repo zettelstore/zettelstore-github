@@ -20,15 +20,21 @@ import (
 )
 
 // ping sends every tick a signal to reload the directory list
-func ping(done chan<- struct{}, tick *time.Ticker) {
-	defer close(done)
+func ping(tick chan<- struct{}, rescanTime time.Duration, done <-chan struct{}) {
+	ticker := time.NewTicker(rescanTime)
+	defer close(tick)
 	for {
 		select {
-		case _, ok := <-tick.C:
+		case _, ok := <-ticker.C:
 			if !ok {
 				return
 			}
-			done <- struct{}{}
+			tick <- struct{}{}
+		case _, ok := <-done:
+			if !ok {
+				ticker.Stop()
+				return
+			}
 		}
 	}
 }
