@@ -671,10 +671,11 @@ footer {
 
 	domain.TemplateNewZettelID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:   "New Zettel",
-			domain.MetaKeyRole:    domain.MetaValueRoleNewTemplate,
-			domain.MetaKeyNewRole: "zettel",
-			domain.MetaKeySyntax:  "zmk",
+			domain.MetaKeyTitle:      "New Zettel",
+			domain.MetaKeyRole:       domain.MetaValueRoleNewTemplate,
+			domain.MetaKeyNewRole:    "zettel",
+			domain.MetaKeyVisibility: domain.MetaValueVisibilityLogin,
+			domain.MetaKeySyntax:     "zmk",
 		},
 		"",
 	},
@@ -687,6 +688,7 @@ footer {
 			domain.MetaKeyCredential: "",
 			domain.MetaKeyUserID:     "",
 			domain.MetaKeyUserRole:   "reader",
+			domain.MetaKeyVisibility: domain.MetaValueVisibilityLogin,
 			domain.MetaKeySyntax:     "meta",
 		},
 		"",
