@@ -116,7 +116,7 @@ func connectPlaces(placeURIs []string) (place.Place, error) {
 }
 
 func setupRouting(up place.Place, readonly bool) http.Handler {
-	pp, pol := policy.PlaceWithPolicy(up, config.WithAuth(), config.Owner(), readonly)
+	pp, pol := policy.PlaceWithPolicy(up, config.WithAuth, readonly, config.IsOwner, config.GetVisibility)
 	te := webui.NewTemplateEngine(up, pol)
 
 	ucAuthenticate := usecase.NewAuthenticate(up)

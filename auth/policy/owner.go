@@ -17,42 +17,28 @@ import (
 )
 
 type ownerPolicy struct {
-	owner domain.ZettelID
-	pre   Policy
-}
-
-func (o *ownerPolicy) canDo(user *domain.Meta) bool {
-	if o.owner.IsValid() {
-		return user != nil && user.Zid == o.owner
-	}
-	return true
+	isOwner       func(domain.ZettelID) bool
+	getVisibility func(*domain.Meta) config.Visibility
+	pre           Policy
 }
 
 func (o *ownerPolicy) CanReload(user *domain.Meta) bool {
-	if !o.pre.CanReload(user) {
-		return false
-	}
-	if o.canDo(user) {
-		return true
-	}
-	return false
+	// No need to call o.pre.CanReload(user), because it will always return true.
+	// Both the default and the readonly policy allow to reload a place.
+
+	// Only the owner is allowed to reload a place
+	return user != nil && o.isOwner(user.Zid)
 }
 
 func (o *ownerPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
-	if newMeta == nil {
+	if user == nil || !o.pre.CanCreate(user, newMeta) {
 		return false
 	}
-	if !o.pre.CanCreate(user, newMeta) {
-		return false
-	}
-	if o.canDo(user) {
-		return true
-	}
-	return o.userCanCreate(user, newMeta)
+	return o.isOwner(user.Zid) || o.userCanCreate(user, newMeta)
 }
 
 func (o *ownerPolicy) userCanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
-	if user == nil || config.GetUserRole(user) == config.UserRoleReader {
+	if config.GetUserRole(user) == config.UserRoleReader {
 		return false
 	}
 	if role, ok := newMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
@@ -62,20 +48,14 @@ func (o *ownerPolicy) userCanCreate(user *domain.Meta, newMeta *domain.Meta) boo
 }
 
 func (o *ownerPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
-	if meta == nil {
-		return false
-	}
-	if !o.pre.CanRead(user, meta) {
-		return false
-	}
-	if o.canDo(user) {
-		return true
-	}
-	return o.userCanRead(user, meta)
+	// No need to call o.pre.CanRead(user, meta), because it will always return true.
+	// Both the default and the readonly policy allow to read a zettel.
+
+	return (user != nil && o.isOwner(user.Zid)) || o.userCanRead(user, meta)
 }
 
 func (o *ownerPolicy) userCanRead(user *domain.Meta, meta *domain.Meta) bool {
-	switch visibility := config.GetVisibility(meta); visibility {
+	switch visibility := o.getVisibility(meta); visibility {
 	case config.VisibilityOwner:
 		return false
 	case config.VisibilityPublic:
@@ -84,11 +64,7 @@ func (o *ownerPolicy) userCanRead(user *domain.Meta, meta *domain.Meta) bool {
 	if user == nil {
 		return false
 	}
-	role, ok := meta.Get(domain.MetaKeyRole)
-	if !ok {
-		return false
-	}
-	if role == domain.MetaValueRoleUser {
+	if role, ok := meta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
 		// Only the user can read its own zettel
 		return user.Zid == meta.Zid
 	}
@@ -103,25 +79,18 @@ var noChangeUser = []string{
 }
 
 func (o *ownerPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
-	if oldMeta == nil || newMeta == nil || oldMeta.Zid != newMeta.Zid {
+	if user == nil || !o.pre.CanWrite(user, oldMeta, newMeta) {
 		return false
 	}
-	if !o.pre.CanWrite(user, oldMeta, newMeta) {
-		return false
-	}
-	if o.canDo(user) {
+	if o.isOwner(user.Zid) {
 		return true
 	}
 	if !o.userCanRead(user, oldMeta) {
 		return false
 	}
-	if user == nil {
-		return false
-	}
 	if role, ok := oldMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
-		if user.Zid != newMeta.Zid {
-			return false
-		}
+		// Here we know, that user.Zid == newMeta.Zid (because of userCanRead) and
+		// user.Zid == newMeta.Zid (because oldMeta.Zid == newMeta.Zid)
 		for _, key := range noChangeUser {
 			if oldMeta.GetDefault(key, "") != newMeta.GetDefault(key, "") {
 				return false
@@ -136,27 +105,15 @@ func (o *ownerPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta)
 }
 
 func (o *ownerPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
-	if meta == nil {
+	if user == nil || !o.pre.CanRename(user, meta) {
 		return false
 	}
-	if !o.pre.CanRename(user, meta) {
-		return false
-	}
-	if o.canDo(user) {
-		return true
-	}
-	return false
+	return o.isOwner(user.Zid)
 }
 
 func (o *ownerPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
-	if meta == nil {
+	if user == nil || !o.pre.CanDelete(user, meta) {
 		return false
 	}
-	if !o.pre.CanDelete(user, meta) {
-		return false
-	}
-	if o.canDo(user) {
-		return true
-	}
-	return false
+	return o.isOwner(user.Zid)
 }

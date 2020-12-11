@@ -104,6 +104,9 @@ func PersistentCookie() bool { return startupConfig.persistCookie }
 // If there is no owner defined, the value ZettelID(0) is returned.
 func Owner() domain.ZettelID { return startupConfig.owner }
 
+// IsOwner returns true, if the given user is the owner of the Zettelstore.
+func IsOwner(zid domain.ZettelID) bool { return zid.IsValid() && zid == startupConfig.owner }
+
 // WithAuth returns true if user authentication is enabled.
 func WithAuth() bool { return startupConfig.withAuth }
 

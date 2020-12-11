@@ -126,14 +126,13 @@ var urMap = map[string]UserRole{
 
 // GetUserRole role returns the user role of the given user zettel.
 func GetUserRole(user *domain.Meta) UserRole {
-	owner := Owner()
 	if user == nil {
-		if owner.IsValid() {
+		if WithAuth() {
 			return UserRoleUnknown
 		}
 		return UserRoleOwner
 	}
-	if user.Zid == owner {
+	if IsOwner(user.Zid) {
 		return UserRoleOwner
 	}
 	if val, ok := user.Get(domain.MetaKeyUserRole); ok {

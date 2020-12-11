@@ -12,6 +12,7 @@
 package policy
 
 import (
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 )
 
@@ -34,4 +35,55 @@ type Policy interface {
 
 	// User is allowed to delete zettel
 	CanDelete(user *domain.Meta, meta *domain.Meta) bool
+}
+
+// newPolicy creates a policy based on given constraints.
+func newPolicy(
+	withAuth func() bool,
+	readonly bool,
+	isOwner func(domain.ZettelID) bool,
+	getVisibility func(*domain.Meta) config.Visibility,
+) Policy {
+	var pol Policy
+	if readonly {
+		pol = &roPolicy{}
+	} else {
+		pol = &defaultPolicy{}
+	}
+	if withAuth() {
+		pol = &ownerPolicy{
+			isOwner:       isOwner,
+			getVisibility: getVisibility,
+			pre:           pol,
+		}
+	}
+	return &prePolicy{pol}
+}
+
+type prePolicy struct {
+	post Policy
+}
+
+func (p *prePolicy) CanReload(user *domain.Meta) bool {
+	return p.post.CanReload(user)
+}
+
+func (p *prePolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
+	return newMeta != nil && p.post.CanCreate(user, newMeta)
+}
+
+func (p *prePolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
+	return meta != nil && p.post.CanRead(user, meta)
+}
+
+func (p *prePolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
+	return oldMeta != nil && newMeta != nil && oldMeta.Zid == newMeta.Zid && p.post.CanWrite(user, oldMeta, newMeta)
+}
+
+func (p *prePolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
+	return meta != nil && p.post.CanRename(user, meta)
+}
+
+func (p *prePolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
+	return meta != nil && p.post.CanDelete(user, meta)
 }

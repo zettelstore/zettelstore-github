@@ -14,25 +14,21 @@ package policy
 import (
 	"context"
 
+	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/web/session"
 )
 
 // PlaceWithPolicy wraps the given place inside a policy place.
-func PlaceWithPolicy(place place.Place, withAuth bool, owner domain.ZettelID, readonly bool) (place.Place, Policy) {
-	var pol Policy
-	if readonly {
-		pol = &roPolicy{}
-	} else {
-		pol = &defaultPolicy{owner: owner}
-	}
-	if withAuth {
-		pol = &ownerPolicy{
-			owner: owner,
-			pre:   pol,
-		}
-	}
+func PlaceWithPolicy(
+	place place.Place,
+	withAuth func() bool,
+	readonly bool,
+	isOwner func(domain.ZettelID) bool,
+	getVisibility func(*domain.Meta) config.Visibility,
+) (place.Place, Policy) {
+	pol := newPolicy(withAuth, readonly, isOwner, getVisibility)
 	return wrapPolicyPlace(place, pol), pol
 }
 

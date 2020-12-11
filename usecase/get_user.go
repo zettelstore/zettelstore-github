@@ -40,15 +40,14 @@ func NewGetUser(port GetUserPort) GetUser {
 
 // Run executes the use case.
 func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
-	owner := config.Owner()
-	if !owner.IsValid() {
+	if !config.WithAuth() {
 		return nil, nil
 	}
 
 	// It is important to try first with the owner. First, because another user
 	// could give herself the same ''ident''. Second, in most cases the owner
 	// will authenticate.
-	identMeta, err := uc.port.GetMeta(ctx, owner)
+	identMeta, err := uc.port.GetMeta(ctx, config.Owner())
 	if err == nil && identMeta.GetDefault(domain.MetaKeyUserID, "") == ident {
 		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
 			return nil, nil
