@@ -61,11 +61,11 @@ func (d *defaultPolicy) canChange(user *domain.Meta, meta *domain.Meta) bool {
 	userRole := config.GetUserRole(user)
 	switch metaRo {
 	case "reader":
-		return userRole > config.UserRoleReader
+		return userRole > domain.UserRoleReader
 	case "writer":
-		return userRole > config.UserRoleWriter
+		return userRole > domain.UserRoleWriter
 	case "owner":
-		return userRole > config.UserRoleOwner
+		return userRole > domain.UserRoleOwner
 	}
 	return !domain.BoolValue(metaRo)
 }

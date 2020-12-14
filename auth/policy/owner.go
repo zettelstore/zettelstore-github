@@ -17,8 +17,9 @@ import (
 )
 
 type ownerPolicy struct {
+	expertMode    func() bool
 	isOwner       func(domain.ZettelID) bool
-	getVisibility func(*domain.Meta) config.Visibility
+	getVisibility func(*domain.Meta) domain.Visibility
 	pre           Policy
 }
 
@@ -38,7 +39,7 @@ func (o *ownerPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
 }
 
 func (o *ownerPolicy) userCanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
-	if config.GetUserRole(user) == config.UserRoleReader {
+	if config.GetUserRole(user) == domain.UserRoleReader {
 		return false
 	}
 	if role, ok := newMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
@@ -50,15 +51,19 @@ func (o *ownerPolicy) userCanCreate(user *domain.Meta, newMeta *domain.Meta) boo
 func (o *ownerPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
 	// No need to call o.pre.CanRead(user, meta), because it will always return true.
 	// Both the default and the readonly policy allow to read a zettel.
-
-	return (user != nil && o.isOwner(user.Zid)) || o.userCanRead(user, meta)
+	vis := o.getVisibility(meta)
+	if vis == domain.VisibilityExpert && !o.expertMode() {
+		return false
+	}
+	return (user != nil && o.isOwner(user.Zid)) || o.userCanRead(user, meta, vis)
 }
 
-func (o *ownerPolicy) userCanRead(user *domain.Meta, meta *domain.Meta) bool {
-	switch visibility := o.getVisibility(meta); visibility {
-	case config.VisibilityOwner:
+func (o *ownerPolicy) userCanRead(
+	user *domain.Meta, meta *domain.Meta, vis domain.Visibility) bool {
+	switch vis {
+	case domain.VisibilityOwner, domain.VisibilityExpert:
 		return false
-	case config.VisibilityPublic:
+	case domain.VisibilityPublic:
 		return true
 	}
 	if user == nil {
@@ -82,10 +87,14 @@ func (o *ownerPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta)
 	if user == nil || !o.pre.CanWrite(user, oldMeta, newMeta) {
 		return false
 	}
+	vis := o.getVisibility(oldMeta)
+	if vis == domain.VisibilityExpert && !o.expertMode() {
+		return false
+	}
 	if o.isOwner(user.Zid) {
 		return true
 	}
-	if !o.userCanRead(user, oldMeta) {
+	if !o.userCanRead(user, oldMeta, vis) {
 		return false
 	}
 	if role, ok := oldMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
@@ -98,7 +107,7 @@ func (o *ownerPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta)
 		}
 		return true
 	}
-	if config.GetUserRole(user) == config.UserRoleReader {
+	if config.GetUserRole(user) == domain.UserRoleReader {
 		return false
 	}
 	return o.userCanCreate(user, newMeta)
@@ -108,11 +117,17 @@ func (o *ownerPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
 	if user == nil || !o.pre.CanRename(user, meta) {
 		return false
 	}
+	if o.getVisibility(meta) == domain.VisibilityExpert && !o.expertMode() {
+		return false
+	}
 	return o.isOwner(user.Zid)
 }
 
 func (o *ownerPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
 	if user == nil || !o.pre.CanDelete(user, meta) {
+		return false
+	}
+	if o.getVisibility(meta) == domain.VisibilityExpert && !o.expertMode() {
 		return false
 	}
 	return o.isOwner(user.Zid)

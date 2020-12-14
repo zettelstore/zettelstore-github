@@ -23,7 +23,7 @@ func getVersionMeta(zid domain.ZettelID, title string) *domain.Meta {
 	meta.Set(domain.MetaKeyTitle, title)
 	meta.Set(domain.MetaKeyRole, "configuration")
 	meta.Set(domain.MetaKeySyntax, "zmk")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityLogin)
+	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityExpert)
 	meta.Set(domain.MetaKeyReadOnly, "true")
 	return meta
 }

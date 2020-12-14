@@ -28,7 +28,7 @@ func genRuntimeM(zid domain.ZettelID) *domain.Meta {
 	meta.Set(domain.MetaKeyTitle, "Zettelstore Runtime Values")
 	meta.Set(domain.MetaKeyRole, "configuration")
 	meta.Set(domain.MetaKeySyntax, "zmk")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityOwner)
+	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityExpert)
 	meta.Set(domain.MetaKeyReadOnly, "true")
 	return meta
 }

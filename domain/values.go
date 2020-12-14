@@ -1,0 +1,66 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2020 Detlef Stern
+//
+// This file is part of zettelstore.
+//
+// Zettelstore is licensed under the latest version of the EUPL (European Union
+// Public License). Please see file LICENSE.txt for your rights and obligations
+// under this license.
+//-----------------------------------------------------------------------------
+
+// Package domain provides domain specific types, constants, and functions.
+package domain
+
+// Visibility enumerates the variations of the 'visibility' meta key.
+type Visibility int
+
+// Supported values for visibility.
+const (
+	_ Visibility = iota
+	VisibilityUnknown
+	VisibilityPublic
+	VisibilityLogin
+	VisibilityOwner
+	VisibilityExpert
+)
+
+var visMap = map[string]Visibility{
+	MetaValueVisibilityPublic: VisibilityPublic,
+	MetaValueVisibilityLogin:  VisibilityLogin,
+	MetaValueVisibilityOwner:  VisibilityOwner,
+	MetaValueVisibilityExpert: VisibilityExpert,
+}
+
+// GetVisibility returns the visibility value of the given string
+func GetVisibility(val string) Visibility {
+	if vis, ok := visMap[val]; ok {
+		return vis
+	}
+	return VisibilityUnknown
+}
+
+// UserRole enumerates the supported values of meta key 'user-role'.
+type UserRole int
+
+// Supported values for user roles.
+const (
+	_ UserRole = iota
+	UserRoleUnknown
+	UserRoleReader
+	UserRoleWriter
+	UserRoleOwner
+)
+
+var urMap = map[string]UserRole{
+	"reader": UserRoleReader,
+	"writer": UserRoleWriter,
+	"owner":  UserRoleOwner,
+}
+
+// GetUserRole role returns the user role of the given string.
+func GetUserRole(val string) UserRole {
+	if ur, ok := urMap[val]; ok {
+		return ur
+	}
+	return UserRoleUnknown
+}

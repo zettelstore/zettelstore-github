@@ -113,6 +113,16 @@ func GetDefaultLicense() string {
 	return ""
 }
 
+// GetExpertMode returns the current value of the "expert-mode" key
+func GetExpertMode() bool {
+	if config := getConfigurationMeta(); config != nil {
+		if mode, ok := config.Get(domain.MetaKeyExpertMode); ok {
+			return domain.BoolValue(mode)
+		}
+	}
+	return false
+}
+
 // GetSiteName returns the current value of the "site-name" key.
 func GetSiteName() string {
 	if config := getConfigurationMeta(); config != nil {
@@ -136,15 +146,15 @@ func GetStart() domain.ZettelID {
 }
 
 // GetDefaultVisibility returns the default value for zettel visibility.
-func GetDefaultVisibility() Visibility {
+func GetDefaultVisibility() domain.Visibility {
 	if config := getConfigurationMeta(); config != nil {
 		if value, ok := config.Get(domain.MetaKeyDefaultVisibility); ok {
-			if vis, ok := visMap[value]; ok {
+			if vis := domain.GetVisibility(value); vis != domain.VisibilityUnknown {
 				return vis
 			}
 		}
 	}
-	return VisibilityLogin
+	return domain.VisibilityLogin
 }
 
 // GetYAMLHeader returns the current value of the "yaml-header" key.

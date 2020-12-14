@@ -14,7 +14,6 @@ package policy
 import (
 	"context"
 
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/web/session"
@@ -25,10 +24,11 @@ func PlaceWithPolicy(
 	place place.Place,
 	withAuth func() bool,
 	readonly bool,
+	expertMode func() bool,
 	isOwner func(domain.ZettelID) bool,
-	getVisibility func(*domain.Meta) config.Visibility,
+	getVisibility func(*domain.Meta) domain.Visibility,
 ) (place.Place, Policy) {
-	pol := newPolicy(withAuth, readonly, isOwner, getVisibility)
+	pol := newPolicy(withAuth, readonly, expertMode, isOwner, getVisibility)
 	return wrapPolicyPlace(place, pol), pol
 }
 
@@ -82,15 +82,18 @@ func (pp *polPlace) CanCreateZettel(ctx context.Context) bool {
 	return pp.place.CanCreateZettel(ctx)
 }
 
-func (pp *polPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+func (pp *polPlace) CreateZettel(
+	ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	user := session.GetUser(ctx)
 	if pp.policy.CanCreate(user, zettel.Meta) {
 		return pp.place.CreateZettel(ctx, zettel)
 	}
-	return domain.InvalidZettelID, place.NewErrNotAllowed("Create", user, domain.InvalidZettelID)
+	return domain.InvalidZettelID,
+		place.NewErrNotAllowed("Create", user, domain.InvalidZettelID)
 }
 
-func (pp *polPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+func (pp *polPlace) GetZettel(
+	ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	zettel, err := pp.place.GetZettel(ctx, zid)
 	if err != nil {
 		return domain.Zettel{}, err
@@ -117,7 +120,8 @@ func (pp *polPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
-func (pp *polPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
+func (pp *polPlace) SelectMeta(
+	ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
 	user := session.GetUser(ctx)
 	f = place.EnsureFilter(f)
 	canRead := pp.policy.CanRead

@@ -12,7 +12,6 @@
 package policy
 
 import (
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 )
 
@@ -41,8 +40,9 @@ type Policy interface {
 func newPolicy(
 	withAuth func() bool,
 	readonly bool,
+	expertMode func() bool,
 	isOwner func(domain.ZettelID) bool,
-	getVisibility func(*domain.Meta) config.Visibility,
+	getVisibility func(*domain.Meta) domain.Visibility,
 ) Policy {
 	var pol Policy
 	if readonly {
@@ -52,7 +52,14 @@ func newPolicy(
 	}
 	if withAuth() {
 		pol = &ownerPolicy{
+			expertMode:    expertMode,
 			isOwner:       isOwner,
+			getVisibility: getVisibility,
+			pre:           pol,
+		}
+	} else {
+		pol = &anonPolicy{
+			expertMode:    expertMode,
 			getVisibility: getVisibility,
 			pre:           pol,
 		}
@@ -77,7 +84,8 @@ func (p *prePolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
 }
 
 func (p *prePolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
-	return oldMeta != nil && newMeta != nil && oldMeta.Zid == newMeta.Zid && p.post.CanWrite(user, oldMeta, newMeta)
+	return oldMeta != nil && newMeta != nil && oldMeta.Zid == newMeta.Zid &&
+		p.post.CanWrite(user, oldMeta, newMeta)
 }
 
 func (p *prePolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {

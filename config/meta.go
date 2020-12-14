@@ -79,66 +79,31 @@ func GetLang(meta *domain.Meta) string {
 	return GetDefaultLang()
 }
 
-// Visibility enumerates the variations of the 'visibility' meta key.
-type Visibility int
-
-// Supported values for visibility.
-const (
-	_ Visibility = iota
-	VisibilityPublic
-	VisibilityLogin
-	VisibilityOwner
-)
-
-var visMap = map[string]Visibility{
-	domain.MetaValueVisibilityPublic: VisibilityPublic,
-	domain.MetaValueVisibilityLogin:  VisibilityLogin,
-	domain.MetaValueVisibilityOwner:  VisibilityOwner,
-}
-
 // GetVisibility returns the visibility value, or "login" if none is given.
-func GetVisibility(meta *domain.Meta) Visibility {
+func GetVisibility(meta *domain.Meta) domain.Visibility {
 	if val, ok := meta.Get(domain.MetaKeyVisibility); ok {
-		if vis, ok := visMap[val]; ok {
+		if vis := domain.GetVisibility(val); vis != domain.VisibilityUnknown {
 			return vis
 		}
 	}
 	return GetDefaultVisibility()
 }
 
-// UserRole enumerates the supported values of meta key 'user-role'.
-type UserRole int
-
-// Supported values for user roles.
-const (
-	_ UserRole = iota
-	UserRoleUnknown
-	UserRoleReader
-	UserRoleWriter
-	UserRoleOwner
-)
-
-var urMap = map[string]UserRole{
-	"reader": UserRoleReader,
-	"writer": UserRoleWriter,
-	"owner":  UserRoleOwner,
-}
-
 // GetUserRole role returns the user role of the given user zettel.
-func GetUserRole(user *domain.Meta) UserRole {
+func GetUserRole(user *domain.Meta) domain.UserRole {
 	if user == nil {
 		if WithAuth() {
-			return UserRoleUnknown
+			return domain.UserRoleUnknown
 		}
-		return UserRoleOwner
+		return domain.UserRoleOwner
 	}
 	if IsOwner(user.Zid) {
-		return UserRoleOwner
+		return domain.UserRoleOwner
 	}
 	if val, ok := user.Get(domain.MetaKeyUserRole); ok {
-		if ur, ok := urMap[val]; ok {
+		if ur := domain.GetUserRole(val); ur != domain.UserRoleUnknown {
 			return ur
 		}
 	}
-	return UserRoleReader
+	return domain.UserRoleReader
 }

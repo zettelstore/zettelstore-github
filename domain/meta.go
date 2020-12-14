@@ -92,6 +92,7 @@ const (
 	MetaKeyDefaultSyntax     = "default-syntax"
 	MetaKeyDefaultTitle      = "default-title"
 	MetaKeyDefaultVisibility = "default-visibility"
+	MetaKeyExpertMode        = "expert-mode"
 	MetaKeyFooterHTML        = "footer-html"
 	MetaKeyLang              = "lang"
 	MetaKeyLicense           = "license"
@@ -124,6 +125,7 @@ var keyTypeMap = map[string]byte{
 	MetaKeyDefaultSyntax:     MetaTypeWord,
 	MetaKeyDefaultTitle:      MetaTypeString,
 	MetaKeyDefaultVisibility: MetaTypeWord,
+	MetaKeyExpertMode:        MetaTypeBool,
 	MetaKeyFooterHTML:        MetaTypeString,
 	MetaKeyUserID:            MetaTypeWord,
 	MetaKeyLang:              MetaTypeWord,
@@ -145,6 +147,7 @@ var keyTypeMap = map[string]byte{
 const (
 	MetaValueRoleUser         = "user"
 	MetaValueRoleNewTemplate  = "new-template"
+	MetaValueVisibilityExpert = "expert"
 	MetaValueVisibilityOwner  = "owner"
 	MetaValueVisibilityLogin  = "login"
 	MetaValueVisibilityPublic = "public"
