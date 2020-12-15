@@ -8,10 +8,11 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package config provides functions to retrieve configuration data.
-package config
+// Package runtime provides functions to retrieve runtime configuration data.
+package runtime
 
 import (
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 )
 
@@ -92,12 +93,12 @@ func GetVisibility(meta *domain.Meta) domain.Visibility {
 // GetUserRole role returns the user role of the given user zettel.
 func GetUserRole(user *domain.Meta) domain.UserRole {
 	if user == nil {
-		if WithAuth() {
+		if startup.WithAuth() {
 			return domain.UserRoleUnknown
 		}
 		return domain.UserRoleOwner
 	}
-	if IsOwner(user.Zid) {
+	if startup.IsOwner(user.Zid) {
 		return domain.UserRoleOwner
 	}
 	if val, ok := user.Get(domain.MetaKeyUserRole); ok {

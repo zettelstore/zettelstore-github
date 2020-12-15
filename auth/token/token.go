@@ -17,7 +17,7 @@ import (
 
 	"github.com/pascaldekloe/jwt"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 )
 
@@ -67,7 +67,7 @@ func GetToken(ident *domain.Meta, d time.Duration, kind Kind) ([]byte, error) {
 			"_tk": int(kind),
 		},
 	}
-	token, err := claims.HMACSign(reqHash, config.Secret())
+	token, err := claims.HMACSign(reqHash, startup.Secret())
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ type Data struct {
 
 // CheckToken checks the validity of the token and returns relevant data.
 func CheckToken(token []byte, k Kind) (Data, error) {
-	h, err := jwt.NewHMAC(reqHash, config.Secret())
+	h, err := jwt.NewHMAC(reqHash, startup.Secret())
 	if err != nil {
 		return Data{}, err
 	}

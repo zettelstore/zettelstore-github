@@ -17,9 +17,9 @@ import (
 	"log"
 	"net/http"
 
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/input"
 
-	"zettelstore.de/z/config"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
@@ -28,22 +28,36 @@ import (
 	"zettelstore.de/z/web/session"
 )
 
-// MakeGetCloneZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
-func MakeGetCloneZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, cloneZettel usecase.CloneZettel) http.HandlerFunc {
+// MakeGetCloneZettelHandler creates a new HTTP handler to display the
+// HTML edit view of a zettel.
+func MakeGetCloneZettelHandler(
+	te *TemplateEngine,
+	getZettel usecase.GetZettel,
+	cloneZettel usecase.CloneZettel,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if origZettel, ok := getOrigZettel(w, r, getZettel, "Clone"); ok {
-			renderZettelForm(w, r, te, cloneZettel.Run(origZettel), "Clone Zettel", template.HTML("Clone Zettel"))
+			renderZettelForm(
+				w,
+				r,
+				te,
+				cloneZettel.Run(origZettel), "Clone Zettel", template.HTML("Clone Zettel"))
 		}
 	}
 }
 
-// MakeGetNewZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
-func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, newZettel usecase.NewZettel) http.HandlerFunc {
+// MakeGetNewZettelHandler creates a new HTTP handler to display the
+// HTML edit view of a zettel.
+func MakeGetNewZettelHandler(
+	te *TemplateEngine,
+	getZettel usecase.GetZettel,
+	newZettel usecase.NewZettel,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if origZettel, ok := getOrigZettel(w, r, getZettel, "New"); ok {
 			meta := origZettel.Meta
-			title := parser.ParseInlines(input.NewInput(config.GetTitle(meta)), "zmk")
-			langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
+			title := parser.ParseInlines(input.NewInput(runtime.GetTitle(meta)), "zmk")
+			langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(meta)}
 			textTitle, err := adapter.FormatInlines(title, "text", &langOption)
 			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -56,14 +70,23 @@ func MakeGetNewZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel, ne
 				log.Println(err)
 				return
 			}
-			renderZettelForm(w, r, te, newZettel.Run(origZettel), textTitle, template.HTML(htmlTitle))
+			renderZettelForm(
+				w, r, te, newZettel.Run(origZettel), textTitle, template.HTML(htmlTitle))
 		}
 	}
 }
 
-func getOrigZettel(w http.ResponseWriter, r *http.Request, getZettel usecase.GetZettel, op string) (domain.Zettel, bool) {
+func getOrigZettel(
+	w http.ResponseWriter,
+	r *http.Request,
+	getZettel usecase.GetZettel,
+	op string,
+) (domain.Zettel, bool) {
 	if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-		http.Error(w, fmt.Sprintf("%v zettel not possible in format %q", op, format), http.StatusBadRequest)
+		http.Error(
+			w,
+			fmt.Sprintf("%v zettel not possible in format %q", op, format),
+			http.StatusBadRequest)
 		return domain.Zettel{}, false
 	}
 	zid, err := domain.ParseZettelID(r.URL.Path[1:])
@@ -79,24 +102,32 @@ func getOrigZettel(w http.ResponseWriter, r *http.Request, getZettel usecase.Get
 	return origZettel, true
 }
 
-func renderZettelForm(w http.ResponseWriter, r *http.Request, te *TemplateEngine, zettel domain.Zettel, title string, heading template.HTML) {
+func renderZettelForm(
+	w http.ResponseWriter,
+	r *http.Request,
+	te *TemplateEngine,
+	zettel domain.Zettel,
+	title string,
+	heading template.HTML,
+) {
 	ctx := r.Context()
 	user := session.GetUser(ctx)
 	meta := zettel.Meta
 	te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
-		baseData:      te.makeBaseData(ctx, config.GetLang(meta), title, user),
+		baseData:      te.makeBaseData(ctx, runtime.GetLang(meta), title, user),
 		Heading:       heading,
-		MetaTitle:     config.GetTitle(meta),
+		MetaTitle:     runtime.GetTitle(meta),
 		MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),
-		MetaRole:      config.GetRole(meta),
-		MetaSyntax:    config.GetSyntax(meta),
+		MetaRole:      runtime.GetRole(meta),
+		MetaSyntax:    runtime.GetSyntax(meta),
 		MetaPairsRest: meta.PairsRest(),
 		IsTextContent: !zettel.Content.IsBinary(),
 		Content:       zettel.Content.AsString(),
 	})
 }
 
-// MakePostCreateZettelHandler creates a new HTTP handler to store content of an existing zettel.
+// MakePostCreateZettelHandler creates a new HTTP handler to store content of
+// an existing zettel.
 func MakePostCreateZettelHandler(createZettel usecase.CreateZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zettel, hasContent, err := parseZettelForm(r, domain.InvalidZettelID)
@@ -112,7 +143,8 @@ func MakePostCreateZettelHandler(createZettel usecase.CreateZettel) http.Handler
 		if newZid, err := createZettel.Run(r.Context(), zettel); err != nil {
 			adapter.ReportUsecaseError(w, err)
 		} else {
-			http.Redirect(w, r, adapter.NewURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
+			http.Redirect(
+				w, r, adapter.NewURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
 		}
 	}
 }

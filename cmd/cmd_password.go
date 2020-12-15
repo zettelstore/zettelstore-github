@@ -11,6 +11,7 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -22,17 +23,17 @@ import (
 
 // ---------- Subcommand: password -------------------------------------------
 
-func cmdPassword(cfg *domain.Meta) (int, error) {
-	ident, ok := cfg.Get("arg-1")
-	if !ok {
-		fmt.Fprintln(os.Stderr, "User name missing")
+func cmdPassword(name string, fs *flag.FlagSet) (int, error) {
+	if fs.NArg() == 0 {
+		fmt.Fprintln(os.Stderr, "User name and user zettel identification missing")
 		return 2, nil
 	}
-	sid, ok := cfg.Get("arg-2")
-	if !ok {
-		fmt.Fprintln(os.Stderr, "Zettel identification missing")
+	if fs.NArg() == 1 {
+		fmt.Fprintln(os.Stderr, "User zettel identification missing")
 		return 2, nil
 	}
+
+	sid := fs.Arg(1)
 	zid, err := domain.ParseZettelID(sid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Given zettel identification is not valid: %q\n", sid)
@@ -52,6 +53,7 @@ func cmdPassword(cfg *domain.Meta) (int, error) {
 		return 2, nil
 	}
 
+	ident := fs.Arg(0)
 	hashedPassword, err := cred.HashCredential(zid, ident, password)
 	if err != nil {
 		return 2, err

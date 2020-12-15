@@ -16,7 +16,7 @@ import (
 	"log"
 	"net/http"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
@@ -25,7 +25,11 @@ import (
 )
 
 // MakeListMetaHandler creates a new HTTP handler for the use case "list some zettel".
-func MakeListMetaHandler(listMeta usecase.ListMeta, getMeta usecase.GetMeta, parseZettel usecase.ParseZettel) http.HandlerFunc {
+func MakeListMetaHandler(
+	listMeta usecase.ListMeta,
+	getMeta usecase.GetMeta,
+	parseZettel usecase.ParseZettel,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		filter, sorter := adapter.GetFilterSorter(q, false)
@@ -44,10 +48,16 @@ func MakeListMetaHandler(listMeta usecase.ListMeta, getMeta usecase.GetMeta, par
 		case "json", "djson":
 			renderListMetaXJSON(r.Context(), w, metaList, format, part, getMeta, parseZettel)
 		case "native", "raw", "text", "zmk":
-			http.Error(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format), http.StatusNotImplemented)
+			http.Error(
+				w,
+				fmt.Sprintf("Zettel list in format %q not yet implemented", format),
+				http.StatusNotImplemented)
 			log.Println(format)
 		default:
-			http.Error(w, fmt.Sprintf("Zettel list not available in format %q", format), http.StatusBadRequest)
+			http.Error(
+				w,
+				fmt.Sprintf("Zettel list not available in format %q", format),
+				http.StatusBadRequest)
 		}
 	}
 }
@@ -55,7 +65,7 @@ func MakeListMetaHandler(listMeta usecase.ListMeta, getMeta usecase.GetMeta, par
 func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
 	buf := encoder.NewBufWriter(w)
 
-	buf.WriteStrings("<html lang=\"", config.GetDefaultLang(), "\">\n<body>\n<ul>\n")
+	buf.WriteStrings("<html lang=\"", runtime.GetDefaultLang(), "\">\n<body>\n<ul>\n")
 	for _, meta := range metaList {
 		title := meta.GetDefault(domain.MetaKeyTitle, "")
 		htmlTitle, err := adapter.FormatInlines(parser.ParseTitle(title), "html")
@@ -65,8 +75,10 @@ func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
 			return
 		}
 		buf.WriteStrings(
-			"<li><a href=\"", adapter.NewURLBuilder('z').SetZid(meta.Zid).AppendQuery("format", "html").String(), "\">",
-			htmlTitle, "</a></li>\n")
+			"<li><a href=\"",
+			adapter.NewURLBuilder('z').SetZid(meta.Zid).AppendQuery("format", "html").String(), "\">",
+			htmlTitle,
+			"</a></li>\n")
 	}
 	buf.WriteString("</ul>\n</body>\n</html>")
 	buf.Flush()

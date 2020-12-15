@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
@@ -59,7 +59,7 @@ func MakeGetHTMLZettelHandler(
 			log.Println(err)
 			return
 		}
-		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(zn.InhMeta)}
+		langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(zn.InhMeta)}
 		htmlTitle, err := adapter.FormatInlines(zn.Title, "html", &langOption)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -77,9 +77,13 @@ func MakeGetHTMLZettelHandler(
 			zn.Ast,
 			"html",
 			&langOption,
-			&encoder.StringOption{Key: domain.MetaKeyMarkerExternal, Value: config.GetMarkerExternal()},
+			&encoder.StringOption{
+				Key:   domain.MetaKeyMarkerExternal,
+				Value: runtime.GetMarkerExternal()},
 			&encoder.BoolOption{Key: "newwindow", Value: newWindow},
-			&encoder.AdaptLinkOption{Adapter: adapter.MakeLinkAdapter(ctx, 'h', getMeta, "", "")},
+			&encoder.AdaptLinkOption{
+				Adapter: adapter.MakeLinkAdapter(ctx, 'h', getMeta, "", ""),
+			},
 			&encoder.AdaptImageOption{Adapter: adapter.MakeImageAdapter()},
 		)
 		if err != nil {
@@ -137,7 +141,8 @@ func MakeGetHTMLZettelHandler(
 	}
 }
 
-func formatBlocks(bs ast.BlockSlice, format string, options ...encoder.Option) (string, error) {
+func formatBlocks(
+	bs ast.BlockSlice, format string, options ...encoder.Option) (string, error) {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return "", adapter.ErrNoSuchFormat
@@ -173,7 +178,9 @@ func buildTagInfos(meta *domain.Meta) []simpleLink {
 		for _, t := range tags {
 			// Cast to template.HTML is ok, because "t" is a tag name
 			// and contains only legal characters by construction.
-			tagInfos = append(tagInfos, simpleLink{Text: template.HTML(t), URL: ub.AppendQuery("tags", t).String()})
+			tagInfos = append(
+				tagInfos,
+				simpleLink{Text: template.HTML(t), URL: ub.AppendQuery("tags", t).String()})
 			ub.ClearQuery()
 		}
 	}

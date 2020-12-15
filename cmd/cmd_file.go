@@ -11,11 +11,12 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/input"
@@ -24,9 +25,9 @@ import (
 
 // ---------- Subcommand: file -----------------------------------------------
 
-func cmdFile(cfg *domain.Meta) (int, error) {
-	format := cfg.GetDefault(config.StartupKeyTargetFormat, "html")
-	meta, inp, err := getInput(cfg)
+func cmdFile(name string, fs *flag.FlagSet) (int, error) {
+	format := fs.Lookup("t").Value.String()
+	meta, inp, err := getInput(fs.Args())
 	if meta == nil {
 		return 2, err
 	}
@@ -35,11 +36,11 @@ func cmdFile(cfg *domain.Meta) (int, error) {
 			Meta:    meta,
 			Content: domain.NewContent(inp.Src[inp.Pos:]),
 		},
-		config.GetSyntax(meta),
+		runtime.GetSyntax(meta),
 	)
 	enc := encoder.Create(
 		format,
-		&encoder.StringOption{Key: "lang", Value: config.GetLang(meta)},
+		&encoder.StringOption{Key: "lang", Value: runtime.GetLang(meta)},
 	)
 	if enc == nil {
 		fmt.Fprintf(os.Stderr, "Unknown format %q\n", format)
@@ -54,9 +55,8 @@ func cmdFile(cfg *domain.Meta) (int, error) {
 	return 0, nil
 }
 
-func getInput(cfg *domain.Meta) (*domain.Meta, *input.Input, error) {
-	name, ok := cfg.Get("arg-1")
-	if !ok {
+func getInput(args []string) (*domain.Meta, *input.Input, error) {
+	if len(args) < 1 {
 		src, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return nil, nil, err
@@ -66,16 +66,15 @@ func getInput(cfg *domain.Meta) (*domain.Meta, *input.Input, error) {
 		return meta, inp, nil
 	}
 
-	src, err := ioutil.ReadFile(name)
+	src, err := ioutil.ReadFile(args[0])
 	if err != nil {
 		return nil, nil, err
 	}
 	inp := input.NewInput(string(src))
 	meta := domain.NewMetaFromInput(domain.NewZettelID(true), inp)
 
-	name2, ok := cfg.Get("arg-2")
-	if ok {
-		src, err := ioutil.ReadFile(name2)
+	if len(args) > 1 {
+		src, err := ioutil.ReadFile(args[1])
 		if err != nil {
 			return nil, nil, err
 		}

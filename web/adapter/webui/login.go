@@ -18,7 +18,8 @@ import (
 	"time"
 
 	"zettelstore.de/z/auth/token"
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
@@ -32,29 +33,37 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 	}
 }
 
-func renderLoginForm(ctx context.Context, w http.ResponseWriter, te *TemplateEngine, retry bool) {
+func renderLoginForm(
+	ctx context.Context, w http.ResponseWriter, te *TemplateEngine, retry bool) {
 	te.renderTemplate(ctx, w, domain.LoginTemplateID, struct {
 		baseData
 		Retry bool
 	}{
-		baseData: te.makeBaseData(ctx, config.GetDefaultLang(), "Login", nil),
+		baseData: te.makeBaseData(ctx, runtime.GetDefaultLang(), "Login", nil),
 		Retry:    retry,
 	})
 }
 
 // MakePostLoginHandlerHTML creates a new HTTP handler to authenticate the given user.
-func MakePostLoginHandlerHTML(te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
+func MakePostLoginHandlerHTML(
+	te *TemplateEngine, auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !config.WithAuth() {
+		if !startup.WithAuth() {
 			http.Redirect(w, r, adapter.NewURLBuilder('/').String(), http.StatusFound)
 			return
 		}
-		htmlDur, _ := config.TokenLifetime()
+		htmlDur, _ := startup.TokenLifetime()
 		authenticateViaHTML(te, auth, w, r, htmlDur)
 	}
 }
 
-func authenticateViaHTML(te *TemplateEngine, auth usecase.Authenticate, w http.ResponseWriter, r *http.Request, authDuration time.Duration) {
+func authenticateViaHTML(
+	te *TemplateEngine,
+	auth usecase.Authenticate,
+	w http.ResponseWriter,
+	r *http.Request,
+	authDuration time.Duration,
+) {
 	ident, cred, ok := adapter.GetCredentialsViaForm(r)
 	if !ok {
 		http.Error(w, "Unable to read login form", http.StatusBadRequest)
@@ -79,7 +88,10 @@ func authenticateViaHTML(te *TemplateEngine, auth usecase.Authenticate, w http.R
 func MakeGetLogoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Logout not possible in format %q", format), http.StatusBadRequest)
+			http.Error(
+				w,
+				fmt.Sprintf("Logout not possible in format %q", format),
+				http.StatusBadRequest)
 			return
 		}
 

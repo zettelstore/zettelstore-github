@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package config provides functions to retrieve configuration data.
-package config
+// Package runtime provides functions to retrieve runtime configuration data.
+package runtime
 
 import (
 	"strconv"
@@ -183,7 +183,7 @@ func GetMarkerExternal() string {
 	return "&#8599;&#xfe0e;"
 }
 
-// GetFooterHTML returns HTML code tht should be embedded into the footer of each WebUI page
+// GetFooterHTML returns HTML code tht should be embedded into the footer of each WebUI page.
 func GetFooterHTML() string {
 	if config := getConfigurationMeta(); config != nil {
 		if data, ok := config.Get(domain.MetaKeyFooterHTML); ok {

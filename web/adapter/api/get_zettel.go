@@ -16,7 +16,7 @@ import (
 	"log"
 	"net/http"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
@@ -24,7 +24,8 @@ import (
 )
 
 // MakeGetZettelHandler creates a new HTTP handler to return a rendered zettel.
-func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMeta) http.HandlerFunc {
+func MakeGetZettelHandler(
+	parseZettel usecase.ParseZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
@@ -47,7 +48,8 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 			switch part {
 			case "zettel", "meta", "content", "id":
 			default:
-				http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
+				http.Error(
+					w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
 				return
 			}
 			w.Header().Set("Content-Type", format2ContentType(format))
@@ -63,8 +65,10 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 			return
 		}
 
-		langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(zn.InhMeta)}
-		linkAdapter := encoder.AdaptLinkOption{Adapter: adapter.MakeLinkAdapter(ctx, 'z', getMeta, part, format)}
+		langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(zn.InhMeta)}
+		linkAdapter := encoder.AdaptLinkOption{
+			Adapter: adapter.MakeLinkAdapter(ctx, 'z', getMeta, part, format),
+		}
 		imageAdapter := encoder.AdaptImageOption{Adapter: adapter.MakeImageAdapter()}
 
 		switch part {
@@ -92,13 +96,14 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 		case "meta":
 			w.Header().Set("Content-Type", format2ContentType(format))
 			if format == "raw" {
-				err = writeMeta(w, zn.Zettel.Meta, format) // Don't write inherited meta data, just the raw
+				// Don't write inherited meta data, just the raw
+				err = writeMeta(w, zn.Zettel.Meta, format)
 			} else {
 				err = writeMeta(w, zn.InhMeta, format)
 			}
 		case "content":
 			if format == "raw" {
-				if ct, ok := syntax2contentType(config.GetSyntax(zn.Zettel.Meta)); ok {
+				if ct, ok := syntax2contentType(runtime.GetSyntax(zn.Zettel.Meta)); ok {
 					w.Header().Add("Content-Type", ct)
 				}
 			} else {
@@ -106,17 +111,23 @@ func MakeGetZettelHandler(parseZettel usecase.ParseZettel, getMeta usecase.GetMe
 			}
 			err = writeContent(w, zn, format,
 				&langOption,
-				&encoder.StringOption{Key: domain.MetaKeyMarkerExternal, Value: config.GetMarkerExternal()},
+				&encoder.StringOption{
+					Key:   domain.MetaKeyMarkerExternal,
+					Value: runtime.GetMarkerExternal()},
 				&linkAdapter,
 				&imageAdapter,
 			)
 		default:
-			http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
+			http.Error(
+				w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
 			return
 		}
 		if err != nil {
 			if err == adapter.ErrNoSuchFormat {
-				http.Error(w, fmt.Sprintf("Zettel %q not available in format %q", zid.Format(), format), http.StatusBadRequest)
+				http.Error(
+					w,
+					fmt.Sprintf("Zettel %q not available in format %q", zid.Format(), format),
+					http.StatusBadRequest)
 				return
 			}
 			http.Error(w, "Internal error", http.StatusInternalServerError)

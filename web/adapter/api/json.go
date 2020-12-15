@@ -20,7 +20,7 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
@@ -53,7 +53,10 @@ type jsonContent struct {
 
 func writeJSONZettel(w http.ResponseWriter, z *ast.ZettelNode, part string) error {
 	var outData interface{}
-	idData := jsonIDURL{ID: z.Zid.Format(), URL: adapter.NewURLBuilder('z').SetZid(z.Zid).String()}
+	idData := jsonIDURL{
+		ID:  z.Zid.Format(),
+		URL: adapter.NewURLBuilder('z').SetZid(z.Zid).String(),
+	}
 
 	switch part {
 	case "zettel":
@@ -96,7 +99,13 @@ func encodedContent(content domain.Content) (string, interface{}) {
 	return "", content.AsString()
 }
 
-func writeDJSONZettel(ctx context.Context, w http.ResponseWriter, z *ast.ZettelNode, part string, getMeta usecase.GetMeta) (err error) {
+func writeDJSONZettel(
+	ctx context.Context,
+	w http.ResponseWriter,
+	z *ast.ZettelNode,
+	part string,
+	getMeta usecase.GetMeta,
+) (err error) {
 	switch part {
 	case "zettel":
 		err = writeDJSONHeader(w, z.Zid)
@@ -168,11 +177,19 @@ func writeDJSONMeta(w io.Writer, z *ast.ZettelNode) error {
 	return err
 }
 
-func writeDJSONContent(ctx context.Context, w io.Writer, z *ast.ZettelNode, part string, getMeta usecase.GetMeta) (err error) {
+func writeDJSONContent(
+	ctx context.Context,
+	w io.Writer,
+	z *ast.ZettelNode,
+	part string,
+	getMeta usecase.GetMeta,
+) (err error) {
 	_, err = w.Write(djsonContentHeader)
 	if err == nil {
 		err = writeContent(w, z, "djson",
-			&encoder.AdaptLinkOption{Adapter: adapter.MakeLinkAdapter(ctx, 'z', getMeta, part, "djson")},
+			&encoder.AdaptLinkOption{
+				Adapter: adapter.MakeLinkAdapter(ctx, 'z', getMeta, part, "djson"),
+			},
 			&encoder.AdaptImageOption{Adapter: adapter.MakeImageAdapter()},
 		)
 	}
@@ -187,7 +204,14 @@ var (
 
 var setJSON = map[string]bool{"json": true}
 
-func renderListMetaXJSON(ctx context.Context, w http.ResponseWriter, metaList []*domain.Meta, format string, part string, getMeta usecase.GetMeta, parseZettel usecase.ParseZettel) {
+func renderListMetaXJSON(
+	ctx context.Context,
+	w http.ResponseWriter,
+	metaList []*domain.Meta,
+	format string, part string,
+	getMeta usecase.GetMeta,
+	parseZettel usecase.ParseZettel,
+) {
 	var readZettel bool
 	switch part {
 	case "zettel", "content":
@@ -222,9 +246,10 @@ func renderListMetaXJSON(ctx context.Context, w http.ResponseWriter, metaList []
 			zn = &ast.ZettelNode{
 				Zettel:  domain.Zettel{Meta: meta, Content: ""},
 				Zid:     meta.Zid,
-				InhMeta: config.AddDefaultValues(meta),
-				Title:   parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, config.GetDefaultTitle())),
-				Ast:     nil,
+				InhMeta: runtime.AddDefaultValues(meta),
+				Title: parser.ParseTitle(
+					meta.GetDefault(domain.MetaKeyTitle, runtime.GetDefaultTitle())),
+				Ast: nil,
 			}
 		}
 		if isJSON {
@@ -242,7 +267,8 @@ func renderListMetaXJSON(ctx context.Context, w http.ResponseWriter, metaList []
 	}
 }
 
-func writeContent(w io.Writer, zn *ast.ZettelNode, format string, options ...encoder.Option) error {
+func writeContent(
+	w io.Writer, zn *ast.ZettelNode, format string, options ...encoder.Option) error {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return adapter.ErrNoSuchFormat
@@ -252,7 +278,8 @@ func writeContent(w io.Writer, zn *ast.ZettelNode, format string, options ...enc
 	return err
 }
 
-func writeMeta(w io.Writer, meta *domain.Meta, format string, options ...encoder.Option) error {
+func writeMeta(
+	w io.Writer, meta *domain.Meta, format string, options ...encoder.Option) error {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return adapter.ErrNoSuchFormat

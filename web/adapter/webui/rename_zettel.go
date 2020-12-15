@@ -16,7 +16,7 @@ import (
 	"net/http"
 	"strings"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
@@ -24,7 +24,8 @@ import (
 )
 
 // MakeGetRenameZettelHandler creates a new HTTP handler to display the HTML rename view of a zettel.
-func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) http.HandlerFunc {
+func MakeGetRenameZettelHandler(
+	te *TemplateEngine, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
@@ -40,7 +41,11 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 		}
 
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Rename zettel %q not possible in format %q", zid.Format(), format), http.StatusBadRequest)
+			http.Error(
+				w,
+				fmt.Sprintf(
+					"Rename zettel %q not possible in format %q", zid.Format(), format),
+				http.StatusBadRequest)
 			return
 		}
 
@@ -50,7 +55,8 @@ func MakeGetRenameZettelHandler(te *TemplateEngine, getMeta usecase.GetMeta) htt
 			Zid       string
 			MetaPairs []domain.MetaPair
 		}{
-			baseData:  te.makeBaseData(ctx, config.GetLang(meta), "Rename Zettel "+zid.Format(), user),
+			baseData: te.makeBaseData(
+				ctx, runtime.GetLang(meta), "Rename Zettel "+zid.Format(), user),
 			Zid:       zid.Format(),
 			MetaPairs: meta.Pairs(),
 		})
@@ -69,13 +75,20 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 			http.Error(w, "Unable to read rename zettel form", http.StatusBadRequest)
 			return
 		}
-		if formCurZid, err := domain.ParseZettelID(r.PostFormValue("curzid")); err != nil || formCurZid != curZid {
-			http.Error(w, "Invalid value for current zettel id in form", http.StatusBadRequest)
+		if formCurZid, err := domain.ParseZettelID(
+			r.PostFormValue("curzid")); err != nil || formCurZid != curZid {
+			http.Error(
+				w,
+				"Invalid value for current zettel id in form",
+				http.StatusBadRequest)
 			return
 		}
 		newZid, err := domain.ParseZettelID(strings.TrimSpace(r.PostFormValue("newzid")))
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid new zettel id %q", newZid.Format()), http.StatusBadRequest)
+			http.Error(
+				w,
+				fmt.Sprintf("Invalid new zettel id %q", newZid.Format()),
+				http.StatusBadRequest)
 			return
 		}
 
@@ -83,6 +96,7 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 			adapter.ReportUsecaseError(w, err)
 			return
 		}
-		http.Redirect(w, r, adapter.NewURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
+		http.Redirect(
+			w, r, adapter.NewURLBuilder('h').SetZid(newZid).String(), http.StatusFound)
 	}
 }

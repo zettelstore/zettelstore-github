@@ -15,15 +15,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
-// MakeEditGetZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
-func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
+// MakeEditGetZettelHandler creates a new HTTP handler to display the
+// HTML edit view of a zettel.
+func MakeEditGetZettelHandler(
+	te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		zid, err := domain.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
@@ -39,14 +41,17 @@ func MakeEditGetZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) h
 		}
 
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format), http.StatusBadRequest)
+			http.Error(
+				w,
+				fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format),
+				http.StatusBadRequest)
 			return
 		}
 
 		user := session.GetUser(ctx)
 		meta := zettel.Meta
 		te.renderTemplate(ctx, w, domain.FormTemplateID, formZettelData{
-			baseData:      te.makeBaseData(ctx, config.GetLang(meta), "Edit Zettel", user),
+			baseData:      te.makeBaseData(ctx, runtime.GetLang(meta), "Edit Zettel", user),
 			MetaTitle:     meta.GetDefault(domain.MetaKeyTitle, ""),
 			MetaRole:      meta.GetDefault(domain.MetaKeyRole, ""),
 			MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),

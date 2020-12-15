@@ -14,7 +14,7 @@ package usecase
 import (
 	"context"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 )
@@ -40,16 +40,17 @@ func NewGetUser(port GetUserPort) GetUser {
 
 // Run executes the use case.
 func (uc GetUser) Run(ctx context.Context, ident string) (*domain.Meta, error) {
-	if !config.WithAuth() {
+	if !startup.WithAuth() {
 		return nil, nil
 	}
 
 	// It is important to try first with the owner. First, because another user
 	// could give herself the same ''ident''. Second, in most cases the owner
 	// will authenticate.
-	identMeta, err := uc.port.GetMeta(ctx, config.Owner())
+	identMeta, err := uc.port.GetMeta(ctx, startup.Owner())
 	if err == nil && identMeta.GetDefault(domain.MetaKeyUserID, "") == ident {
-		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
+		if role, ok := identMeta.Get(domain.MetaKeyRole); !ok ||
+			role != domain.MetaValueRoleUser {
 			return nil, nil
 		}
 		return identMeta, nil
@@ -90,7 +91,8 @@ func NewGetUserByZid(port GetUserByZidPort) GetUserByZid {
 }
 
 // Run executes the use case.
-func (uc GetUserByZid) Run(ctx context.Context, zid domain.ZettelID, ident string) (*domain.Meta, error) {
+func (uc GetUserByZid) Run(
+	ctx context.Context, zid domain.ZettelID, ident string) (*domain.Meta, error) {
 	userMeta, err := uc.port.GetMeta(ctx, zid)
 	if err != nil {
 		return nil, err

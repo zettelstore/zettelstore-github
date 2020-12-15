@@ -13,22 +13,22 @@ package cmd
 import (
 	"flag"
 	"sort"
-
-	"zettelstore.de/z/domain"
 )
 
 // Command stores information about commands / sub-commands.
 type Command struct {
-	Name  string              // command name as it appears on the command line
-	Func  CommandFunc         // function that executes a command
-	Flags func(*flag.FlagSet) // function to set up flag.FlagSet
-	flags *flag.FlagSet       // flags that belong to the command
+	Name   string              // command name as it appears on the command line
+	Func   CommandFunc         // function that executes a command
+	Places bool                // if true then places will be set up
+	Flags  func(*flag.FlagSet) // function to set up flag.FlagSet
+	flags  *flag.FlagSet       // flags that belong to the command
+
 }
 
 // CommandFunc is the function that executes the command.
-// It accepts meta data as configuration data and returns the exit code and an
-// error.
-type CommandFunc func(*domain.Meta) (int, error)
+// It accepts the command name and the parsed command line parameters.
+// It returns the exit code and an error.
+type CommandFunc func(string, *flag.FlagSet) (int, error)
 
 // GetFlags return the flag.FlagSet defined for the command.
 func (c *Command) GetFlags() *flag.FlagSet { return c.flags }

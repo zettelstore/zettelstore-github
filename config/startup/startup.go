@@ -8,27 +8,34 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package config provides functions to retrieve configuration data.
-package config
+// Package startup provides functions to retrieve startup configuration data.
+package startup
 
 import (
+	"fmt"
 	"hash/fnv"
+	"net/url"
 	"strconv"
 	"time"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/place"
 )
 
 var startupConfig struct {
+	verbose       bool
 	readonlyMode  bool
 	urlPrefix     string
-	insecCookie   bool
-	persistCookie bool
+	listenAddress string
 	owner         domain.ZettelID
 	withAuth      bool
 	secret        []byte
+	insecCookie   bool
+	persistCookie bool
 	htmlLifetime  time.Duration
 	apiLifetime   time.Duration
+	places        []string
+	place         place.Place
 }
 
 // Predefined keys for startup zettel
@@ -39,7 +46,6 @@ const (
 	StartupKeyPersistentCookie  = "persistent-cookie"
 	StartupKeyPlaceOneURI       = "place-1-uri"
 	StartupKeyReadOnlyMode      = "read-only-mode"
-	StartupKeyTargetFormat      = "target-format"
 	StartupKeyTokenLifetimeHTML = "token-lifetime-html"
 	StartupKeyTokenLifetimeAPI  = "token-lifetime-api"
 	StartupKeyURLPrefix         = "url-prefix"
@@ -47,12 +53,24 @@ const (
 )
 
 // SetupStartup initializes the startup data.
-func SetupStartup(cfg *domain.Meta) {
+func SetupStartup(cfg *domain.Meta, withPlaces bool, lastPlace place.Place) error {
 	if startupConfig.urlPrefix != "" {
 		panic("startupConfig already set")
 	}
+	startupConfig.verbose = cfg.GetBool(StartupKeyVerbose)
 	startupConfig.readonlyMode = cfg.GetBool(StartupKeyReadOnlyMode)
 	startupConfig.urlPrefix = cfg.GetDefault(StartupKeyURLPrefix, "/")
+	if prefix, ok := cfg.Get(StartupKeyURLPrefix); ok &&
+		len(prefix) > 0 && prefix[0] == '/' && prefix[len(prefix)-1] == '/' {
+		startupConfig.urlPrefix = prefix
+	} else {
+		startupConfig.urlPrefix = "/"
+	}
+	if val, ok := cfg.Get(StartupKeyListenAddress); ok {
+		startupConfig.listenAddress = val // TODO: check for valid string
+	} else {
+		startupConfig.listenAddress = "127.0.0.1:23123"
+	}
 	startupConfig.owner = domain.InvalidZettelID
 	if owner, ok := cfg.Get(StartupKeyOwner); ok {
 		if zid, err := domain.ParseZettelID(owner); err == nil {
@@ -69,6 +87,15 @@ func SetupStartup(cfg *domain.Meta) {
 		startupConfig.apiLifetime = getDuration(
 			cfg, StartupKeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
+	if !withPlaces {
+		return nil
+	}
+	startupConfig.places = getPlaces(cfg)
+	place, err := connectPlaces(startupConfig.places, lastPlace)
+	if err == nil {
+		startupConfig.place = place
+	}
+	return err
 }
 
 func calcSecret(cfg *domain.Meta) []byte {
@@ -85,7 +112,55 @@ func calcSecret(cfg *domain.Meta) []byte {
 	return h.Sum(nil)
 }
 
-func getDuration(cfg *domain.Meta, key string, defDur, minDur, maxDur time.Duration) time.Duration {
+func getPlaces(cfg *domain.Meta) []string {
+	hasConst := false
+	var result []string = nil
+	for cnt := 1; ; cnt++ {
+		key := fmt.Sprintf("place-%v-uri", cnt)
+		uri, ok := cfg.Get(key)
+		if !ok || uri == "" {
+			if cnt > 1 {
+				break
+			}
+			uri = "dir:./zettel"
+		}
+		if uri == "const:" {
+			hasConst = true
+		}
+		if IsReadOnlyMode() {
+			if u, err := url.Parse(uri); err == nil {
+				// TODO: the following is wrong under some circumstances:
+				// 1. query parameter "readonly" is already set
+				// 2. fragment is set
+				if len(u.Query()) == 0 {
+					uri += "?readonly"
+				} else {
+					uri += "&readonly"
+				}
+			}
+		}
+		result = append(result, uri)
+	}
+	if !hasConst {
+		result = append(result, "const:")
+	}
+	return result
+}
+
+func connectPlaces(placeURIs []string, lastPlace place.Place) (place.Place, error) {
+	if len(placeURIs) == 0 {
+		return lastPlace, nil
+	}
+	next, err := connectPlaces(placeURIs[1:], lastPlace)
+	if err != nil {
+		return nil, err
+	}
+	p, err := place.Connect(placeURIs[0], next)
+	return p, err
+}
+
+func getDuration(
+	cfg *domain.Meta, key string, defDur, minDur, maxDur time.Duration) time.Duration {
 	if s, ok := cfg.Get(key); ok && len(s) > 0 {
 		if d, err := strconv.ParseUint(s, 10, 64); err == nil {
 			secs := time.Duration(d) * time.Minute
@@ -101,12 +176,19 @@ func getDuration(cfg *domain.Meta, key string, defDur, minDur, maxDur time.Durat
 	return defDur
 }
 
+// IsVerbose returns whether the system should be more chatty about its operations.
+func IsVerbose() bool { return startupConfig.verbose }
+
 // IsReadOnlyMode returns whether the system is in read-only mode or not.
 func IsReadOnlyMode() bool { return startupConfig.readonlyMode }
 
 // URLPrefix returns the configured prefix to be used when providing URL to
 // the service.
 func URLPrefix() string { return startupConfig.urlPrefix }
+
+// ListenAddress returns the string that specifies the the network card and the ip port
+// where the server listens for requests
+func ListenAddress() string { return startupConfig.listenAddress }
 
 // SecureCookie returns whether the web app should set cookies to secure mode.
 func SecureCookie() bool { return !startupConfig.insecCookie }
@@ -135,3 +217,13 @@ func Secret() []byte { return startupConfig.secret }
 func TokenLifetime() (htmlLifetime, apiLifetime time.Duration) {
 	return startupConfig.htmlLifetime, startupConfig.apiLifetime
 }
+
+// Places returns a list of all place URIs
+func xPlaces() []string {
+	result := make([]string, len(startupConfig.places))
+	copy(result, startupConfig.places)
+	return result
+}
+
+// Place returns the linked list of places.
+func Place() place.Place { return startupConfig.place }

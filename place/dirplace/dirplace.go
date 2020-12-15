@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/place/dirplace/directory"
@@ -34,12 +34,13 @@ func init() {
 			return nil, err
 		}
 		dp := dirPlace{
-			u:         u,
-			readonly:  getQueryBool(u, "readonly"),
-			next:      next,
-			dir:       path,
-			dirRescan: time.Duration(getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
-			fSrvs:     uint32(getQueryInt(u, "worker", 1, 17, 1499)),
+			u:        u,
+			readonly: getQueryBool(u, "readonly"),
+			next:     next,
+			dir:      path,
+			dirRescan: time.Duration(
+				getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
+			fSrvs: uint32(getQueryInt(u, "worker", 1, 17, 1499)),
 		}
 		dp.cacheChange(true, domain.InvalidZettelID)
 		return &dp, nil
@@ -193,7 +194,8 @@ func (dp *dirPlace) CanCreateZettel(ctx context.Context) bool {
 	return !dp.isStopped() && !dp.readonly
 }
 
-func (dp *dirPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+func (dp *dirPlace) CreateZettel(
+	ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	if dp.isStopped() {
 		return domain.InvalidZettelID, place.ErrStopped
 	}
@@ -220,7 +222,8 @@ func (dp *dirPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (dom
 }
 
 // GetZettel reads the zettel from a file.
-func (dp *dirPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+func (dp *dirPlace) GetZettel(
+	ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
 	if dp.isStopped() {
 		return domain.Zettel{}, place.ErrStopped
 	}
@@ -279,7 +282,8 @@ func (dp *dirPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
-func (dp *dirPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) (res []*domain.Meta, err error) {
+func (dp *dirPlace) SelectMeta(
+	ctx context.Context, f *place.Filter, s *place.Sorter) (res []*domain.Meta, err error) {
 	if dp.isStopped() {
 		return nil, place.ErrStopped
 	}
@@ -378,7 +382,7 @@ func calcSpecExt(meta *domain.Meta) (directory.MetaSpec, string) {
 	case "meta", "zmk":
 		return directory.MetaSpecHeader, "zettel"
 	}
-	for _, s := range config.GetZettelFileSyntax() {
+	for _, s := range runtime.GetZettelFileSyntax() {
 		if s == syntax {
 			return directory.MetaSpecHeader, "zettel"
 		}
@@ -493,10 +497,10 @@ func (dp *dirPlace) Reload(ctx context.Context) error {
 
 func (dp *dirPlace) cleanupMeta(ctx context.Context, meta *domain.Meta) {
 	if role, ok := meta.Get(domain.MetaKeyRole); !ok || role == "" {
-		meta.Set(domain.MetaKeyRole, config.GetDefaultRole())
+		meta.Set(domain.MetaKeyRole, runtime.GetDefaultRole())
 	}
 	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-		meta.Set(domain.MetaKeySyntax, config.GetDefaultSyntax())
+		meta.Set(domain.MetaKeySyntax, runtime.GetDefaultSyntax())
 	}
 }
 

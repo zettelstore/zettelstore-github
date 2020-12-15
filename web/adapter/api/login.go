@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"zettelstore.de/z/auth/token"
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
@@ -26,17 +26,22 @@ import (
 // MakePostLoginHandlerAPI creates a new HTTP handler to authenticate the given user via API.
 func MakePostLoginHandlerAPI(auth usecase.Authenticate) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !config.WithAuth() {
+		if !startup.WithAuth() {
 			w.Header().Set("Content-Type", format2ContentType("json"))
 			writeJSONToken(w, "freeaccess", 24*366*10*time.Hour)
 			return
 		}
-		_, apiDur := config.TokenLifetime()
+		_, apiDur := startup.TokenLifetime()
 		authenticateViaJSON(auth, w, r, apiDur)
 	}
 }
 
-func authenticateViaJSON(auth usecase.Authenticate, w http.ResponseWriter, r *http.Request, authDuration time.Duration) {
+func authenticateViaJSON(
+	auth usecase.Authenticate,
+	w http.ResponseWriter,
+	r *http.Request,
+	authDuration time.Duration,
+) {
 	token, err := authenticateForJSON(auth, w, r, authDuration)
 	if err != nil {
 		adapter.ReportUsecaseError(w, err)
@@ -52,7 +57,12 @@ func authenticateViaJSON(auth usecase.Authenticate, w http.ResponseWriter, r *ht
 	writeJSONToken(w, string(token), authDuration)
 }
 
-func authenticateForJSON(auth usecase.Authenticate, w http.ResponseWriter, r *http.Request, authDuration time.Duration) ([]byte, error) {
+func authenticateForJSON(
+	auth usecase.Authenticate,
+	w http.ResponseWriter,
+	r *http.Request,
+	authDuration time.Duration,
+) ([]byte, error) {
 	ident, cred, ok := adapter.GetCredentialsViaForm(r)
 	if !ok {
 		if ident, cred, ok = r.BasicAuth(); !ok {
@@ -95,7 +105,7 @@ func MakeRenewAuthHandler() http.HandlerFunc {
 		}
 
 		// Toke is a little bit aged. Create a new one
-		_, apiDur := config.TokenLifetime()
+		_, apiDur := startup.TokenLifetime()
 		token, err := token.GetToken(auth.User, apiDur, token.KindJSON)
 		if err != nil {
 			adapter.ReportUsecaseError(w, err)

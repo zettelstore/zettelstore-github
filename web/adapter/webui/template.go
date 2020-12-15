@@ -21,7 +21,8 @@ import (
 
 	"zettelstore.de/z/auth/policy"
 	"zettelstore.de/z/auth/token"
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/input"
@@ -65,12 +66,14 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 		place:  p,
 		policy: pol,
 
-		stylesheetURL: adapter.NewURLBuilder('z').SetZid(domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery("_part", "content").String(),
+		stylesheetURL: adapter.NewURLBuilder('z').SetZid(
+			domain.BaseCSSID).AppendQuery("_format", "raw").AppendQuery(
+			"_part", "content").String(),
 		homeURL:       adapter.NewURLBuilder('/').String(),
 		listZettelURL: adapter.NewURLBuilder('h').String(),
 		listRolesURL:  adapter.NewURLBuilder('k').SetZid(2).String(),
 		listTagsURL:   adapter.NewURLBuilder('k').SetZid(3).String(),
-		withAuth:      config.WithAuth(),
+		withAuth:      startup.WithAuth(),
 		loginURL:      adapter.NewURLBuilder('a').String(),
 		reloadURL:     adapter.NewURLBuilder('c').AppendQuery("_format", "html").String(),
 		searchURL:     adapter.NewURLBuilder('s').String(),
@@ -83,7 +86,8 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 func (te *TemplateEngine) observe(all bool, zid domain.ZettelID) {
 	te.mxCache.Lock()
 	if all || zid == domain.BaseTemplateID {
-		te.templateCache = make(map[domain.ZettelID]*template.Template, len(te.templateCache))
+		te.templateCache = make(
+			map[domain.ZettelID]*template.Template, len(te.templateCache))
 	} else {
 		delete(te.templateCache, zid)
 	}
@@ -108,19 +112,23 @@ func (te *TemplateEngine) canCreate(ctx context.Context, user *domain.Meta) bool
 	return te.policy.CanCreate(user, meta) && te.place.CanCreateZettel(ctx)
 }
 
-func (te *TemplateEngine) canWrite(ctx context.Context, user *domain.Meta, zettel domain.Zettel) bool {
+func (te *TemplateEngine) canWrite(
+	ctx context.Context, user *domain.Meta, zettel domain.Zettel) bool {
 	return te.policy.CanWrite(user, zettel.Meta, zettel.Meta) && te.place.CanUpdateZettel(ctx, zettel)
 }
 
-func (te *TemplateEngine) canRename(ctx context.Context, user *domain.Meta, meta *domain.Meta) bool {
+func (te *TemplateEngine) canRename(
+	ctx context.Context, user *domain.Meta, meta *domain.Meta) bool {
 	return te.policy.CanRename(user, meta) && te.place.CanRenameZettel(ctx, meta.Zid)
 }
 
-func (te *TemplateEngine) canDelete(ctx context.Context, user *domain.Meta, meta *domain.Meta) bool {
+func (te *TemplateEngine) canDelete(
+	ctx context.Context, user *domain.Meta, meta *domain.Meta) bool {
 	return te.policy.CanDelete(user, meta) && te.place.CanDeleteZettel(ctx, meta.Zid)
 }
 
-func (te *TemplateEngine) getTemplate(ctx context.Context, templateID domain.ZettelID) (*template.Template, error) {
+func (te *TemplateEngine) getTemplate(
+	ctx context.Context, templateID domain.ZettelID) (*template.Template, error) {
 	if t, ok := te.cacheGetTemplate(templateID); ok {
 		return t, nil
 	}
@@ -217,7 +225,7 @@ func (te *TemplateEngine) makeBaseData(
 		CanReload:      te.policy.CanReload(user),
 		ReloadURL:      te.reloadURL,
 		SearchURL:      te.searchURL,
-		FooterHTML:     template.HTML(config.GetFooterHTML()),
+		FooterHTML:     template.HTML(runtime.GetFooterHTML()),
 	}
 }
 
@@ -243,7 +251,8 @@ var templatePlaceSorter = &place.Sorter{
 	Limit:      31, // Just to be one the safe side...
 }
 
-func (te *TemplateEngine) fetchNewTemplates(ctx context.Context, user *domain.Meta) []simpleLink {
+func (te *TemplateEngine) fetchNewTemplates(
+	ctx context.Context, user *domain.Meta) []simpleLink {
 	templateList, err := te.place.SelectMeta(ctx, templatePlaceFilter, templatePlaceSorter)
 	if err != nil {
 		return nil
@@ -251,9 +260,9 @@ func (te *TemplateEngine) fetchNewTemplates(ctx context.Context, user *domain.Me
 	result := make([]simpleLink, 0, len(templateList))
 	for _, meta := range templateList {
 		if te.policy.CanRead(user, meta) {
-			title := config.GetTitle(meta)
-			langOption := encoder.StringOption{Key: "lang", Value: config.GetLang(meta)}
-			astTitle := parser.ParseInlines(input.NewInput(config.GetTitle(meta)), "zmk")
+			title := runtime.GetTitle(meta)
+			langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(meta)}
+			astTitle := parser.ParseInlines(input.NewInput(runtime.GetTitle(meta)), "zmk")
 			menuTitle, err := adapter.FormatInlines(astTitle, "html", &langOption)
 			if err != nil {
 				menuTitle, err = adapter.FormatInlines(astTitle, "text", &langOption)
@@ -278,12 +287,13 @@ func (te *TemplateEngine) renderTemplate(
 
 	t, err := te.getTemplate(ctx, templateID)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Unable to get template: %v", err), http.StatusInternalServerError)
+		http.Error(
+			w, fmt.Sprintf("Unable to get template: %v", err), http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
 	if user := session.GetUser(ctx); user != nil {
-		htmlLifetime, _ := config.TokenLifetime()
+		htmlLifetime, _ := startup.TokenLifetime()
 		t, err := token.GetToken(user, htmlLifetime, token.KindHTML)
 		if err == nil {
 			session.SetToken(w, t, htmlLifetime)
@@ -292,7 +302,10 @@ func (te *TemplateEngine) renderTemplate(
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = t.Execute(w, data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Unable to execute template: %v", err), http.StatusInternalServerError)
+		http.Error(
+			w,
+			fmt.Sprintf("Unable to execute template: %v", err),
+			http.StatusInternalServerError)
 		log.Println(err)
 	}
 }

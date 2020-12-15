@@ -14,7 +14,7 @@ package progplace
 import (
 	"fmt"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 )
 
@@ -33,22 +33,22 @@ func genVersionBuildM(zid domain.ZettelID) *domain.Meta {
 	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityPublic)
 	return meta
 }
-func genVersionBuildC(meta *domain.Meta) string { return config.GetVersion().Build }
+func genVersionBuildC(meta *domain.Meta) string { return startup.GetVersion().Build }
 
 func genVersionHostM(zid domain.ZettelID) *domain.Meta {
 	return getVersionMeta(zid, "Zettelstore Host")
 }
-func genVersionHostC(meta *domain.Meta) string { return config.GetVersion().Hostname }
+func genVersionHostC(meta *domain.Meta) string { return startup.GetVersion().Hostname }
 
 func genVersionOSM(zid domain.ZettelID) *domain.Meta {
 	return getVersionMeta(zid, "Zettelstore Operating System")
 }
 func genVersionOSC(meta *domain.Meta) string {
-	v := config.GetVersion()
+	v := startup.GetVersion()
 	return fmt.Sprintf("%v/%v", v.Os, v.Arch)
 }
 
 func genVersionGoM(zid domain.ZettelID) *domain.Meta {
 	return getVersionMeta(zid, "Zettelstore Go Version")
 }
-func genVersionGoC(meta *domain.Meta) string { return config.GetVersion().GoVersion }
+func genVersionGoC(meta *domain.Meta) string { return startup.GetVersion().GoVersion }

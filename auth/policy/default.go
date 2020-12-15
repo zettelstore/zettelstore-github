@@ -12,7 +12,7 @@
 package policy
 
 import (
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 )
 
@@ -51,14 +51,15 @@ func (d *defaultPolicy) canChange(user *domain.Meta, meta *domain.Meta) bool {
 		// If we are here, there is no authentication.
 		// See owner.go:CanWrite.
 
-		// No authentication: check for owner-like restriction, since the user acts as an owner
+		// No authentication: check for owner-like restriction, because the user
+		// acts as an owner
 		if metaRo == "owner" || domain.BoolValue(metaRo) {
 			return false
 		}
 		return true
 	}
 
-	userRole := config.GetUserRole(user)
+	userRole := runtime.GetUserRole(user)
 	switch metaRo {
 	case "reader":
 		return userRole > domain.UserRoleReader

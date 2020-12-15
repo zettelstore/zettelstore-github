@@ -14,7 +14,7 @@ package usecase
 import (
 	"context"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 )
 
@@ -35,22 +35,23 @@ func NewCreateZettel(port CreateZettelPort) CreateZettel {
 }
 
 // Run executes the use case.
-func (uc CreateZettel) Run(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+func (uc CreateZettel) Run(
+	ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
 	meta := zettel.Meta
 	if meta.Zid.IsValid() {
 		return meta.Zid, nil // TODO: new error: already exists
 	}
 
 	if title, ok := meta.Get(domain.MetaKeyTitle); !ok || title == "" {
-		meta.Set(domain.MetaKeyTitle, config.GetDefaultTitle())
+		meta.Set(domain.MetaKeyTitle, runtime.GetDefaultTitle())
 	}
 	if role, ok := meta.Get(domain.MetaKeyRole); !ok || role == "" {
-		meta.Set(domain.MetaKeyRole, config.GetDefaultRole())
+		meta.Set(domain.MetaKeyRole, runtime.GetDefaultRole())
 	}
 	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-		meta.Set(domain.MetaKeySyntax, config.GetDefaultSyntax())
+		meta.Set(domain.MetaKeySyntax, runtime.GetDefaultSyntax())
 	}
-	meta.YamlSep = config.GetYAMLHeader()
+	meta.YamlSep = runtime.GetYAMLHeader()
 
 	return uc.port.CreateZettel(ctx, zettel)
 }

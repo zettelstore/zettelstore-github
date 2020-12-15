@@ -11,15 +11,18 @@
 package cmd
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/input"
+	"zettelstore.de/z/place/progplace"
 )
 
 const (
@@ -29,7 +32,7 @@ const (
 func init() {
 	RegisterCommand(Command{
 		Name: "help",
-		Func: func(cfg *domain.Meta) (int, error) {
+		Func: func(string, *flag.FlagSet) (int, error) {
 			fmt.Println("Available commands:")
 			for _, name := range List() {
 				fmt.Printf("- %q\n", name)
@@ -39,15 +42,16 @@ func init() {
 	})
 	RegisterCommand(Command{
 		Name: "version",
-		Func: func(cfg *domain.Meta) (int, error) {
+		Func: func(string, *flag.FlagSet) (int, error) {
 			fmtVersion()
 			return 0, nil
 		},
 	})
 	RegisterCommand(Command{
-		Name:  "run",
-		Func:  runFunc,
-		Flags: flgRun,
+		Name:   "run",
+		Func:   runFunc,
+		Places: true,
+		Flags:  flgRun,
 	})
 	RegisterCommand(Command{
 		Name:  "config",
@@ -68,7 +72,7 @@ func init() {
 }
 
 func fmtVersion() {
-	version := config.GetVersion()
+	version := startup.GetVersion()
 	fmt.Printf("%v (%v/%v) running on %v (%v/%v)\n",
 		version.Prog, version.Build, version.GoVersion,
 		version.Hostname, version.Os, version.Arch)
@@ -98,7 +102,7 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 	fs.Visit(func(flg *flag.Flag) {
 		switch flg.Name {
 		case "p":
-			cfg.Set(config.StartupKeyListenAddress, "127.0.0.1:"+flg.Value.String())
+			cfg.Set(startup.StartupKeyListenAddress, "127.0.0.1:"+flg.Value.String())
 		case "d":
 			val := flg.Value.String()
 			if strings.HasPrefix(val, "/") {
@@ -106,35 +110,13 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 			} else {
 				val = "dir:" + val
 			}
-			cfg.Set(config.StartupKeyPlaceOneURI, val)
+			cfg.Set(startup.StartupKeyPlaceOneURI, val)
 		case "r":
-			cfg.Set(config.StartupKeyReadOnlyMode, flg.Value.String())
+			cfg.Set(startup.StartupKeyReadOnlyMode, flg.Value.String())
 		case "v":
-			cfg.Set(config.StartupKeyVerbose, flg.Value.String())
-		case "t":
-			cfg.Set(config.StartupKeyTargetFormat, flg.Value.String())
+			cfg.Set(startup.StartupKeyVerbose, flg.Value.String())
 		}
 	})
-
-	if _, ok := cfg.Get(config.StartupKeyListenAddress); !ok {
-		cfg.Set(config.StartupKeyListenAddress, "127.0.0.1:23123")
-	}
-	if _, ok := cfg.Get(config.StartupKeyPlaceOneURI); !ok {
-		cfg.Set(config.StartupKeyPlaceOneURI, "dir:./zettel")
-	}
-	if _, ok := cfg.Get(config.StartupKeyReadOnlyMode); !ok {
-		cfg.Set(config.StartupKeyReadOnlyMode, "false")
-	}
-	if _, ok := cfg.Get(config.StartupKeyVerbose); !ok {
-		cfg.Set(config.StartupKeyVerbose, "false")
-	}
-	if prefix, ok := cfg.Get(config.StartupKeyURLPrefix); !ok || len(prefix) == 0 || prefix[0] != '/' || prefix[len(prefix)-1] != '/' {
-		cfg.Set(config.StartupKeyURLPrefix, "/")
-	}
-
-	for i, arg := range fs.Args() {
-		cfg.Set(fmt.Sprintf("arg-%d", i+1), arg)
-	}
 	return cfg
 }
 
@@ -150,9 +132,22 @@ func executeCommand(name string, args ...string) {
 		os.Exit(1)
 	}
 	cfg := getConfig(fs)
-	cfg.Set("command-name", name)
-	config.SetupStartup(cfg)
-	exitCode, err := command.Func(cfg)
+	err := startup.SetupStartup(cfg, command.Places, progplace.Get())
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to connect to specified places")
+		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
+		os.Exit(2)
+	}
+	if command.Places {
+		if err := startup.Place().Start(context.Background()); err != nil {
+			fmt.Fprintln(os.Stderr, "Unable to start zettel place")
+			fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
+			os.Exit(2)
+		}
+		runtime.SetupConfiguration(startup.Place())
+		progplace.Setup(cfg, startup.Place())
+	}
+	exitCode, err := command.Func(name, fs)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
 	}
@@ -161,7 +156,7 @@ func executeCommand(name string, args ...string) {
 
 // Main is the real entrypoint of the zettelstore.
 func Main(progName, buildVersion string) {
-	config.SetupVersion(progName, buildVersion)
+	startup.SetupVersion(progName, buildVersion)
 	if len(os.Args) <= 1 {
 		dir := "./zettel"
 		if err := os.MkdirAll(dir, 0755); err != nil {

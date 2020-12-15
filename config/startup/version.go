@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package config provides functions to retrieve configuration data.
-package config
+// Package startup provides functions to retrieve startup configuration data.
+package startup
 
 import (
 	"os"

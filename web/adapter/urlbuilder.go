@@ -15,7 +15,7 @@ import (
 	"net/url"
 	"strings"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 )
 
@@ -92,7 +92,7 @@ func (ub *URLBuilder) SetFragment(s string) *URLBuilder {
 func (ub *URLBuilder) String() string {
 	var sb strings.Builder
 
-	sb.WriteString(config.URLPrefix())
+	sb.WriteString(startup.URLPrefix())
 	if ub.key != '/' {
 		sb.WriteByte(ub.key)
 	}

@@ -11,27 +11,27 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 
-	"zettelstore.de/z/config"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/config/startup"
 )
 
 // ---------- Subcommand: config ---------------------------------------------
 
-func cmdConfig(cfg *domain.Meta) (int, error) {
+func cmdConfig(string, *flag.FlagSet) (int, error) {
 	fmtVersion()
 	fmt.Println("Stores")
-	fmt.Printf("  Read-only mode    = %v\n", config.IsReadOnlyMode())
+	fmt.Printf("  Read-only mode    = %v\n", startup.IsReadOnlyMode())
 	fmt.Println("Web")
-	fmt.Printf("  Listen address    = %q\n", cfg.GetDefault(config.StartupKeyListenAddress, "???"))
-	fmt.Printf("  URL prefix        = %q\n", config.URLPrefix())
-	if config.WithAuth() {
+	fmt.Printf("  Listen address    = %q\n", startup.ListenAddress())
+	fmt.Printf("  URL prefix        = %q\n", startup.URLPrefix())
+	if startup.WithAuth() {
 		fmt.Println("Auth")
-		fmt.Printf("  Owner             = %v\n", config.Owner().Format())
-		fmt.Printf("  Secure cookie     = %v\n", config.SecureCookie())
-		fmt.Printf("  Persistent cookie = %v\n", config.PersistentCookie())
-		htmlLifetime, apiLifetime := config.TokenLifetime()
+		fmt.Printf("  Owner             = %v\n", startup.Owner().Format())
+		fmt.Printf("  Secure cookie     = %v\n", startup.SecureCookie())
+		fmt.Printf("  Persistent cookie = %v\n", startup.PersistentCookie())
+		htmlLifetime, apiLifetime := startup.TokenLifetime()
 		fmt.Printf("  HTML lifetime     = %v\n", htmlLifetime)
 		fmt.Printf("  API lifetime      = %v\n", apiLifetime)
 	}

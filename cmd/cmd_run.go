@@ -11,18 +11,14 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
+	"flag"
 	"log"
 	"net/http"
-	"net/url"
-	"os"
 
 	"zettelstore.de/z/auth/policy"
-	"zettelstore.de/z/config"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/config/runtime"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/place"
-	"zettelstore.de/z/place/progplace"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/adapter/api"
@@ -33,95 +29,27 @@ import (
 
 // ---------- Subcommand: run ------------------------------------------------
 
-func runFunc(cfg *domain.Meta) (int, error) {
-	p, exitCode, err := setupPlaces(cfg)
-	if p == nil {
-		return exitCode, err
-	}
-	readonlyMode := config.IsReadOnlyMode()
-	router := setupRouting(p, readonlyMode)
+func runFunc(string, *flag.FlagSet) (int, error) {
 
-	listenAddr, _ := cfg.Get(config.StartupKeyListenAddress)
-	v := config.GetVersion()
+	readonlyMode := startup.IsReadOnlyMode()
+	router := setupRouting(startup.Place(), readonlyMode)
+
+	listenAddr := startup.ListenAddress()
+	v := startup.GetVersion()
 	log.Printf("%v %v (%v@%v/%v)", v.Prog, v.Build, v.GoVersion, v.Os, v.Arch)
-	if cfg.GetBool(config.StartupKeyVerbose) {
-		log.Println("Configuration")
-		cfg.Write(os.Stderr)
-	} else {
-		log.Printf("Listening on %v", listenAddr)
-		log.Printf("Zettel location [%v]", fullLocation(p))
-		if readonlyMode {
-			log.Println("Read-only mode")
-		}
+	log.Printf("Listening on %v", listenAddr)
+	log.Printf("Zettel location [%v]", fullLocation(startup.Place()))
+	if readonlyMode {
+		log.Println("Read-only mode")
 	}
 	log.Fatal(http.ListenAndServe(listenAddr, router))
 	return 0, nil
 }
 
-func setupPlaces(cfg *domain.Meta) (place.Place, int, error) {
-	p, err := connectPlaces(getPlaceURIs(cfg))
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to connect to specified places")
-		return nil, 2, err
-	}
-	if err := p.Start(context.Background()); err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to start zettel place")
-		return nil, 2, err
-	}
-	config.SetupConfiguration(p)
-	progplace.Setup(cfg, p)
-	return p, 0, nil
-}
-
-func getPlaceURIs(cfg *domain.Meta) []string {
-	readonlyMode := config.IsReadOnlyMode()
-	hasConst := false
-	var result []string = nil
-	for cnt := 1; ; cnt++ {
-		key := fmt.Sprintf("place-%v-uri", cnt)
-		uri, ok := cfg.Get(key)
-		if !ok || uri == "" {
-			break
-		}
-		if uri == "const:" {
-			hasConst = true
-		}
-		if readonlyMode {
-			if u, err := url.Parse(uri); err == nil {
-				// TODO: the following is wrong under some circumstances:
-				// 1. query parameter "readonly" is already set
-				// 2. fragment is set
-				if len(u.Query()) == 0 {
-					uri += "?readonly"
-				} else {
-					uri += "&readonly"
-				}
-			}
-		}
-		result = append(result, uri)
-	}
-	if !hasConst {
-		result = append(result, "const:")
-	}
-	return result
-}
-
-func connectPlaces(placeURIs []string) (place.Place, error) {
-	if len(placeURIs) == 0 {
-		return progplace.Get(), nil
-	}
-	next, err := connectPlaces(placeURIs[1:])
-	if err != nil {
-		return nil, err
-	}
-	p, err := place.Connect(placeURIs[0], next)
-	return p, err
-}
-
 func setupRouting(up place.Place, readonlyMode bool) http.Handler {
 	pp, pol := policy.PlaceWithPolicy(
-		up, config.WithAuth, readonlyMode, config.GetExpertMode,
-		config.IsOwner, config.GetVisibility)
+		up, startup.WithAuth, readonlyMode, runtime.GetExpertMode,
+		startup.IsOwner, runtime.GetVisibility)
 	te := webui.NewTemplateEngine(up, pol)
 
 	ucAuthenticate := usecase.NewAuthenticate(up)

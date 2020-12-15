@@ -12,7 +12,7 @@
 package policy
 
 import (
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 )
 
@@ -39,7 +39,7 @@ func (o *ownerPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
 }
 
 func (o *ownerPolicy) userCanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
-	if config.GetUserRole(user) == domain.UserRoleReader {
+	if runtime.GetUserRole(user) == domain.UserRoleReader {
 		return false
 	}
 	if role, ok := newMeta.Get(domain.MetaKeyRole); ok && role == domain.MetaValueRoleUser {
@@ -107,7 +107,7 @@ func (o *ownerPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta)
 		}
 		return true
 	}
-	if config.GetUserRole(user) == domain.UserRoleReader {
+	if runtime.GetUserRole(user) == domain.UserRoleReader {
 		return false
 	}
 	return o.userCanCreate(user, newMeta)

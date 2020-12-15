@@ -15,18 +15,25 @@ import (
 	"fmt"
 	"net/http"
 
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
 
-// MakeGetDeleteZettelHandler creates a new HTTP handler to display the HTML edit view of a zettel.
-func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
+// MakeGetDeleteZettelHandler creates a new HTTP handler to display the
+// HTML delete view of a zettel.
+func MakeGetDeleteZettelHandler(
+	te *TemplateEngine,
+	getZettel usecase.GetZettel,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(w, fmt.Sprintf("Delete zettel not possible in format %q", format), http.StatusBadRequest)
+			http.Error(
+				w,
+				fmt.Sprintf("Delete zettel not possible in format %q", format),
+				http.StatusBadRequest)
 			return
 		}
 
@@ -50,7 +57,8 @@ func MakeGetDeleteZettelHandler(te *TemplateEngine, getZettel usecase.GetZettel)
 			Zid       string
 			MetaPairs []domain.MetaPair
 		}{
-			baseData:  te.makeBaseData(ctx, config.GetLang(meta), "Delete Zettel "+meta.Zid.Format(), user),
+			baseData: te.makeBaseData(
+				ctx, runtime.GetLang(meta), "Delete Zettel "+meta.Zid.Format(), user),
 			Zid:       zid.Format(),
 			MetaPairs: meta.Pairs(),
 		})

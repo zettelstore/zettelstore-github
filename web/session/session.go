@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"zettelstore.de/z/auth/token"
-	"zettelstore.de/z/config"
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/usecase"
 )
@@ -30,12 +30,12 @@ func SetToken(w http.ResponseWriter, token []byte, d time.Duration) {
 	cookie := http.Cookie{
 		Name:     sessionName,
 		Value:    string(token),
-		Path:     config.URLPrefix(),
-		Secure:   config.SecureCookie(),
+		Path:     startup.URLPrefix(),
+		Secure:   startup.SecureCookie(),
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
-	if config.PersistentCookie() && d > 0 {
+	if startup.PersistentCookie() && d > 0 {
 		cookie.Expires = time.Now().Add(d).Add(30 * time.Second).UTC()
 	}
 	http.SetCookie(w, &cookie)
@@ -94,11 +94,21 @@ func GetUser(ctx context.Context) *domain.Meta {
 	return nil
 }
 
-func updateContext(ctx context.Context, user *domain.Meta, data *token.Data) context.Context {
+func updateContext(
+	ctx context.Context, user *domain.Meta, data *token.Data) context.Context {
 	if data == nil {
 		return context.WithValue(ctx, ctxKey, &AuthData{User: user})
 	}
-	return context.WithValue(ctx, ctxKey, &AuthData{User: user, Token: data.Token, Now: data.Now, Issued: data.Issued, Expires: data.Expires})
+	return context.WithValue(
+		ctx,
+		ctxKey,
+		&AuthData{
+			User:    user,
+			Token:   data.Token,
+			Now:     data.Now,
+			Issued:  data.Issued,
+			Expires: data.Expires,
+		})
 }
 
 // ServeHTTP processes one HTTP request.
