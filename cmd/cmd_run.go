@@ -38,19 +38,19 @@ func runFunc(cfg *domain.Meta) (int, error) {
 	if p == nil {
 		return exitCode, err
 	}
-	readonly := cfg.GetBool("readonly")
-	router := setupRouting(p, readonly)
+	readonlyMode := config.IsReadOnlyMode()
+	router := setupRouting(p, readonlyMode)
 
-	listenAddr, _ := cfg.Get("listen-addr")
+	listenAddr, _ := cfg.Get(config.StartupKeyListenAddress)
 	v := config.GetVersion()
 	log.Printf("%v %v (%v@%v/%v)", v.Prog, v.Build, v.GoVersion, v.Os, v.Arch)
-	if cfg.GetBool("verbose") {
+	if cfg.GetBool(config.StartupKeyVerbose) {
 		log.Println("Configuration")
 		cfg.Write(os.Stderr)
 	} else {
 		log.Printf("Listening on %v", listenAddr)
 		log.Printf("Zettel location [%v]", fullLocation(p))
-		if readonly {
+		if readonlyMode {
 			log.Println("Read-only mode")
 		}
 	}
@@ -74,7 +74,7 @@ func setupPlaces(cfg *domain.Meta) (place.Place, int, error) {
 }
 
 func getPlaceURIs(cfg *domain.Meta) []string {
-	readonly := cfg.GetBool("readonly")
+	readonlyMode := config.IsReadOnlyMode()
 	hasConst := false
 	var result []string = nil
 	for cnt := 1; ; cnt++ {
@@ -86,8 +86,11 @@ func getPlaceURIs(cfg *domain.Meta) []string {
 		if uri == "const:" {
 			hasConst = true
 		}
-		if readonly {
+		if readonlyMode {
 			if u, err := url.Parse(uri); err == nil {
+				// TODO: the following is wrong under some circumstances:
+				// 1. query parameter "readonly" is already set
+				// 2. fragment is set
 				if len(u.Query()) == 0 {
 					uri += "?readonly"
 				} else {
@@ -115,9 +118,10 @@ func connectPlaces(placeURIs []string) (place.Place, error) {
 	return p, err
 }
 
-func setupRouting(up place.Place, readonly bool) http.Handler {
+func setupRouting(up place.Place, readonlyMode bool) http.Handler {
 	pp, pol := policy.PlaceWithPolicy(
-		up, config.WithAuth, readonly, config.GetExpertMode, config.IsOwner, config.GetVisibility)
+		up, config.WithAuth, readonlyMode, config.GetExpertMode,
+		config.IsOwner, config.GetVisibility)
 	te := webui.NewTemplateEngine(up, pol)
 
 	ucAuthenticate := usecase.NewAuthenticate(up)
@@ -142,7 +146,7 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 		usecase.NewReload(pp),
 		api.ReloadHandlerAPI,
 		webui.ReloadHandlerHTML))
-	if !readonly {
+	if !readonlyMode {
 		router.AddZettelRoute('c', http.MethodGet, webui.MakeGetCloneZettelHandler(te, ucGetZettel, usecase.NewCloneZettel()))
 		router.AddZettelRoute('c', http.MethodPost, webui.MakePostCreateZettelHandler(usecase.NewCreateZettel(pp)))
 		router.AddZettelRoute('d', http.MethodGet, webui.MakeGetDeleteZettelHandler(te, ucGetZettel))
@@ -155,12 +159,12 @@ func setupRouting(up place.Place, readonly bool) http.Handler {
 	router.AddZettelRoute('i', http.MethodGet, webui.MakeGetInfoHandler(te, ucParseZettel, ucGetMeta))
 	router.AddZettelRoute('k', http.MethodGet, webui.MakeWebUIListsHandler(te, ucListMeta, ucListRoles, ucListTags))
 	router.AddZettelRoute('l', http.MethodGet, api.MakeGetLinksHandler(ucParseZettel))
-	if !readonly {
+	if !readonlyMode {
 		router.AddZettelRoute('n', http.MethodGet, webui.MakeGetNewZettelHandler(te, ucGetZettel, usecase.NewNewZettel()))
 		router.AddZettelRoute('n', http.MethodPost, webui.MakePostCreateZettelHandler(usecase.NewCreateZettel(pp)))
 	}
 	router.AddListRoute('r', http.MethodGet, api.MakeListRoleHandler(ucListRoles))
-	if !readonly {
+	if !readonlyMode {
 		router.AddZettelRoute('r', http.MethodGet, webui.MakeGetRenameZettelHandler(te, ucGetMeta))
 		router.AddZettelRoute('r', http.MethodPost, webui.MakePostRenameZettelHandler(usecase.NewRenameZettel(pp)))
 	}

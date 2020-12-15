@@ -23,12 +23,12 @@ import (
 func PlaceWithPolicy(
 	place place.Place,
 	withAuth func() bool,
-	readonly bool,
+	isReadOnlyMode bool,
 	expertMode func() bool,
 	isOwner func(domain.ZettelID) bool,
 	getVisibility func(*domain.Meta) domain.Visibility,
 ) (place.Place, Policy) {
-	pol := newPolicy(withAuth, readonly, expertMode, isOwner, getVisibility)
+	pol := newPolicy(withAuth, isReadOnlyMode, expertMode, isOwner, getVisibility)
 	return wrapPolicyPlace(place, pol), pol
 }
 

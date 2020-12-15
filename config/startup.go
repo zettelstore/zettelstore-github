@@ -20,7 +20,7 @@ import (
 )
 
 var startupConfig struct {
-	readonly      bool
+	readonlyMode  bool
 	urlPrefix     string
 	insecCookie   bool
 	persistCookie bool
@@ -31,28 +31,43 @@ var startupConfig struct {
 	apiLifetime   time.Duration
 }
 
+// Predefined keys for startup zettel
+const (
+	StartupKeyInsecureCookie    = "insecure-cookie"
+	StartupKeyListenAddress     = "listen-addr"
+	StartupKeyOwner             = "owner"
+	StartupKeyPersistentCookie  = "persistent-cookie"
+	StartupKeyPlaceOneURI       = "place-1-uri"
+	StartupKeyReadOnlyMode      = "read-only-mode"
+	StartupKeyTargetFormat      = "target-format"
+	StartupKeyTokenLifetimeHTML = "token-lifetime-html"
+	StartupKeyTokenLifetimeAPI  = "token-lifetime-api"
+	StartupKeyURLPrefix         = "url-prefix"
+	StartupKeyVerbose           = "verbose"
+)
+
 // SetupStartup initializes the startup data.
 func SetupStartup(cfg *domain.Meta) {
 	if startupConfig.urlPrefix != "" {
 		panic("startupConfig already set")
 	}
-	startupConfig.readonly = cfg.GetBool("readonly")
-	startupConfig.urlPrefix = cfg.GetDefault("url-prefix", "/")
+	startupConfig.readonlyMode = cfg.GetBool(StartupKeyReadOnlyMode)
+	startupConfig.urlPrefix = cfg.GetDefault(StartupKeyURLPrefix, "/")
 	startupConfig.owner = domain.InvalidZettelID
-	if owner, ok := cfg.Get("owner"); ok {
+	if owner, ok := cfg.Get(StartupKeyOwner); ok {
 		if zid, err := domain.ParseZettelID(owner); err == nil {
 			startupConfig.owner = zid
 			startupConfig.withAuth = true
 		}
 	}
 	if startupConfig.withAuth {
-		startupConfig.insecCookie = cfg.GetBool("insecure-cookie")
-		startupConfig.persistCookie = cfg.GetBool("persistent-cookie")
+		startupConfig.insecCookie = cfg.GetBool(StartupKeyInsecureCookie)
+		startupConfig.persistCookie = cfg.GetBool(StartupKeyPersistentCookie)
 		startupConfig.secret = calcSecret(cfg)
 		startupConfig.htmlLifetime = getDuration(
-			cfg, "token-lifetime-html", 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
+			cfg, StartupKeyTokenLifetimeHTML, 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
 		startupConfig.apiLifetime = getDuration(
-			cfg, "token-lifetime-api", 10*time.Minute, 0, 1*time.Hour)
+			cfg, StartupKeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
 }
 
@@ -86,8 +101,8 @@ func getDuration(cfg *domain.Meta, key string, defDur, minDur, maxDur time.Durat
 	return defDur
 }
 
-// IsReadOnly returns whether the system is in read-only mode or not.
-func IsReadOnly() bool { return startupConfig.readonly }
+// IsReadOnlyMode returns whether the system is in read-only mode or not.
+func IsReadOnlyMode() bool { return startupConfig.readonlyMode }
 
 // URLPrefix returns the configured prefix to be used when providing URL to
 // the service.

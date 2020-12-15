@@ -25,7 +25,7 @@ import (
 // ---------- Subcommand: file -----------------------------------------------
 
 func cmdFile(cfg *domain.Meta) (int, error) {
-	format := cfg.GetDefault("target-format", "html")
+	format := cfg.GetDefault(config.StartupKeyTargetFormat, "html")
 	meta, inp, err := getInput(cfg)
 	if meta == nil {
 		return 2, err

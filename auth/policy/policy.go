@@ -39,13 +39,13 @@ type Policy interface {
 // newPolicy creates a policy based on given constraints.
 func newPolicy(
 	withAuth func() bool,
-	readonly bool,
+	isReadOnlyMode bool,
 	expertMode func() bool,
 	isOwner func(domain.ZettelID) bool,
 	getVisibility func(*domain.Meta) domain.Visibility,
 ) Policy {
 	var pol Policy
-	if readonly {
+	if isReadOnlyMode {
 		pol = &roPolicy{}
 	} else {
 		pol = &defaultPolicy{}

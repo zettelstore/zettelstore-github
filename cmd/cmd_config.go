@@ -22,9 +22,9 @@ import (
 func cmdConfig(cfg *domain.Meta) (int, error) {
 	fmtVersion()
 	fmt.Println("Stores")
-	fmt.Printf("  Read only         = %v\n", config.IsReadOnly())
+	fmt.Printf("  Read-only mode    = %v\n", config.IsReadOnlyMode())
 	fmt.Println("Web")
-	fmt.Printf("  Listen Addr       = %q\n", cfg.GetDefault("listen-addr", "???"))
+	fmt.Printf("  Listen address    = %q\n", cfg.GetDefault(config.StartupKeyListenAddress, "???"))
 	fmt.Printf("  URL prefix        = %q\n", config.URLPrefix())
 	if config.WithAuth() {
 		fmt.Println("Auth")

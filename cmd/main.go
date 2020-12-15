@@ -98,7 +98,7 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 	fs.Visit(func(flg *flag.Flag) {
 		switch flg.Name {
 		case "p":
-			cfg.Set("listen-addr", "127.0.0.1:"+flg.Value.String())
+			cfg.Set(config.StartupKeyListenAddress, "127.0.0.1:"+flg.Value.String())
 		case "d":
 			val := flg.Value.String()
 			if strings.HasPrefix(val, "/") {
@@ -106,30 +106,30 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 			} else {
 				val = "dir:" + val
 			}
-			cfg.Set("place-1-uri", val)
+			cfg.Set(config.StartupKeyPlaceOneURI, val)
 		case "r":
-			cfg.Set("readonly", flg.Value.String())
+			cfg.Set(config.StartupKeyReadOnlyMode, flg.Value.String())
 		case "v":
-			cfg.Set("verbose", flg.Value.String())
+			cfg.Set(config.StartupKeyVerbose, flg.Value.String())
 		case "t":
-			cfg.Set("target-format", flg.Value.String())
+			cfg.Set(config.StartupKeyTargetFormat, flg.Value.String())
 		}
 	})
 
-	if _, ok := cfg.Get("listen-addr"); !ok {
-		cfg.Set("listen-addr", "127.0.0.1:23123")
+	if _, ok := cfg.Get(config.StartupKeyListenAddress); !ok {
+		cfg.Set(config.StartupKeyListenAddress, "127.0.0.1:23123")
 	}
-	if _, ok := cfg.Get("place-1-uri"); !ok {
-		cfg.Set("place-1-uri", "dir:./zettel")
+	if _, ok := cfg.Get(config.StartupKeyPlaceOneURI); !ok {
+		cfg.Set(config.StartupKeyPlaceOneURI, "dir:./zettel")
 	}
-	if _, ok := cfg.Get("readonly"); !ok {
-		cfg.Set("readonly", "false")
+	if _, ok := cfg.Get(config.StartupKeyReadOnlyMode); !ok {
+		cfg.Set(config.StartupKeyReadOnlyMode, "false")
 	}
-	if _, ok := cfg.Get("verbose"); !ok {
-		cfg.Set("verbose", "false")
+	if _, ok := cfg.Get(config.StartupKeyVerbose); !ok {
+		cfg.Set(config.StartupKeyVerbose, "false")
 	}
-	if prefix, ok := cfg.Get("url-prefix"); !ok || len(prefix) == 0 || prefix[0] != '/' || prefix[len(prefix)-1] != '/' {
-		cfg.Set("url-prefix", "/")
+	if prefix, ok := cfg.Get(config.StartupKeyURLPrefix); !ok || len(prefix) == 0 || prefix[0] != '/' || prefix[len(prefix)-1] != '/' {
+		cfg.Set(config.StartupKeyURLPrefix, "/")
 	}
 
 	for i, arg := range fs.Args() {
