@@ -56,7 +56,7 @@ func (uc Authenticate) Run(
 		return nil, err
 	}
 
-	if hashCred, ok := identMeta.Get(meta.MetaKeyCredential); ok {
+	if hashCred, ok := identMeta.Get(meta.KeyCredential); ok {
 		ok, err := cred.CompareHashAndCredential(hashCred, identMeta.Zid, ident, credential)
 		if err != nil {
 			return nil, err

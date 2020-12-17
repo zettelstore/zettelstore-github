@@ -42,8 +42,8 @@ func newVisitor(he *htmlEncoder, w io.Writer) *visitor {
 }
 
 var mapMetaKey = map[string]string{
-	meta.MetaKeyCopyright: "copyright",
-	meta.MetaKeyLicense:   "license",
+	meta.KeyCopyright: "copyright",
+	meta.KeyLicense:   "license",
 }
 
 func (v *visitor) acceptMeta(m *meta.Meta, withTitle bool) {
@@ -57,7 +57,7 @@ func (v *visitor) acceptMeta(m *meta.Meta, withTitle bool) {
 			continue
 		}
 		if !v.enc.ignoreMeta[pair.Key] {
-			if pair.Key == meta.MetaKeyTags {
+			if pair.Key == meta.KeyTags {
 				v.b.WriteString("\n<meta name=\"keywords\" content=\"")
 				for i, val := range meta.ListFromValue(pair.Value) {
 					if i > 0 {

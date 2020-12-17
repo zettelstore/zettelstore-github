@@ -119,7 +119,7 @@ func renderZettelForm(
 		baseData:      te.makeBaseData(ctx, runtime.GetLang(m), title, user),
 		Heading:       heading,
 		MetaTitle:     runtime.GetTitle(m),
-		MetaTags:      m.GetDefault(meta.MetaKeyTags, ""),
+		MetaTags:      m.GetDefault(meta.KeyTags, ""),
 		MetaRole:      runtime.GetRole(m),
 		MetaSyntax:    runtime.GetSyntax(m),
 		MetaPairsRest: m.PairsRest(),

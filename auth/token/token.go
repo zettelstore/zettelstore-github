@@ -48,10 +48,10 @@ const (
 
 // GetToken returns a token to be used for authentification.
 func GetToken(ident *meta.Meta, d time.Duration, kind Kind) ([]byte, error) {
-	if role, ok := ident.Get(meta.MetaKeyRole); !ok || role != meta.MetaValueRoleUser {
+	if role, ok := ident.Get(meta.KeyRole); !ok || role != meta.ValueRoleUser {
 		return nil, ErrNoUser
 	}
-	subject, ok := ident.Get(meta.MetaKeyUserID)
+	subject, ok := ident.Get(meta.KeyUserID)
 	if !ok || len(subject) == 0 {
 		return nil, ErrNoIdent
 	}

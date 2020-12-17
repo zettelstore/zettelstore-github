@@ -17,12 +17,12 @@ import (
 )
 
 var mapDefaultKeys = map[string]func() string{
-	meta.MetaKeyCopyright: GetDefaultCopyright,
-	meta.MetaKeyLang:      GetDefaultLang,
-	meta.MetaKeyLicense:   GetDefaultLicense,
-	meta.MetaKeyRole:      GetDefaultRole,
-	meta.MetaKeySyntax:    GetDefaultSyntax,
-	meta.MetaKeyTitle:     GetDefaultTitle,
+	meta.KeyCopyright: GetDefaultCopyright,
+	meta.KeyLang:      GetDefaultLang,
+	meta.KeyLicense:   GetDefaultLicense,
+	meta.KeyRole:      GetDefaultRole,
+	meta.KeySyntax:    GetDefaultSyntax,
+	meta.KeyTitle:     GetDefaultTitle,
 }
 
 // AddDefaultValues enriches the given meta data with its default values.
@@ -33,7 +33,7 @@ func AddDefaultValues(m *meta.Meta) *meta.Meta {
 			if result == m {
 				result = m.Clone()
 			}
-			if val := f(); len(val) > 0 || m.Type(k) == meta.MetaTypeEmpty {
+			if val := f(); len(val) > 0 || m.Type(k) == meta.TypeEmpty {
 				result.Set(k, val)
 			}
 		}
@@ -47,7 +47,7 @@ func AddDefaultValues(m *meta.Meta) *meta.Meta {
 // GetTitle returns the value of the "title" key of the given meta. If there
 // is no such value, GetDefaultTitle is returned.
 func GetTitle(m *meta.Meta) string {
-	if syntax, ok := m.Get(meta.MetaKeyTitle); ok && len(syntax) > 0 {
+	if syntax, ok := m.Get(meta.KeyTitle); ok && len(syntax) > 0 {
 		return syntax
 	}
 	return GetDefaultTitle()
@@ -56,7 +56,7 @@ func GetTitle(m *meta.Meta) string {
 // GetRole returns the value of the "role" key of the given meta. If there
 // is no such value, GetDefaultRole is returned.
 func GetRole(m *meta.Meta) string {
-	if syntax, ok := m.Get(meta.MetaKeyRole); ok && len(syntax) > 0 {
+	if syntax, ok := m.Get(meta.KeyRole); ok && len(syntax) > 0 {
 		return syntax
 	}
 	return GetDefaultRole()
@@ -65,7 +65,7 @@ func GetRole(m *meta.Meta) string {
 // GetSyntax returns the value of the "syntax" key of the given meta. If there
 // is no such value, GetDefaultSyntax is returned.
 func GetSyntax(m *meta.Meta) string {
-	if syntax, ok := m.Get(meta.MetaKeySyntax); ok && len(syntax) > 0 {
+	if syntax, ok := m.Get(meta.KeySyntax); ok && len(syntax) > 0 {
 		return syntax
 	}
 	return GetDefaultSyntax()
@@ -74,7 +74,7 @@ func GetSyntax(m *meta.Meta) string {
 // GetLang returns the value of the "lang" key of the given meta. If there is
 // no such value, GetDefaultLang is returned.
 func GetLang(m *meta.Meta) string {
-	if lang, ok := m.Get(meta.MetaKeyLang); ok && len(lang) > 0 {
+	if lang, ok := m.Get(meta.KeyLang); ok && len(lang) > 0 {
 		return lang
 	}
 	return GetDefaultLang()
@@ -82,7 +82,7 @@ func GetLang(m *meta.Meta) string {
 
 // GetVisibility returns the visibility value, or "login" if none is given.
 func GetVisibility(m *meta.Meta) meta.Visibility {
-	if val, ok := m.Get(meta.MetaKeyVisibility); ok {
+	if val, ok := m.Get(meta.KeyVisibility); ok {
 		if vis := meta.GetVisibility(val); vis != meta.VisibilityUnknown {
 			return vis
 		}
@@ -101,7 +101,7 @@ func GetUserRole(user *meta.Meta) meta.UserRole {
 	if startup.IsOwner(user.Zid) {
 		return meta.UserRoleOwner
 	}
-	if val, ok := user.Get(meta.MetaKeyUserRole); ok {
+	if val, ok := user.Get(meta.KeyUserRole); ok {
 		if ur := meta.GetUserRole(val); ur != meta.UserRoleUnknown {
 			return ur
 		}

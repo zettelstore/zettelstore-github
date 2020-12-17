@@ -250,7 +250,7 @@ func renderListMetaXJSON(
 				Zid:     m.Zid,
 				InhMeta: runtime.AddDefaultValues(m),
 				Title: parser.ParseTitle(
-					m.GetDefault(meta.MetaKeyTitle, runtime.GetDefaultTitle())),
+					m.GetDefault(meta.KeyTitle, runtime.GetDefaultTitle())),
 				Ast: nil,
 			}
 		}

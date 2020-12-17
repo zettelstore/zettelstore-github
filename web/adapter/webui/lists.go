@@ -309,12 +309,12 @@ func buildHTMLMetaList(metaList []*meta.Meta) ([]metaInfo, error) {
 	langOption := encoder.StringOption{Key: "lang", Value: ""}
 	metas := make([]metaInfo, 0, len(metaList))
 	for _, m := range metaList {
-		if lang, ok := m.Get(meta.MetaKeyLang); ok {
+		if lang, ok := m.Get(meta.KeyLang); ok {
 			langOption.Value = lang
 		} else {
 			langOption.Value = defaultLang
 		}
-		title, _ := m.Get(meta.MetaKeyTitle)
+		title, _ := m.Get(meta.KeyTitle)
 		htmlTitle, err := adapter.FormatInlines(
 			parser.ParseTitle(title), "html", &langOption)
 		if err != nil {

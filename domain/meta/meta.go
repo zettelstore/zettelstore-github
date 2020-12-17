@@ -64,109 +64,113 @@ func KeyIsValid(key string) bool {
 
 // Supported key types.
 const (
-	MetaTypeBool       = 'b'
-	MetaTypeCredential = 'c'
-	MetaTypeEmpty      = 'e'
-	MetaTypeID         = 'i'
-	MetaTypeNumber     = 'n'
-	MetaTypeString     = 's'
-	MetaTypeTagSet     = 'T'
-	MetaTypeURL        = 'u'
-	MetaTypeUnknown    = '\000'
-	MetaTypeWord       = 'w'
-	MetaTypeWordSet    = 'W'
+	TypeBool       = 'b'
+	TypeCredential = 'c'
+	TypeEmpty      = 'e'
+	TypeID         = 'i'
+	TypeNumber     = 'n'
+	TypeString     = 's'
+	TypeTagSet     = 'T'
+	TypeURL        = 'u'
+	TypeUnknown    = '\000'
+	TypeWord       = 'w'
+	TypeWordSet    = 'W'
 )
 
 // Predefined keys.
 const (
-	MetaKeyID                = "id"
-	MetaKeyTitle             = "title"
-	MetaKeyRole              = "role"
-	MetaKeyTags              = "tags"
-	MetaKeySyntax            = "syntax"
-	MetaKeyCopyright         = "copyright"
-	MetaKeyCredential        = "credential"
-	MetaKeyDefaultCopyright  = "default-copyright"
-	MetaKeyDefaultLang       = "default-lang"
-	MetaKeyDefaultLicense    = "default-license"
-	MetaKeyDefaultRole       = "default-role"
-	MetaKeyDefaultSyntax     = "default-syntax"
-	MetaKeyDefaultTitle      = "default-title"
-	MetaKeyDefaultVisibility = "default-visibility"
-	MetaKeyExpertMode        = "expert-mode"
-	MetaKeyFooterHTML        = "footer-html"
-	MetaKeyLang              = "lang"
-	MetaKeyLicense           = "license"
-	MetaKeyListPageSize      = "list-page-size"
-	MetaKeyNewRole           = "new-role"
-	MetaKeyMarkerExternal    = "marker-external"
-	MetaKeyReadOnly          = "read-only"
-	MetaKeySiteName          = "site-name"
-	MetaKeyStart             = "start"
-	MetaKeyURL               = "url"
-	MetaKeyUserID            = "user-id"
-	MetaKeyUserRole          = "user-role"
-	MetaKeyVisibility        = "visibility"
-	MetaKeyYAMLHeader        = "yaml-header"
-	MetaKeyZettelFileSyntax  = "zettel-file-syntax"
+	KeyID                = "id"
+	KeyTitle             = "title"
+	KeyRole              = "role"
+	KeyTags              = "tags"
+	KeySyntax            = "syntax"
+	KeyCopyright         = "copyright"
+	KeyCredential        = "credential"
+	KeyDefaultCopyright  = "default-copyright"
+	KeyDefaultLang       = "default-lang"
+	KeyDefaultLicense    = "default-license"
+	KeyDefaultRole       = "default-role"
+	KeyDefaultSyntax     = "default-syntax"
+	KeyDefaultTitle      = "default-title"
+	KeyDefaultVisibility = "default-visibility"
+	KeyDuplicates        = "duplicates"
+	KeyExpertMode        = "expert-mode"
+	KeyFooterHTML        = "footer-html"
+	KeyLang              = "lang"
+	KeyLicense           = "license"
+	KeyListPageSize      = "list-page-size"
+	KeyNewRole           = "new-role"
+	KeyMarkerExternal    = "marker-external"
+	KeyReadOnly          = "read-only"
+	KeySiteName          = "site-name"
+	KeyStart             = "start"
+	KeyURL               = "url"
+	KeyUserID            = "user-id"
+	KeyUserRole          = "user-role"
+	KeyVisibility        = "visibility"
+	KeyYAMLHeader        = "yaml-header"
+	KeyZettelFileSyntax  = "zettel-file-syntax"
 )
 
 var keyTypeMap = map[string]byte{
-	MetaKeyID:                MetaTypeID,
-	MetaKeyTitle:             MetaTypeString,
-	MetaKeyRole:              MetaTypeWord,
-	MetaKeyTags:              MetaTypeTagSet,
-	MetaKeySyntax:            MetaTypeWord,
-	MetaKeyCopyright:         MetaTypeString,
-	MetaKeyCredential:        MetaTypeCredential,
-	MetaKeyDefaultCopyright:  MetaTypeString,
-	MetaKeyDefaultLicense:    MetaTypeEmpty,
-	MetaKeyDefaultLang:       MetaTypeWord,
-	MetaKeyDefaultRole:       MetaTypeWord,
-	MetaKeyDefaultSyntax:     MetaTypeWord,
-	MetaKeyDefaultTitle:      MetaTypeString,
-	MetaKeyDefaultVisibility: MetaTypeWord,
-	MetaKeyExpertMode:        MetaTypeBool,
-	MetaKeyFooterHTML:        MetaTypeString,
-	MetaKeyUserID:            MetaTypeWord,
-	MetaKeyLang:              MetaTypeWord,
-	MetaKeyLicense:           MetaTypeEmpty,
-	MetaKeyListPageSize:      MetaTypeNumber,
-	MetaKeyNewRole:           MetaTypeWord,
-	MetaKeyMarkerExternal:    MetaTypeEmpty,
-	MetaKeyReadOnly:          MetaTypeWord,
-	MetaKeySiteName:          MetaTypeString,
-	MetaKeyStart:             MetaTypeID,
-	MetaKeyURL:               MetaTypeURL,
-	MetaKeyUserRole:          MetaTypeWord,
-	MetaKeyVisibility:        MetaTypeWord,
-	MetaKeyYAMLHeader:        MetaTypeBool,
-	MetaKeyZettelFileSyntax:  MetaTypeWordSet,
+	KeyID:                TypeID,
+	KeyTitle:             TypeString,
+	KeyRole:              TypeWord,
+	KeyTags:              TypeTagSet,
+	KeySyntax:            TypeWord,
+	KeyCopyright:         TypeString,
+	KeyCredential:        TypeCredential,
+	KeyDefaultCopyright:  TypeString,
+	KeyDefaultLicense:    TypeEmpty,
+	KeyDefaultLang:       TypeWord,
+	KeyDefaultRole:       TypeWord,
+	KeyDefaultSyntax:     TypeWord,
+	KeyDefaultTitle:      TypeString,
+	KeyDefaultVisibility: TypeWord,
+	KeyDuplicates:        TypeBool,
+	KeyExpertMode:        TypeBool,
+	KeyFooterHTML:        TypeString,
+	KeyUserID:            TypeWord,
+	KeyLang:              TypeWord,
+	KeyLicense:           TypeEmpty,
+	KeyListPageSize:      TypeNumber,
+	KeyNewRole:           TypeWord,
+	KeyMarkerExternal:    TypeEmpty,
+	KeyReadOnly:          TypeWord,
+	KeySiteName:          TypeString,
+	KeyStart:             TypeID,
+	KeyURL:               TypeURL,
+	KeyUserRole:          TypeWord,
+	KeyVisibility:        TypeWord,
+	KeyYAMLHeader:        TypeBool,
+	KeyZettelFileSyntax:  TypeWordSet,
 }
 
 // Important values for some keys.
 const (
-	MetaValueRoleUser         = "user"
-	MetaValueRoleNewTemplate  = "new-template"
-	MetaValueVisibilityExpert = "expert"
-	MetaValueVisibilityOwner  = "owner"
-	MetaValueVisibilityLogin  = "login"
-	MetaValueVisibilityPublic = "public"
+	ValueRoleUser         = "user"
+	ValueRoleNewTemplate  = "new-template"
+	ValueTrue             = "true"
+	ValueFalse            = "false"
+	ValueVisibilityExpert = "expert"
+	ValueVisibilityOwner  = "owner"
+	ValueVisibilityLogin  = "login"
+	ValueVisibilityPublic = "public"
 )
 
 // Type returns a type hint for the given key. If no type hint is specified,
-// MetaTypeUnknown is returned.
+// TypeUnknown is returned.
 func (m *Meta) Type(key string) byte {
 	return KeyType(key)
 }
 
 // KeyType returns a type hint for the given key. If no type hint is specified,
-// MetaTypeUnknown is returned.
+// TypeUnknown is returned.
 func KeyType(key string) byte {
 	if t, ok := keyTypeMap[key]; ok {
 		return t
 	}
-	return MetaTypeUnknown
+	return TypeUnknown
 }
 
 // BoolValue returns the value interpreted as a bool.
@@ -186,7 +190,7 @@ type Pair struct {
 	Value string
 }
 
-var firstKeys = []string{MetaKeyTitle, MetaKeyRole, MetaKeyTags, MetaKeySyntax}
+var firstKeys = []string{KeyTitle, KeyRole, KeyTags, KeySyntax}
 var firstKeySet map[string]bool
 
 func init() {
@@ -201,7 +205,7 @@ func (m *Meta) Set(key, value string) {
 	if m.frozen {
 		panic("frozen.Set")
 	}
-	if key != MetaKeyID {
+	if key != KeyID {
 		m.pairs[key] = value
 	}
 }
@@ -211,7 +215,7 @@ func (m *Meta) SetList(key string, values []string) {
 	if m.frozen {
 		panic("frozen.SetList")
 	}
-	if key != MetaKeyID {
+	if key != KeyID {
 		m.pairs[key] = strings.Join(values, " ")
 	}
 }
@@ -227,7 +231,7 @@ func (m *Meta) Freeze() {
 // Get retrieves the string value of a given key. The bool value signals,
 // whether there was a value stored or not.
 func (m *Meta) Get(key string) (string, bool) {
-	if key == MetaKeyID {
+	if key == KeyID {
 		return m.Zid.Format(), true
 	}
 	value, ok := m.pairs[key]
@@ -357,7 +361,7 @@ func (m *Meta) Delete(key string) {
 	if m.frozen {
 		panic("frozen.Delete")
 	}
-	if key != MetaKeyID {
+	if key != KeyID {
 		delete(m.pairs, key)
 	}
 }
@@ -510,27 +514,27 @@ func addToMeta(m *Meta, key, val string) {
 		return
 	}
 	switch key {
-	case "", MetaKeyID:
+	case "", KeyID:
 		// Empty key and 'id' key will be ignored
 		return
 	}
 
 	switch KeyType(key) {
-	case MetaTypeString:
+	case TypeString:
 		if v != "" {
 			addData(m, key, v)
 		}
-	case MetaTypeTagSet:
+	case TypeTagSet:
 		addSet(m, key, v, func(s string) bool { return s[0] == '#' })
-	case MetaTypeWord:
+	case TypeWord:
 		m.Set(key, strings.ToLower(v))
-	case MetaTypeWordSet:
+	case TypeWordSet:
 		addSet(m, key, strings.ToLower(v), func(s string) bool { return true })
-	case MetaTypeID:
+	case TypeID:
 		if _, err := id.ParseZettelID(val); err == nil {
 			m.Set(key, val)
 		}
-	case MetaTypeEmpty:
+	case TypeEmpty:
 		fallthrough
 	default:
 		addData(m, key, v)

@@ -109,12 +109,12 @@ var (
 func (v *visitor) acceptMeta(m *meta.Meta, withTitle bool) {
 	if withTitle {
 		v.b.WriteString("[Title \"")
-		v.writeEscaped(m.GetDefault(meta.MetaKeyTitle, ""))
+		v.writeEscaped(m.GetDefault(meta.KeyTitle, ""))
 		v.b.WriteString("\"]")
 	}
-	v.writeMetaString(m, meta.MetaKeyRole, "Role")
-	v.writeMetaList(m, meta.MetaKeyTags, "Tags")
-	v.writeMetaString(m, meta.MetaKeySyntax, "Syntax")
+	v.writeMetaString(m, meta.KeyRole, "Role")
+	v.writeMetaList(m, meta.KeyTags, "Tags")
+	v.writeMetaString(m, meta.KeySyntax, "Syntax")
 	if pairs := m.PairsRest(); len(pairs) > 0 {
 		v.b.WriteString("\n[Header")
 		first := true

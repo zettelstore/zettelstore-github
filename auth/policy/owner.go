@@ -43,7 +43,7 @@ func (o *ownerPolicy) userCanCreate(user *meta.Meta, newMeta *meta.Meta) bool {
 	if runtime.GetUserRole(user) == meta.UserRoleReader {
 		return false
 	}
-	if role, ok := newMeta.Get(meta.MetaKeyRole); ok && role == meta.MetaValueRoleUser {
+	if role, ok := newMeta.Get(meta.KeyRole); ok && role == meta.ValueRoleUser {
 		return false
 	}
 	return true
@@ -69,7 +69,7 @@ func (o *ownerPolicy) userCanRead(user *meta.Meta, m *meta.Meta, vis meta.Visibi
 	if user == nil {
 		return false
 	}
-	if role, ok := m.Get(meta.MetaKeyRole); ok && role == meta.MetaValueRoleUser {
+	if role, ok := m.Get(meta.KeyRole); ok && role == meta.ValueRoleUser {
 		// Only the user can read its own zettel
 		return user.Zid == m.Zid
 	}
@@ -77,10 +77,10 @@ func (o *ownerPolicy) userCanRead(user *meta.Meta, m *meta.Meta, vis meta.Visibi
 }
 
 var noChangeUser = []string{
-	meta.MetaKeyID,
-	meta.MetaKeyRole,
-	meta.MetaKeyUserID,
-	meta.MetaKeyUserRole,
+	meta.KeyID,
+	meta.KeyRole,
+	meta.KeyUserID,
+	meta.KeyUserRole,
 }
 
 func (o *ownerPolicy) CanWrite(user *meta.Meta, oldMeta, newMeta *meta.Meta) bool {
@@ -97,7 +97,7 @@ func (o *ownerPolicy) CanWrite(user *meta.Meta, oldMeta, newMeta *meta.Meta) boo
 	if !o.userCanRead(user, oldMeta, vis) {
 		return false
 	}
-	if role, ok := oldMeta.Get(meta.MetaKeyRole); ok && role == meta.MetaValueRoleUser {
+	if role, ok := oldMeta.Get(meta.KeyRole); ok && role == meta.ValueRoleUser {
 		// Here we know, that user.Zid == newMeta.Zid (because of userCanRead) and
 		// user.Zid == newMeta.Zid (because oldMeta.Zid == newMeta.Zid)
 		for _, key := range noChangeUser {

@@ -52,7 +52,7 @@ func MakeGetHTMLZettelHandler(
 			"html",
 			&encoder.StringsOption{
 				Key:   "no-meta",
-				Value: []string{meta.MetaKeyTitle, meta.MetaKeyLang},
+				Value: []string{meta.KeyTitle, meta.KeyLang},
 			},
 		)
 		if err != nil {
@@ -79,7 +79,7 @@ func MakeGetHTMLZettelHandler(
 			"html",
 			&langOption,
 			&encoder.StringOption{
-				Key:   meta.MetaKeyMarkerExternal,
+				Key:   meta.KeyMarkerExternal,
 				Value: runtime.GetMarkerExternal()},
 			&encoder.BoolOption{Key: "newwindow", Value: newWindow},
 			&encoder.AdaptLinkOption{
@@ -93,9 +93,9 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		user := session.GetUser(ctx)
-		roleText := zn.Zettel.Meta.GetDefault(meta.MetaKeyRole, "*")
+		roleText := zn.Zettel.Meta.GetDefault(meta.KeyRole, "*")
 		tags := buildTagInfos(zn.Zettel.Meta)
-		extURL, hasExtURL := zn.Zettel.Meta.Get(meta.MetaKeyURL)
+		extURL, hasExtURL := zn.Zettel.Meta.Get(meta.KeyURL)
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
 		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, id.DetailTemplateID, struct {
@@ -132,7 +132,7 @@ func MakeGetHTMLZettelHandler(
 			Tags:         tags,
 			CanCopy:      canCopy,
 			CopyURL:      adapter.NewURLBuilder('c').SetZid(zid).String(),
-			CanNew:       canCopy && roleText == meta.MetaValueRoleNewTemplate,
+			CanNew:       canCopy && roleText == meta.ValueRoleNewTemplate,
 			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			ExtURL:       extURL,
 			HasExtURL:    hasExtURL,
@@ -173,7 +173,7 @@ func formatMeta(m *meta.Meta, format string, options ...encoder.Option) (string,
 
 func buildTagInfos(m *meta.Meta) []simpleLink {
 	var tagInfos []simpleLink
-	if tags, ok := m.GetList(meta.MetaKeyTags); ok {
+	if tags, ok := m.GetList(meta.KeyTags); ok {
 		tagInfos = make([]simpleLink, 0, len(tags))
 		ub := adapter.NewURLBuilder('h')
 		for _, t := range tags {

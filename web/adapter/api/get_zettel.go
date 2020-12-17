@@ -87,7 +87,7 @@ func MakeGetZettelHandler(
 				&encoder.StringsOption{
 					Key: "no-meta",
 					Value: []string{
-						meta.MetaKeyLang,
+						meta.KeyLang,
 					},
 				},
 			)
@@ -115,7 +115,7 @@ func MakeGetZettelHandler(
 			err = writeContent(w, zn, format,
 				&langOption,
 				&encoder.StringOption{
-					Key:   meta.MetaKeyMarkerExternal,
+					Key:   meta.KeyMarkerExternal,
 					Value: runtime.GetMarkerExternal()},
 				&linkAdapter,
 				&imageAdapter,

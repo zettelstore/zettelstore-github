@@ -42,7 +42,7 @@ func ApplySorter(metaList []*meta.Meta, s *Sorter) []*meta.Meta {
 	}
 	var sorter sortFunc
 	if s.Order == "" {
-		sorter = getSortFunc(meta.MetaKeyID, true, metaList)
+		sorter = getSortFunc(meta.KeyID, true, metaList)
 	} else {
 		sorter = getSortFunc(s.Order, s.Descending, metaList)
 	}
@@ -63,12 +63,12 @@ type sortFunc func(i, j int) bool
 
 func getSortFunc(key string, descending bool, ml []*meta.Meta) sortFunc {
 	keyType := meta.KeyType(key)
-	if key == meta.MetaKeyID || keyType == meta.MetaTypeCredential {
+	if key == meta.KeyID || keyType == meta.TypeCredential {
 		if descending {
 			return func(i, j int) bool { return ml[i].Zid > ml[j].Zid }
 		}
 		return func(i, j int) bool { return ml[i].Zid < ml[j].Zid }
-	} else if keyType == meta.MetaTypeBool {
+	} else if keyType == meta.TypeBool {
 		if descending {
 			return func(i, j int) bool {
 				left := ml[i].GetBool(key)
@@ -85,7 +85,7 @@ func getSortFunc(key string, descending bool, ml []*meta.Meta) sortFunc {
 			}
 			return right
 		}
-	} else if keyType == meta.MetaTypeNumber {
+	} else if keyType == meta.TypeNumber {
 		if descending {
 			return func(i, j int) bool {
 				iVal, iOk := getNum(ml[i], key)

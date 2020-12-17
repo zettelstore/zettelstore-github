@@ -91,7 +91,7 @@ func MakeGetInfoHandler(
 				}
 				return "", 0
 			}
-			astTitle := parser.ParseTitle(m.GetDefault(meta.MetaKeyTitle, ""))
+			astTitle := parser.ParseTitle(m.GetDefault(meta.KeyTitle, ""))
 			title, err := adapter.FormatInlines(astTitle, "html", langOption)
 			if err == nil {
 				return title, 1
@@ -168,8 +168,8 @@ func MakeGetInfoHandler(
 			EditURL:  adapter.NewURLBuilder('e').SetZid(zid).String(),
 			CanCopy:  canCopy,
 			CopyURL:  adapter.NewURLBuilder('c').SetZid(zid).String(),
-			CanNew: canCopy && zn.Zettel.Meta.GetDefault(meta.MetaKeyRole, "") ==
-				meta.MetaValueRoleNewTemplate,
+			CanNew: canCopy && zn.Zettel.Meta.GetDefault(meta.KeyRole, "") ==
+				meta.ValueRoleNewTemplate,
 			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			CanRename:    te.canRename(ctx, user, zn.Zettel.Meta),
 			RenameURL:    adapter.NewURLBuilder('r').SetZid(zid).String(),
@@ -191,7 +191,7 @@ func MakeGetInfoHandler(
 
 func htmlMetaValue(m *meta.Meta, key string) template.HTML {
 	switch m.Type(key) {
-	case meta.MetaTypeBool:
+	case meta.TypeBool:
 		var b strings.Builder
 		if m.GetBool(key) {
 			writeLink(&b, key, "True")
@@ -200,7 +200,7 @@ func htmlMetaValue(m *meta.Meta, key string) template.HTML {
 		}
 		return template.HTML(b.String())
 
-	case meta.MetaTypeID:
+	case meta.TypeID:
 		value, _ := m.Get(key)
 		zid, err := id.ParseZettelID(value)
 		if err != nil {
@@ -210,7 +210,7 @@ func htmlMetaValue(m *meta.Meta, key string) template.HTML {
 			"<a href=\"" + adapter.NewURLBuilder('h').SetZid(zid).String() + "\">" +
 				value + "</a>")
 
-	case meta.MetaTypeTagSet, meta.MetaTypeWordSet:
+	case meta.TypeTagSet, meta.TypeWordSet:
 		values, _ := m.GetList(key)
 		var b strings.Builder
 		for i, tag := range values {
@@ -221,7 +221,7 @@ func htmlMetaValue(m *meta.Meta, key string) template.HTML {
 		}
 		return template.HTML(b.String())
 
-	case meta.MetaTypeURL:
+	case meta.TypeURL:
 		value, _ := m.Get(key)
 		url, err := url.Parse(value)
 		if err != nil {
@@ -230,7 +230,7 @@ func htmlMetaValue(m *meta.Meta, key string) template.HTML {
 		return template.HTML(
 			"<a href=\"" + url.String() + "\">" + html.EscapeString(value) + "</a>")
 
-	case meta.MetaTypeWord:
+	case meta.TypeWord:
 		value, _ := m.Get(key)
 		var b strings.Builder
 		writeLink(&b, key, value)

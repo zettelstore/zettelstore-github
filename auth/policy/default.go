@@ -43,7 +43,7 @@ func (d *defaultPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
 }
 
 func (d *defaultPolicy) canChange(user *meta.Meta, m *meta.Meta) bool {
-	metaRo, ok := m.Get(meta.MetaKeyReadOnly)
+	metaRo, ok := m.Get(meta.KeyReadOnly)
 	if !ok {
 		return true
 	}

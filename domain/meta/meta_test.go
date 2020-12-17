@@ -24,13 +24,13 @@ const testID = id.ZettelID(98765432101234)
 func newMeta(title string, tags []string, syntax string) *Meta {
 	m := NewMeta(testID)
 	if title != "" {
-		m.Set(MetaKeyTitle, title)
+		m.Set(KeyTitle, title)
 	}
 	if tags != nil {
-		m.Set(MetaKeyTags, strings.Join(tags, " "))
+		m.Set(KeyTags, strings.Join(tags, " "))
 	}
 	if syntax != "" {
-		m.Set(MetaKeySyntax, syntax)
+		m.Set(KeySyntax, syntax)
 	}
 	return m
 }
@@ -73,29 +73,29 @@ func TestWriteMeta(t *testing.T) {
 
 func TestTitleHeader(t *testing.T) {
 	m := NewMeta(testID)
-	if got, ok := m.Get(MetaKeyTitle); ok || got != "" {
+	if got, ok := m.Get(KeyTitle); ok || got != "" {
 		t.Errorf("Title is not empty, but %q", got)
 	}
-	addToMeta(m, MetaKeyTitle, " ")
-	if got, ok := m.Get(MetaKeyTitle); ok || got != "" {
+	addToMeta(m, KeyTitle, " ")
+	if got, ok := m.Get(KeyTitle); ok || got != "" {
 		t.Errorf("Title is not empty, but %q", got)
 	}
 	const st = "A simple text"
-	addToMeta(m, MetaKeyTitle, " "+st+"  ")
-	if got, ok := m.Get(MetaKeyTitle); !ok || got != st {
+	addToMeta(m, KeyTitle, " "+st+"  ")
+	if got, ok := m.Get(KeyTitle); !ok || got != st {
 		t.Errorf("Title is not %q, but %q", st, got)
 	}
-	addToMeta(m, MetaKeyTitle, "  "+st+"\t")
+	addToMeta(m, KeyTitle, "  "+st+"\t")
 	const exp = st + " " + st
-	if got, ok := m.Get(MetaKeyTitle); !ok || got != exp {
+	if got, ok := m.Get(KeyTitle); !ok || got != exp {
 		t.Errorf("Title is not %q, but %q", exp, got)
 	}
 
 	m = NewMeta(testID)
 	const at = "A Title"
-	addToMeta(m, MetaKeyTitle, at)
-	addToMeta(m, MetaKeyTitle, " ")
-	if got, ok := m.Get(MetaKeyTitle); !ok || got != at {
+	addToMeta(m, KeyTitle, at)
+	addToMeta(m, KeyTitle, " ")
+	if got, ok := m.Get(KeyTitle); !ok || got != at {
 		t.Errorf("Title is not %q, but %q", at, got)
 	}
 }
@@ -119,37 +119,37 @@ func checkSet(t *testing.T, exp []string, m *Meta, key string) {
 
 func TestTagsHeader(t *testing.T) {
 	m := NewMeta(testID)
-	checkSet(t, []string{}, m, MetaKeyTags)
+	checkSet(t, []string{}, m, KeyTags)
 
-	addToMeta(m, MetaKeyTags, "")
-	checkSet(t, []string{}, m, MetaKeyTags)
+	addToMeta(m, KeyTags, "")
+	checkSet(t, []string{}, m, KeyTags)
 
-	addToMeta(m, MetaKeyTags, "  #t1 #t2  #t3 #t4  ")
-	checkSet(t, []string{"#t1", "#t2", "#t3", "#t4"}, m, MetaKeyTags)
+	addToMeta(m, KeyTags, "  #t1 #t2  #t3 #t4  ")
+	checkSet(t, []string{"#t1", "#t2", "#t3", "#t4"}, m, KeyTags)
 
-	addToMeta(m, MetaKeyTags, "#t5")
-	checkSet(t, []string{"#t1", "#t2", "#t3", "#t4", "#t5"}, m, MetaKeyTags)
+	addToMeta(m, KeyTags, "#t5")
+	checkSet(t, []string{"#t1", "#t2", "#t3", "#t4", "#t5"}, m, KeyTags)
 
-	addToMeta(m, MetaKeyTags, "t6")
-	checkSet(t, []string{"#t1", "#t2", "#t3", "#t4", "#t5"}, m, MetaKeyTags)
+	addToMeta(m, KeyTags, "t6")
+	checkSet(t, []string{"#t1", "#t2", "#t3", "#t4", "#t5"}, m, KeyTags)
 }
 
 func TestSyntax(t *testing.T) {
 	m := NewMeta(testID)
-	if got, ok := m.Get(MetaKeySyntax); ok || got != "" {
+	if got, ok := m.Get(KeySyntax); ok || got != "" {
 		t.Errorf("Syntax is not %q, but %q", "", got)
 	}
-	addToMeta(m, MetaKeySyntax, " ")
-	if got, _ := m.Get(MetaKeySyntax); got != "" {
+	addToMeta(m, KeySyntax, " ")
+	if got, _ := m.Get(KeySyntax); got != "" {
 		t.Errorf("Syntax is not %q, but %q", "", got)
 	}
-	addToMeta(m, MetaKeySyntax, "MarkDown")
+	addToMeta(m, KeySyntax, "MarkDown")
 	const exp = "markdown"
-	if got, ok := m.Get(MetaKeySyntax); !ok || got != exp {
+	if got, ok := m.Get(KeySyntax); !ok || got != exp {
 		t.Errorf("Syntax is not %q, but %q", exp, got)
 	}
-	addToMeta(m, MetaKeySyntax, " ")
-	if got, _ := m.Get(MetaKeySyntax); got != "" {
+	addToMeta(m, KeySyntax, " ")
+	if got, _ := m.Get(KeySyntax); got != "" {
 		t.Errorf("Syntax is not %q, but %q", "", got)
 	}
 }
@@ -199,31 +199,31 @@ func parseMetaStr(src string) *Meta {
 
 func TestEmpty(t *testing.T) {
 	m := parseMetaStr("")
-	if got, ok := m.Get(MetaKeySyntax); ok || got != "" {
+	if got, ok := m.Get(KeySyntax); ok || got != "" {
 		t.Errorf("Syntax is not %q, but %q", "", got)
 	}
-	if got, ok := m.GetList(MetaKeyTags); ok || len(got) > 0 {
+	if got, ok := m.GetList(KeyTags); ok || len(got) > 0 {
 		t.Errorf("Tags are not nil, but %v", got)
 	}
 }
 
 func TestTitle(t *testing.T) {
 	td := []struct{ s, e string }{
-		{MetaKeyTitle + ": a title", "a title"},
-		{MetaKeyTitle + ": a\n\t title", "a title"},
-		{MetaKeyTitle + ": a\n\t title\r\n  x", "a title x"},
-		{MetaKeyTitle + " AbC", "AbC"},
-		{MetaKeyTitle + " AbC\n ded", "AbC ded"},
-		{MetaKeyTitle + ": o\ntitle: p", "o p"},
-		{MetaKeyTitle + ": O\n\ntitle: P", "O"},
-		{MetaKeyTitle + ": b\r\ntitle: c", "b c"},
-		{MetaKeyTitle + ": B\r\n\r\ntitle: C", "B"},
-		{MetaKeyTitle + ": r\rtitle: q", "r q"},
-		{MetaKeyTitle + ": R\r\rtitle: Q", "R"},
+		{KeyTitle + ": a title", "a title"},
+		{KeyTitle + ": a\n\t title", "a title"},
+		{KeyTitle + ": a\n\t title\r\n  x", "a title x"},
+		{KeyTitle + " AbC", "AbC"},
+		{KeyTitle + " AbC\n ded", "AbC ded"},
+		{KeyTitle + ": o\ntitle: p", "o p"},
+		{KeyTitle + ": O\n\ntitle: P", "O"},
+		{KeyTitle + ": b\r\ntitle: c", "b c"},
+		{KeyTitle + ": B\r\n\r\ntitle: C", "B"},
+		{KeyTitle + ": r\rtitle: q", "r q"},
+		{KeyTitle + ": R\r\rtitle: Q", "R"},
 	}
 	for i, tc := range td {
 		m := parseMetaStr(tc.s)
-		if got, ok := m.Get(MetaKeyTitle); !ok || got != tc.e {
+		if got, ok := m.Get(KeyTitle); !ok || got != tc.e {
 			t.Log(m)
 			t.Errorf("TC=%d: expected %q, got %q", i, tc.e, got)
 		}

@@ -84,9 +84,9 @@ func ParseZettel(zettel domain.Zettel, syntax string) *ast.ZettelNode {
 	m := zettel.Meta
 	inhMeta := runtime.AddDefaultValues(zettel.Meta)
 	if len(syntax) == 0 {
-		syntax, _ = inhMeta.Get(meta.MetaKeySyntax)
+		syntax, _ = inhMeta.Get(meta.KeySyntax)
 	}
-	title, _ := inhMeta.Get(meta.MetaKeyTitle)
+	title, _ := inhMeta.Get(meta.KeyTitle)
 	parseMeta := inhMeta
 	if syntax == "meta" {
 		parseMeta = m

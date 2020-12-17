@@ -43,7 +43,7 @@ func parseBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
 	if p := parser.Get(syntax); p != nil {
 		syntax = p.Name
 	}
-	title, _ := m.Get(meta.MetaKeyTitle)
+	title, _ := m.Get(meta.KeyTitle)
 	return ast.BlockSlice{
 		&ast.BLOBNode{
 			Title:  title,

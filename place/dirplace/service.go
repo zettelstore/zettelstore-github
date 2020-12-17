@@ -240,24 +240,24 @@ func parseMetaContentFile(zid id.ZettelID, path string) (*meta.Meta, string, err
 }
 
 func cleanupMeta(m *meta.Meta, entry *directory.Entry) {
-	if title, ok := m.Get(meta.MetaKeyTitle); !ok || title == "" {
-		m.Set(meta.MetaKeyTitle, entry.Zid.Format())
+	if title, ok := m.Get(meta.KeyTitle); !ok || title == "" {
+		m.Set(meta.KeyTitle, entry.Zid.Format())
 	}
 
 	switch entry.MetaSpec {
 	case directory.MetaSpecFile:
-		if syntax, ok := m.Get(meta.MetaKeySyntax); !ok || syntax == "" {
+		if syntax, ok := m.Get(meta.KeySyntax); !ok || syntax == "" {
 			dm := entry.CalcDefaultMeta()
-			syntax, ok = dm.Get(meta.MetaKeySyntax)
+			syntax, ok = dm.Get(meta.KeySyntax)
 			if !ok {
-				panic("Default meta must rcontain syntax")
+				panic("Default meta must contain syntax")
 			}
-			m.Set(meta.MetaKeySyntax, syntax)
+			m.Set(meta.KeySyntax, syntax)
 		}
 	}
 
 	if entry.Duplicates {
-		m.Set("duplicates", "yes")
+		m.Set(meta.KeyDuplicates, meta.ValueTrue)
 	}
 }
 

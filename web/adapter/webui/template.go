@@ -206,7 +206,7 @@ func (te *TemplateEngine) makeBaseData(
 	userIsValid := user != nil
 	if userIsValid {
 		userZettelURL = adapter.NewURLBuilder('h').SetZid(user.Zid).String()
-		userIdent = user.GetDefault(meta.MetaKeyUserID, "")
+		userIdent = user.GetDefault(meta.KeyUserID, "")
 		userLogoutURL = adapter.NewURLBuilder('a').SetZid(user.Zid).String()
 	}
 
@@ -244,7 +244,7 @@ func htmlAttrNewWindow(hasURL bool) template.HTMLAttr {
 
 var templatePlaceFilter = &place.Filter{
 	Expr: place.FilterExpr{
-		meta.MetaKeyRole: []string{meta.MetaValueRoleNewTemplate},
+		meta.KeyRole: []string{meta.ValueRoleNewTemplate},
 	},
 }
 

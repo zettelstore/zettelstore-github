@@ -51,7 +51,7 @@ func (uc UpdateZettel) Run(
 	}
 	m.YamlSep = oldZettel.Meta.YamlSep
 	if m.Zid == id.ConfigurationID {
-		m.Set(meta.MetaKeySyntax, "meta")
+		m.Set(meta.KeySyntax, "meta")
 	}
 	if !hasContent {
 		zettel.Content = oldZettel.Content

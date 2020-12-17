@@ -60,8 +60,8 @@ func cmdPassword(name string, fs *flag.FlagSet) (int, error) {
 		return 2, err
 	}
 	fmt.Printf("%v: %s\n%v: %s\n",
-		meta.MetaKeyCredential, hashedPassword,
-		meta.MetaKeyUserID, ident,
+		meta.KeyCredential, hashedPassword,
+		meta.KeyUserID, ident,
 	)
 	return 0, nil
 }

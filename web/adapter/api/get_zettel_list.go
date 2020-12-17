@@ -67,7 +67,7 @@ func renderListMetaHTML(w http.ResponseWriter, metaList []*meta.Meta) {
 
 	buf.WriteStrings("<html lang=\"", runtime.GetDefaultLang(), "\">\n<body>\n<ul>\n")
 	for _, m := range metaList {
-		title := m.GetDefault(meta.MetaKeyTitle, "")
+		title := m.GetDefault(meta.KeyTitle, "")
 		htmlTitle, err := adapter.FormatInlines(parser.ParseTitle(title), "html")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)

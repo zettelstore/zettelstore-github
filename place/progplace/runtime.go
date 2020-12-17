@@ -26,11 +26,11 @@ func genRuntimeM(zid id.ZettelID) *meta.Meta {
 		return nil
 	}
 	m := meta.NewMeta(zid)
-	m.Set(meta.MetaKeyTitle, "Zettelstore Runtime Values")
-	m.Set(meta.MetaKeyRole, "configuration")
-	m.Set(meta.MetaKeySyntax, "zmk")
-	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityExpert)
-	m.Set(meta.MetaKeyReadOnly, "true")
+	m.Set(meta.KeyTitle, "Zettelstore Runtime Values")
+	m.Set(meta.KeyRole, "configuration")
+	m.Set(meta.KeySyntax, "zmk")
+	m.Set(meta.KeyVisibility, meta.ValueVisibilityExpert)
+	m.Set(meta.KeyReadOnly, "true")
 	return m
 }
 

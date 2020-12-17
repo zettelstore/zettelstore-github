@@ -47,18 +47,18 @@ func parseZettelForm(r *http.Request, zid id.ZettelID) (domain.Zettel, bool, err
 		m = meta.NewMeta(zid)
 	}
 	if postTitle, ok := trimmedFormValue(r, "title"); ok {
-		m.Set(meta.MetaKeyTitle, postTitle)
+		m.Set(meta.KeyTitle, postTitle)
 	}
 	if postTags, ok := trimmedFormValue(r, "tags"); ok {
 		if tags := strings.Fields(postTags); len(tags) > 0 {
-			m.SetList(meta.MetaKeyTags, tags)
+			m.SetList(meta.KeyTags, tags)
 		}
 	}
 	if postRole, ok := trimmedFormValue(r, "role"); ok {
-		m.Set(meta.MetaKeyRole, postRole)
+		m.Set(meta.KeyRole, postRole)
 	}
 	if postSyntax, ok := trimmedFormValue(r, "syntax"); ok {
-		m.Set(meta.MetaKeySyntax, postSyntax)
+		m.Set(meta.KeySyntax, postSyntax)
 	}
 	if values, ok := r.PostForm["content"]; ok && len(values) > 0 {
 		return domain.Zettel{

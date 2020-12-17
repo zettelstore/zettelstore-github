@@ -27,13 +27,13 @@ func NewCopyZettel() CopyZettel {
 // Run executes the use case.
 func (uc CopyZettel) Run(origZettel domain.Zettel) domain.Zettel {
 	m := origZettel.Meta.Clone()
-	if title, ok := m.Get(meta.MetaKeyTitle); ok {
+	if title, ok := m.Get(meta.KeyTitle); ok {
 		if len(title) > 0 {
 			title = "Copy of " + title
 		} else {
 			title = "Copy"
 		}
-		m.Set(meta.MetaKeyTitle, title)
+		m.Set(meta.KeyTitle, title)
 	}
 	return domain.Zettel{Meta: m, Content: origZettel.Content}
 }

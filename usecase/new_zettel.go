@@ -27,7 +27,7 @@ func NewNewZettel() NewZettel {
 // Run executes the use case.
 func (uc NewZettel) Run(origZettel domain.Zettel) domain.Zettel {
 	m := origZettel.Meta.Clone()
-	if role, ok := m.Get(meta.MetaKeyRole); ok && role == meta.MetaValueRoleNewTemplate {
+	if role, ok := m.Get(meta.KeyRole); ok && role == meta.ValueRoleNewTemplate {
 		const prefix = "new-"
 		for _, pair := range m.PairsRest() {
 			if key := pair.Key; len(key) > len(prefix) && key[0:len(prefix)] == prefix {

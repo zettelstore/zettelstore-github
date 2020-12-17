@@ -44,14 +44,14 @@ func (uc CreateZettel) Run(
 		return m.Zid, nil // TODO: new error: already exists
 	}
 
-	if title, ok := m.Get(meta.MetaKeyTitle); !ok || title == "" {
-		m.Set(meta.MetaKeyTitle, runtime.GetDefaultTitle())
+	if title, ok := m.Get(meta.KeyTitle); !ok || title == "" {
+		m.Set(meta.KeyTitle, runtime.GetDefaultTitle())
 	}
-	if role, ok := m.Get(meta.MetaKeyRole); !ok || role == "" {
-		m.Set(meta.MetaKeyRole, runtime.GetDefaultRole())
+	if role, ok := m.Get(meta.KeyRole); !ok || role == "" {
+		m.Set(meta.KeyRole, runtime.GetDefaultRole())
 	}
-	if syntax, ok := m.Get(meta.MetaKeySyntax); !ok || syntax == "" {
-		m.Set(meta.MetaKeySyntax, runtime.GetDefaultSyntax())
+	if syntax, ok := m.Get(meta.KeySyntax); !ok || syntax == "" {
+		m.Set(meta.KeySyntax, runtime.GetDefaultSyntax())
 	}
 	m.YamlSep = runtime.GetYAMLHeader()
 

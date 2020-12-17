@@ -44,7 +44,7 @@ func (uc ListRole) Run(ctx context.Context) ([]string, error) {
 	}
 	roles := make(map[string]bool, 8)
 	for _, m := range metas {
-		if role, ok := m.Get(meta.MetaKeyRole); ok && role != "" {
+		if role, ok := m.Get(meta.KeyRole); ok && role != "" {
 			roles[role] = true
 		}
 	}

@@ -103,7 +103,7 @@ func addSelectFunc(filter *Filter, f FilterFunc) FilterFunc {
 
 func createMatchFunc(key string, values []string) matchFunc {
 	switch meta.KeyType(key) {
-	case meta.MetaTypeBool:
+	case meta.TypeBool:
 		preValues := make([]bool, 0, len(values))
 		for _, v := range values {
 			preValues = append(preValues, meta.BoolValue(v))
@@ -117,9 +117,9 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case meta.MetaTypeCredential:
+	case meta.TypeCredential:
 		return matchNever
-	case meta.MetaTypeID:
+	case meta.TypeID:
 		return func(value string) bool {
 			for _, v := range values {
 				if !strings.HasPrefix(value, v) {
@@ -128,7 +128,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case meta.MetaTypeTagSet:
+	case meta.TypeTagSet:
 		tagValues := preprocessSet(values)
 		return func(value string) bool {
 			tags := meta.ListFromValue(value)
@@ -141,7 +141,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case meta.MetaTypeWord:
+	case meta.TypeWord:
 		values = sliceToLower(values)
 		return func(value string) bool {
 			value = strings.ToLower(value)
@@ -152,7 +152,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case meta.MetaTypeWordSet:
+	case meta.TypeWordSet:
 		wordValues := preprocessSet(sliceToLower(values))
 		return func(value string) bool {
 			words := meta.ListFromValue(value)
@@ -193,9 +193,9 @@ func createSearchAllFunc(values []string, negate bool) FilterFunc {
 				return !negate
 			}
 		}
-		match, ok := matchFuncs[meta.KeyType(meta.MetaKeyID)]
+		match, ok := matchFuncs[meta.KeyType(meta.KeyID)]
 		if !ok {
-			match = createMatchFunc(meta.MetaKeyID, values)
+			match = createMatchFunc(meta.KeyID, values)
 		}
 		return match(m.Zid.Format()) != negate
 	}

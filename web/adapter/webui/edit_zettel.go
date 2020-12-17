@@ -54,10 +54,10 @@ func MakeEditGetZettelHandler(
 		m := zettel.Meta
 		te.renderTemplate(ctx, w, id.FormTemplateID, formZettelData{
 			baseData:      te.makeBaseData(ctx, runtime.GetLang(m), "Edit Zettel", user),
-			MetaTitle:     m.GetDefault(meta.MetaKeyTitle, ""),
-			MetaRole:      m.GetDefault(meta.MetaKeyRole, ""),
-			MetaTags:      m.GetDefault(meta.MetaKeyTags, ""),
-			MetaSyntax:    m.GetDefault(meta.MetaKeySyntax, ""),
+			MetaTitle:     m.GetDefault(meta.KeyTitle, ""),
+			MetaRole:      m.GetDefault(meta.KeyRole, ""),
+			MetaTags:      m.GetDefault(meta.KeyTags, ""),
+			MetaSyntax:    m.GetDefault(meta.KeySyntax, ""),
 			MetaPairsRest: m.PairsRest(),
 			IsTextContent: !zettel.Content.IsBinary(),
 			Content:       zettel.Content.AsString(),

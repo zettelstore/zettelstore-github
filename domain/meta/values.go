@@ -25,10 +25,10 @@ const (
 )
 
 var visMap = map[string]Visibility{
-	MetaValueVisibilityPublic: VisibilityPublic,
-	MetaValueVisibilityLogin:  VisibilityLogin,
-	MetaValueVisibilityOwner:  VisibilityOwner,
-	MetaValueVisibilityExpert: VisibilityExpert,
+	ValueVisibilityPublic: VisibilityPublic,
+	ValueVisibilityLogin:  VisibilityLogin,
+	ValueVisibilityOwner:  VisibilityOwner,
+	ValueVisibilityExpert: VisibilityExpert,
 }
 
 // GetVisibility returns the visibility value of the given string

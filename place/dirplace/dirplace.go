@@ -378,7 +378,7 @@ func calcSpecExt(m *meta.Meta) (directory.MetaSpec, string) {
 	if m.YamlSep {
 		return directory.MetaSpecHeader, "zettel"
 	}
-	syntax := m.GetDefault(meta.MetaKeySyntax, "bin")
+	syntax := m.GetDefault(meta.KeySyntax, "bin")
 	switch syntax {
 	case "meta", "zmk":
 		return directory.MetaSpecHeader, "zettel"
@@ -497,11 +497,11 @@ func (dp *dirPlace) Reload(ctx context.Context) error {
 }
 
 func (dp *dirPlace) cleanupMeta(ctx context.Context, m *meta.Meta) {
-	if role, ok := m.Get(meta.MetaKeyRole); !ok || role == "" {
-		m.Set(meta.MetaKeyRole, runtime.GetDefaultRole())
+	if role, ok := m.Get(meta.KeyRole); !ok || role == "" {
+		m.Set(meta.KeyRole, runtime.GetDefaultRole())
 	}
-	if syntax, ok := m.Get(meta.MetaKeySyntax); !ok || syntax == "" {
-		m.Set(meta.MetaKeySyntax, runtime.GetDefaultSyntax())
+	if syntax, ok := m.Get(meta.KeySyntax); !ok || syntax == "" {
+		m.Set(meta.KeySyntax, runtime.GetDefaultSyntax())
 	}
 }
 

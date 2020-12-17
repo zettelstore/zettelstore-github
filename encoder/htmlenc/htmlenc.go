@@ -45,7 +45,7 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 		switch opt.Key {
 		case "lang":
 			he.lang = opt.Value
-		case meta.MetaKeyMarkerExternal:
+		case meta.KeyMarkerExternal:
 			he.markerExternal = opt.Value
 		}
 	case *encoder.BoolOption:
