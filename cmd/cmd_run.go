@@ -75,7 +75,7 @@ func setupRouting(up place.Place, readonlyMode bool) http.Handler {
 		api.ReloadHandlerAPI,
 		webui.ReloadHandlerHTML))
 	if !readonlyMode {
-		router.AddZettelRoute('c', http.MethodGet, webui.MakeGetCloneZettelHandler(te, ucGetZettel, usecase.NewCloneZettel()))
+		router.AddZettelRoute('c', http.MethodGet, webui.MakeGetCopyZettelHandler(te, ucGetZettel, usecase.NewCopyZettel()))
 		router.AddZettelRoute('c', http.MethodPost, webui.MakePostCreateZettelHandler(usecase.NewCreateZettel(pp)))
 		router.AddZettelRoute('d', http.MethodGet, webui.MakeGetDeleteZettelHandler(te, ucGetZettel))
 		router.AddZettelRoute('d', http.MethodPost, webui.MakePostDeleteZettelHandler(usecase.NewDeleteZettel(pp)))

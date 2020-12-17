@@ -96,7 +96,7 @@ func MakeGetHTMLZettelHandler(
 		tags := buildTagInfos(zn.Zettel.Meta)
 		extURL, hasExtURL := zn.Zettel.Meta.Get(domain.MetaKeyURL)
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
-		canClone := base.CanCreate && !zn.Zettel.Content.IsBinary()
+		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
 			baseData
 			MetaHeader   template.HTML
@@ -109,8 +109,8 @@ func MakeGetHTMLZettelHandler(
 			RoleURL      string
 			HasTags      bool
 			Tags         []simpleLink
-			CanClone     bool
-			CloneURL     string
+			CanCopy      bool
+			CopyURL      string
 			CanNew       bool
 			NewURL       string
 			HasExtURL    bool
@@ -129,9 +129,9 @@ func MakeGetHTMLZettelHandler(
 			RoleURL:      adapter.NewURLBuilder('h').AppendQuery("role", roleText).String(),
 			HasTags:      len(tags) > 0,
 			Tags:         tags,
-			CanClone:     canClone,
-			CloneURL:     adapter.NewURLBuilder('c').SetZid(zid).String(),
-			CanNew:       canClone && roleText == domain.MetaValueRoleNewTemplate,
+			CanCopy:      canCopy,
+			CopyURL:      adapter.NewURLBuilder('c').SetZid(zid).String(),
+			CanNew:       canCopy && roleText == domain.MetaValueRoleNewTemplate,
 			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			ExtURL:       extURL,
 			HasExtURL:    hasExtURL,

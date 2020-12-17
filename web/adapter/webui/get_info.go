@@ -132,15 +132,15 @@ func MakeGetInfoHandler(
 			matrix = append(matrix, row)
 		}
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
-		canClone := base.CanCreate && !zn.Zettel.Content.IsBinary()
+		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
 		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
 			baseData
 			Zid          string
 			WebURL       string
 			CanWrite     bool
 			EditURL      string
-			CanClone     bool
-			CloneURL     string
+			CanCopy      bool
+			CopyURL      string
 			CanNew       bool
 			NewURL       string
 			CanRename    bool
@@ -163,9 +163,9 @@ func MakeGetInfoHandler(
 			WebURL:   adapter.NewURLBuilder('h').SetZid(zid).String(),
 			CanWrite: te.canWrite(ctx, user, zn.Zettel),
 			EditURL:  adapter.NewURLBuilder('e').SetZid(zid).String(),
-			CanClone: canClone,
-			CloneURL: adapter.NewURLBuilder('c').SetZid(zid).String(),
-			CanNew: canClone && zn.Zettel.Meta.GetDefault(domain.MetaKeyRole, "") ==
+			CanCopy:  canCopy,
+			CopyURL:  adapter.NewURLBuilder('c').SetZid(zid).String(),
+			CanNew: canCopy && zn.Zettel.Meta.GetDefault(domain.MetaKeyRole, "") ==
 				domain.MetaValueRoleNewTemplate,
 			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			CanRename:    te.canRename(ctx, user, zn.Zettel.Meta),

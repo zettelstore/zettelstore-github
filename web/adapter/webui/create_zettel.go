@@ -28,20 +28,20 @@ import (
 	"zettelstore.de/z/web/session"
 )
 
-// MakeGetCloneZettelHandler creates a new HTTP handler to display the
-// HTML edit view of a zettel.
-func MakeGetCloneZettelHandler(
+// MakeGetCopyZettelHandler creates a new HTTP handler to display the
+// HTML edit view of a copied zettel.
+func MakeGetCopyZettelHandler(
 	te *TemplateEngine,
 	getZettel usecase.GetZettel,
-	cloneZettel usecase.CloneZettel,
+	copyZettel usecase.CopyZettel,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if origZettel, ok := getOrigZettel(w, r, getZettel, "Clone"); ok {
+		if origZettel, ok := getOrigZettel(w, r, getZettel, "Copy"); ok {
 			renderZettelForm(
 				w,
 				r,
 				te,
-				cloneZettel.Run(origZettel), "Clone Zettel", template.HTML("Clone Zettel"))
+				copyZettel.Run(origZettel), "Copy Zettel", template.HTML("Copy Zettel"))
 		}
 	}
 }

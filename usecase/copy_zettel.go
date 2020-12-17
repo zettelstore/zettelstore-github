@@ -15,16 +15,16 @@ import (
 	"zettelstore.de/z/domain"
 )
 
-// CloneZettel is the data for this use case.
-type CloneZettel struct{}
+// CopyZettel is the data for this use case.
+type CopyZettel struct{}
 
-// NewCloneZettel creates a new use case.
-func NewCloneZettel() CloneZettel {
-	return CloneZettel{}
+// NewCopyZettel creates a new use case.
+func NewCopyZettel() CopyZettel {
+	return CopyZettel{}
 }
 
 // Run executes the use case.
-func (uc CloneZettel) Run(origZettel domain.Zettel) domain.Zettel {
+func (uc CopyZettel) Run(origZettel domain.Zettel) domain.Zettel {
 	meta := origZettel.Meta.Clone()
 	if title, ok := meta.Get(domain.MetaKeyTitle); ok {
 		if len(title) > 0 {
