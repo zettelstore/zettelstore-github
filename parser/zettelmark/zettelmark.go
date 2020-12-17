@@ -15,7 +15,7 @@ import (
 	"unicode"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 )
@@ -29,7 +29,7 @@ func init() {
 	})
 }
 
-func parseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+func parseBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
 	parser := &zmkP{inp: inp}
 	bs := parser.parseBlockSlice()
 	return postProcessBlocks(bs)
@@ -87,7 +87,8 @@ func (cp *zmkP) parseNormalAttribute(attrs map[string]string, sameLine bool) boo
 	return cp.parseAttributeValue(key, attrs, sameLine)
 }
 
-func (cp *zmkP) parseAttributeValue(key string, attrs map[string]string, sameLine bool) bool {
+func (cp *zmkP) parseAttributeValue(
+	key string, attrs map[string]string, sameLine bool) bool {
 	inp := cp.inp
 	inp.Next()
 	if inp.Ch == '"' {

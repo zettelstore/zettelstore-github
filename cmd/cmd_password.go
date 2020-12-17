@@ -18,7 +18,8 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"zettelstore.de/z/auth/cred"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // ---------- Subcommand: password -------------------------------------------
@@ -34,7 +35,7 @@ func cmdPassword(name string, fs *flag.FlagSet) (int, error) {
 	}
 
 	sid := fs.Arg(1)
-	zid, err := domain.ParseZettelID(sid)
+	zid, err := id.ParseZettelID(sid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Given zettel identification is not valid: %q\n", sid)
 		return 2, err
@@ -59,8 +60,8 @@ func cmdPassword(name string, fs *flag.FlagSet) (int, error) {
 		return 2, err
 	}
 	fmt.Printf("%v: %s\n%v: %s\n",
-		domain.MetaKeyCredential, hashedPassword,
-		domain.MetaKeyUserID, ident,
+		meta.MetaKeyCredential, hashedPassword,
+		meta.MetaKeyUserID, ident,
 	)
 	return 0, nil
 }

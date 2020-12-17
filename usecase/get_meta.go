@@ -14,13 +14,14 @@ package usecase
 import (
 	"context"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // GetMetaPort is the interface used by this use case.
 type GetMetaPort interface {
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
+	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
 }
 
 // GetMeta is the data for this use case.
@@ -34,6 +35,6 @@ func NewGetMeta(port GetMetaPort) GetMeta {
 }
 
 // Run executes the use case.
-func (uc GetMeta) Run(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
+func (uc GetMeta) Run(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
 	return uc.port.GetMeta(ctx, zid)
 }

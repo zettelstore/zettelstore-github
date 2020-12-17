@@ -16,12 +16,14 @@ import (
 
 	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // CreateZettelPort is the interface used by this use case.
 type CreateZettelPort interface {
 	// CreateZettel creates a new zettel.
-	CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error)
+	CreateZettel(ctx context.Context, zettel domain.Zettel) (id.ZettelID, error)
 }
 
 // CreateZettel is the data for this use case.
@@ -36,22 +38,22 @@ func NewCreateZettel(port CreateZettelPort) CreateZettel {
 
 // Run executes the use case.
 func (uc CreateZettel) Run(
-	ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
-	meta := zettel.Meta
-	if meta.Zid.IsValid() {
-		return meta.Zid, nil // TODO: new error: already exists
+	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
+	m := zettel.Meta
+	if m.Zid.IsValid() {
+		return m.Zid, nil // TODO: new error: already exists
 	}
 
-	if title, ok := meta.Get(domain.MetaKeyTitle); !ok || title == "" {
-		meta.Set(domain.MetaKeyTitle, runtime.GetDefaultTitle())
+	if title, ok := m.Get(meta.MetaKeyTitle); !ok || title == "" {
+		m.Set(meta.MetaKeyTitle, runtime.GetDefaultTitle())
 	}
-	if role, ok := meta.Get(domain.MetaKeyRole); !ok || role == "" {
-		meta.Set(domain.MetaKeyRole, runtime.GetDefaultRole())
+	if role, ok := m.Get(meta.MetaKeyRole); !ok || role == "" {
+		m.Set(meta.MetaKeyRole, runtime.GetDefaultRole())
 	}
-	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-		meta.Set(domain.MetaKeySyntax, runtime.GetDefaultSyntax())
+	if syntax, ok := m.Get(meta.MetaKeySyntax); !ok || syntax == "" {
+		m.Set(meta.MetaKeySyntax, runtime.GetDefaultSyntax())
 	}
-	meta.YamlSep = runtime.GetYAMLHeader()
+	m.YamlSep = runtime.GetYAMLHeader()
 
 	return uc.port.CreateZettel(ctx, zettel)
 }

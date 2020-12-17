@@ -16,7 +16,8 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
@@ -37,7 +38,7 @@ func MakeGetDeleteZettelHandler(
 			return
 		}
 
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -51,16 +52,16 @@ func MakeGetDeleteZettelHandler(
 		}
 
 		user := session.GetUser(ctx)
-		meta := zettel.Meta
-		te.renderTemplate(ctx, w, domain.DeleteTemplateID, struct {
+		m := zettel.Meta
+		te.renderTemplate(ctx, w, id.DeleteTemplateID, struct {
 			baseData
 			Zid       string
-			MetaPairs []domain.MetaPair
+			MetaPairs []meta.Pair
 		}{
 			baseData: te.makeBaseData(
-				ctx, runtime.GetLang(meta), "Delete Zettel "+meta.Zid.Format(), user),
+				ctx, runtime.GetLang(m), "Delete Zettel "+m.Zid.Format(), user),
 			Zid:       zid.Format(),
-			MetaPairs: meta.Pairs(),
+			MetaPairs: m.Pairs(),
 		})
 	}
 }
@@ -68,7 +69,7 @@ func MakeGetDeleteZettelHandler(
 // MakePostDeleteZettelHandler creates a new HTTP handler to delete a zettel.
 func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return

@@ -8,25 +8,28 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package progplace provides zettel that inform the user about the internal Zettelstore state.
+// Package progplace provides zettel that inform the user about the internal
+// Zettelstore state.
 package progplace
 
 import (
 	"context"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
 type (
 	zettelGen struct {
-		meta    func(domain.ZettelID) *domain.Meta
-		content func(*domain.Meta) string
+		meta    func(id.ZettelID) *meta.Meta
+		content func(*meta.Meta) string
 	}
 
 	progPlace struct {
-		zettel      map[domain.ZettelID]zettelGen
-		startConfig *domain.Meta
+		zettel      map[id.ZettelID]zettelGen
+		startConfig *meta.Meta
 		startPlace  place.Place
 	}
 )
@@ -37,20 +40,20 @@ var myPlace *progPlace
 func Get() place.Place {
 	if myPlace == nil {
 		myPlace = &progPlace{}
-		myPlace.zettel = map[domain.ZettelID]zettelGen{
-			domain.ZettelID(1):  {genVersionBuildM, genVersionBuildC},
-			domain.ZettelID(2):  {genVersionHostM, genVersionHostC},
-			domain.ZettelID(3):  {genVersionOSM, genVersionOSC},
-			domain.ZettelID(4):  {genVersionGoM, genVersionGoC},
-			domain.ZettelID(5):  {genRuntimeM, genRuntimeC},
-			domain.ZettelID(99): {genConfigM, genConfigC},
+		myPlace.zettel = map[id.ZettelID]zettelGen{
+			id.ZettelID(1):  {genVersionBuildM, genVersionBuildC},
+			id.ZettelID(2):  {genVersionHostM, genVersionHostC},
+			id.ZettelID(3):  {genVersionOSM, genVersionOSC},
+			id.ZettelID(4):  {genVersionGoM, genVersionGoC},
+			id.ZettelID(5):  {genRuntimeM, genRuntimeC},
+			id.ZettelID(99): {genConfigM, genConfigC},
 		}
 	}
 	return myPlace
 }
 
 // Setup remembers important values.
-func Setup(startConfig *domain.Meta, startPlace place.Place) {
+func Setup(startConfig *meta.Meta, startPlace place.Place) {
 	if myPlace == nil {
 		panic("progplace.Get not called")
 	}
@@ -81,16 +84,21 @@ func (pp *progPlace) RegisterChangeObserver(f place.ObserverFunc) {}
 
 func (pp *progPlace) CanCreateZettel(ctx context.Context) bool { return false }
 
-func (pp *progPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
-	return domain.InvalidZettelID, place.ErrReadOnly
+func (pp *progPlace) CreateZettel(
+	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
+	return id.InvalidZettelID, place.ErrReadOnly
 }
 
 // GetZettel retrieves a specific zettel.
-func (pp *progPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+func (pp *progPlace) GetZettel(
+	ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
 	if gen, ok := pp.zettel[zid]; ok && gen.meta != nil {
 		if meta := gen.meta(zid); meta != nil {
 			if genContent := gen.content; genContent != nil {
-				return domain.Zettel{Meta: meta, Content: domain.NewContent(genContent(meta))}, nil
+				return domain.Zettel{
+					Meta:    meta,
+					Content: domain.NewContent(genContent(meta)),
+				}, nil
 			}
 			return domain.Zettel{Meta: meta}, nil
 		}
@@ -99,7 +107,7 @@ func (pp *progPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (pp *progPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
+func (pp *progPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
 	if gen, ok := pp.zettel[zid]; ok {
 		if genMeta := gen.meta; genMeta != nil {
 			if meta := genMeta(zid); meta != nil {
@@ -112,7 +120,8 @@ func (pp *progPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.
 
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
-func (pp *progPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) (res []*domain.Meta, err error) {
+func (pp *progPlace) SelectMeta(
+	ctx context.Context, f *place.Filter, s *place.Sorter) (res []*meta.Meta, err error) {
 	hasMatch := place.CreateFilterFunc(f)
 	for zid, gen := range pp.zettel {
 		if genMeta := gen.meta; genMeta != nil {
@@ -124,26 +133,29 @@ func (pp *progPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.S
 	return place.ApplySorter(res, s), nil
 }
 
-func (pp *progPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool { return false }
+func (pp *progPlace) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
+	return false
+}
 
 func (pp *progPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
 	return place.ErrReadOnly
 }
 
-func (pp *progPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool { return false }
+func (pp *progPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
+	return false
+}
 
 // DeleteZettel removes the zettel from the place.
-func (pp *progPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
+func (pp *progPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
 	return place.ErrReadOnly
 }
 
-func (pp *progPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
-	_, ok := pp.zettel[zid]
-	return !ok
+func (pp *progPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
+	return false
 }
 
 // Rename changes the current id to a new id.
-func (pp *progPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
+func (pp *progPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
 	return place.ErrReadOnly
 }
 

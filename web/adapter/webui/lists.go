@@ -21,7 +21,8 @@ import (
 	"strconv"
 
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
@@ -46,7 +47,7 @@ func MakeWebUIListsHandler(
 	listTags usecase.ListTags,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -69,7 +70,7 @@ func renderWebUIZettelList(
 	ctx := r.Context()
 	renderWebUIMetaList(
 		ctx, w, te, sorter,
-		func(sorter *place.Sorter) ([]*domain.Meta, error) {
+		func(sorter *place.Sorter) ([]*meta.Meta, error) {
 			return listMeta.Run(ctx, filter, sorter)
 		},
 		func(offset int) string {
@@ -103,7 +104,7 @@ func renderWebUIRolesList(
 	}
 
 	user := session.GetUser(ctx)
-	te.renderTemplate(ctx, w, domain.RolesTemplateID, struct {
+	te.renderTemplate(ctx, w, id.RolesTemplateID, struct {
 		baseData
 		Roles []roleInfo
 	}{
@@ -174,10 +175,11 @@ func renderWebUITagsList(
 	minCounts := make([]countInfo, 0, len(countList))
 	for _, c := range countList {
 		sCount := strconv.Itoa(c)
-		minCounts = append(minCounts, countInfo{sCount, base.ListTagsURL + "?min=" + sCount})
+		minCounts = append(
+			minCounts, countInfo{sCount, base.ListTagsURL + "?min=" + sCount})
 	}
 
-	te.renderTemplate(ctx, w, domain.TagsTemplateID, struct {
+	te.renderTemplate(ctx, w, id.TagsTemplateID, struct {
 		baseData
 		MinCounts []countInfo
 		Tags      []tagInfo
@@ -206,7 +208,7 @@ func MakeSearchHandler(
 		ctx := r.Context()
 		renderWebUIMetaList(
 			ctx, w, te, sorter,
-			func(sorter *place.Sorter) ([]*domain.Meta, error) {
+			func(sorter *place.Sorter) ([]*meta.Meta, error) {
 				return search.Run(ctx, filter, sorter)
 			},
 			func(offset int) string {
@@ -218,10 +220,10 @@ func MakeSearchHandler(
 func renderWebUIMetaList(
 	ctx context.Context, w http.ResponseWriter, te *TemplateEngine,
 	sorter *place.Sorter,
-	ucMetaList func(sorter *place.Sorter) ([]*domain.Meta, error),
+	ucMetaList func(sorter *place.Sorter) ([]*meta.Meta, error),
 	pageURL func(int) string) {
 
-	var metaList []*domain.Meta
+	var metaList []*meta.Meta
 	var err error
 	var prevURL, nextURL string
 	if lps := runtime.GetListPageSize(); lps > 0 {
@@ -260,7 +262,7 @@ func renderWebUIMetaList(
 		log.Println(err)
 		return
 	}
-	te.renderTemplate(ctx, w, domain.ListTemplateID, struct {
+	te.renderTemplate(ctx, w, id.ListTemplateID, struct {
 		baseData
 		Metas       []metaInfo
 		HasPrevNext bool
@@ -302,17 +304,17 @@ type metaInfo struct {
 }
 
 // buildHTMLMetaList builds a zettel list based on a meta list for HTML rendering.
-func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
+func buildHTMLMetaList(metaList []*meta.Meta) ([]metaInfo, error) {
 	defaultLang := runtime.GetDefaultLang()
 	langOption := encoder.StringOption{Key: "lang", Value: ""}
 	metas := make([]metaInfo, 0, len(metaList))
-	for _, meta := range metaList {
-		if lang, ok := meta.Get(domain.MetaKeyLang); ok {
+	for _, m := range metaList {
+		if lang, ok := m.Get(meta.MetaKeyLang); ok {
 			langOption.Value = lang
 		} else {
 			langOption.Value = defaultLang
 		}
-		title, _ := meta.Get(domain.MetaKeyTitle)
+		title, _ := m.Get(meta.MetaKeyTitle)
 		htmlTitle, err := adapter.FormatInlines(
 			parser.ParseTitle(title), "html", &langOption)
 		if err != nil {
@@ -320,7 +322,7 @@ func buildHTMLMetaList(metaList []*domain.Meta) ([]metaInfo, error) {
 		}
 		metas = append(metas, metaInfo{
 			Title: template.HTML(htmlTitle),
-			URL:   adapter.NewURLBuilder('h').SetZid(meta.Zid).String(),
+			URL:   adapter.NewURLBuilder('h').SetZid(m.Zid).String(),
 		})
 	}
 	return metas, nil

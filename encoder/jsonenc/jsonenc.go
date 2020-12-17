@@ -16,7 +16,7 @@ import (
 	"io"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -35,12 +35,13 @@ type jsonEncoder struct{}
 func (je *jsonEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
-func (je *jsonEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
+func (je *jsonEncoder) WriteZettel(
+	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	return 0, encoder.ErrNoWriteZettel
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (je *jsonEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (je *jsonEncoder) WriteMeta(w io.Writer, meta *meta.Meta) (int, error) {
 	return 0, encoder.ErrNoWriteMeta
 }
 

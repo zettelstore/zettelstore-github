@@ -18,7 +18,7 @@ import (
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/collect"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 )
@@ -43,7 +43,7 @@ type jsonGetLinks struct {
 // MakeGetLinksHandler creates a new API handler to return links to other material.
 func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return

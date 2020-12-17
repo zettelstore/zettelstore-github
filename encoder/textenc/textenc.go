@@ -15,7 +15,7 @@ import (
 	"io"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -31,7 +31,8 @@ type textEncoder struct{}
 func (te *textEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel does nothing.
-func (te *textEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
+func (te *textEncoder) WriteZettel(
+	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(w)
 	if inhMeta {
 		te.WriteMeta(&v.b, zn.InhMeta)
@@ -44,9 +45,9 @@ func (te *textEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool
 }
 
 // WriteMeta encodes meta data as text.
-func (te *textEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (te *textEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
 	b := encoder.NewBufWriter(w)
-	for _, pair := range meta.Pairs() {
+	for _, pair := range m.Pairs() {
 		b.WriteString(pair.Value)
 		b.WriteByte('\n')
 	}

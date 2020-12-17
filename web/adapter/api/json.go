@@ -22,6 +22,8 @@ import (
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
@@ -146,7 +148,7 @@ var (
 	djsonFooter        = []byte("}")
 )
 
-func writeDJSONHeader(w http.ResponseWriter, zid domain.ZettelID) error {
+func writeDJSONHeader(w http.ResponseWriter, zid id.ZettelID) error {
 	_, err := w.Write(djsonHeader1)
 	if err == nil {
 		_, err = w.Write(zid.FormatBytes())
@@ -207,7 +209,7 @@ var setJSON = map[string]bool{"json": true}
 func renderListMetaXJSON(
 	ctx context.Context,
 	w http.ResponseWriter,
-	metaList []*domain.Meta,
+	metaList []*meta.Meta,
 	format string, part string,
 	getMeta usecase.GetMeta,
 	parseZettel usecase.ParseZettel,
@@ -224,7 +226,7 @@ func renderListMetaXJSON(
 	}
 	isJSON := setJSON[format]
 	_, err := w.Write(jsonListHeader)
-	for i, meta := range metaList {
+	for i, m := range metaList {
 		if err != nil {
 			break
 		}
@@ -236,7 +238,7 @@ func renderListMetaXJSON(
 		}
 		var zn *ast.ZettelNode
 		if readZettel {
-			z, err1 := parseZettel.Run(ctx, meta.Zid, "")
+			z, err1 := parseZettel.Run(ctx, m.Zid, "")
 			if err1 != nil {
 				err = err1
 				break
@@ -244,11 +246,11 @@ func renderListMetaXJSON(
 			zn = z
 		} else {
 			zn = &ast.ZettelNode{
-				Zettel:  domain.Zettel{Meta: meta, Content: ""},
-				Zid:     meta.Zid,
-				InhMeta: runtime.AddDefaultValues(meta),
+				Zettel:  domain.Zettel{Meta: m, Content: ""},
+				Zid:     m.Zid,
+				InhMeta: runtime.AddDefaultValues(m),
 				Title: parser.ParseTitle(
-					meta.GetDefault(domain.MetaKeyTitle, runtime.GetDefaultTitle())),
+					m.GetDefault(meta.MetaKeyTitle, runtime.GetDefaultTitle())),
 				Ast: nil,
 			}
 		}
@@ -279,12 +281,12 @@ func writeContent(
 }
 
 func writeMeta(
-	w io.Writer, meta *domain.Meta, format string, options ...encoder.Option) error {
+	w io.Writer, m *meta.Meta, format string, options ...encoder.Option) error {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return adapter.ErrNoSuchFormat
 	}
 
-	_, err := enc.WriteMeta(w, meta)
+	_, err := enc.WriteMeta(w, m)
 	return err
 }

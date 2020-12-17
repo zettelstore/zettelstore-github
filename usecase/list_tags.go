@@ -14,7 +14,7 @@ package usecase
 import (
 	"context"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
@@ -22,7 +22,7 @@ import (
 type ListTagsPort interface {
 	// SelectMeta returns all zettel meta data that match the selection
 	// criteria. The result is ordered by descending zettel id.
-	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error)
 }
 
 // ListTags is the data for this use case.
@@ -36,7 +36,7 @@ func NewListTags(port ListTagsPort) ListTags {
 }
 
 // TagData associates tags with a list of all zettel meta that use this tag
-type TagData map[string][]*domain.Meta
+type TagData map[string][]*meta.Meta
 
 // Run executes the use case.
 func (uc ListTags) Run(ctx context.Context, minCount int) (TagData, error) {
@@ -45,10 +45,10 @@ func (uc ListTags) Run(ctx context.Context, minCount int) (TagData, error) {
 		return nil, err
 	}
 	result := make(TagData)
-	for _, meta := range metas {
-		if tl, ok := meta.GetList(domain.MetaKeyTags); ok && len(tl) > 0 {
+	for _, m := range metas {
+		if tl, ok := m.GetList(meta.MetaKeyTags); ok && len(tl) > 0 {
 			for _, t := range tl {
-				result[t] = append(result[t], meta)
+				result[t] = append(result[t], m)
 			}
 		}
 	}

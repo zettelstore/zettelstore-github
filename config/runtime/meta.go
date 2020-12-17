@@ -13,32 +13,32 @@ package runtime
 
 import (
 	"zettelstore.de/z/config/startup"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 )
 
 var mapDefaultKeys = map[string]func() string{
-	domain.MetaKeyCopyright: GetDefaultCopyright,
-	domain.MetaKeyLang:      GetDefaultLang,
-	domain.MetaKeyLicense:   GetDefaultLicense,
-	domain.MetaKeyRole:      GetDefaultRole,
-	domain.MetaKeySyntax:    GetDefaultSyntax,
-	domain.MetaKeyTitle:     GetDefaultTitle,
+	meta.MetaKeyCopyright: GetDefaultCopyright,
+	meta.MetaKeyLang:      GetDefaultLang,
+	meta.MetaKeyLicense:   GetDefaultLicense,
+	meta.MetaKeyRole:      GetDefaultRole,
+	meta.MetaKeySyntax:    GetDefaultSyntax,
+	meta.MetaKeyTitle:     GetDefaultTitle,
 }
 
 // AddDefaultValues enriches the given meta data with its default values.
-func AddDefaultValues(meta *domain.Meta) *domain.Meta {
-	result := meta
+func AddDefaultValues(m *meta.Meta) *meta.Meta {
+	result := m
 	for k, f := range mapDefaultKeys {
 		if _, ok := result.Get(k); !ok {
-			if result == meta {
-				result = meta.Clone()
+			if result == m {
+				result = m.Clone()
 			}
-			if val := f(); len(val) > 0 || meta.Type(k) == domain.MetaTypeEmpty {
+			if val := f(); len(val) > 0 || m.Type(k) == meta.MetaTypeEmpty {
 				result.Set(k, val)
 			}
 		}
 	}
-	if result != meta && meta.IsFrozen() {
+	if result != m && m.IsFrozen() {
 		result.Freeze()
 	}
 	return result
@@ -46,8 +46,8 @@ func AddDefaultValues(meta *domain.Meta) *domain.Meta {
 
 // GetTitle returns the value of the "title" key of the given meta. If there
 // is no such value, GetDefaultTitle is returned.
-func GetTitle(meta *domain.Meta) string {
-	if syntax, ok := meta.Get(domain.MetaKeyTitle); ok && len(syntax) > 0 {
+func GetTitle(m *meta.Meta) string {
+	if syntax, ok := m.Get(meta.MetaKeyTitle); ok && len(syntax) > 0 {
 		return syntax
 	}
 	return GetDefaultTitle()
@@ -55,8 +55,8 @@ func GetTitle(meta *domain.Meta) string {
 
 // GetRole returns the value of the "role" key of the given meta. If there
 // is no such value, GetDefaultRole is returned.
-func GetRole(meta *domain.Meta) string {
-	if syntax, ok := meta.Get(domain.MetaKeyRole); ok && len(syntax) > 0 {
+func GetRole(m *meta.Meta) string {
+	if syntax, ok := m.Get(meta.MetaKeyRole); ok && len(syntax) > 0 {
 		return syntax
 	}
 	return GetDefaultRole()
@@ -64,8 +64,8 @@ func GetRole(meta *domain.Meta) string {
 
 // GetSyntax returns the value of the "syntax" key of the given meta. If there
 // is no such value, GetDefaultSyntax is returned.
-func GetSyntax(meta *domain.Meta) string {
-	if syntax, ok := meta.Get(domain.MetaKeySyntax); ok && len(syntax) > 0 {
+func GetSyntax(m *meta.Meta) string {
+	if syntax, ok := m.Get(meta.MetaKeySyntax); ok && len(syntax) > 0 {
 		return syntax
 	}
 	return GetDefaultSyntax()
@@ -73,17 +73,17 @@ func GetSyntax(meta *domain.Meta) string {
 
 // GetLang returns the value of the "lang" key of the given meta. If there is
 // no such value, GetDefaultLang is returned.
-func GetLang(meta *domain.Meta) string {
-	if lang, ok := meta.Get(domain.MetaKeyLang); ok && len(lang) > 0 {
+func GetLang(m *meta.Meta) string {
+	if lang, ok := m.Get(meta.MetaKeyLang); ok && len(lang) > 0 {
 		return lang
 	}
 	return GetDefaultLang()
 }
 
 // GetVisibility returns the visibility value, or "login" if none is given.
-func GetVisibility(meta *domain.Meta) domain.Visibility {
-	if val, ok := meta.Get(domain.MetaKeyVisibility); ok {
-		if vis := domain.GetVisibility(val); vis != domain.VisibilityUnknown {
+func GetVisibility(m *meta.Meta) meta.Visibility {
+	if val, ok := m.Get(meta.MetaKeyVisibility); ok {
+		if vis := meta.GetVisibility(val); vis != meta.VisibilityUnknown {
 			return vis
 		}
 	}
@@ -91,20 +91,20 @@ func GetVisibility(meta *domain.Meta) domain.Visibility {
 }
 
 // GetUserRole role returns the user role of the given user zettel.
-func GetUserRole(user *domain.Meta) domain.UserRole {
+func GetUserRole(user *meta.Meta) meta.UserRole {
 	if user == nil {
 		if startup.WithAuth() {
-			return domain.UserRoleUnknown
+			return meta.UserRoleUnknown
 		}
-		return domain.UserRoleOwner
+		return meta.UserRoleOwner
 	}
 	if startup.IsOwner(user.Zid) {
-		return domain.UserRoleOwner
+		return meta.UserRoleOwner
 	}
-	if val, ok := user.Get(domain.MetaKeyUserRole); ok {
-		if ur := domain.GetUserRole(val); ur != domain.UserRoleUnknown {
+	if val, ok := user.Get(meta.MetaKeyUserRole); ok {
+		if ur := meta.GetUserRole(val); ur != meta.UserRoleUnknown {
 			return ur
 		}
 	}
-	return domain.UserRoleReader
+	return meta.UserRoleReader
 }

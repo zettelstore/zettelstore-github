@@ -16,12 +16,13 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 type getRootStore interface {
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
+	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
 }
 
 // MakeGetRootHandler creates a new HTTP handler to show the root URL.

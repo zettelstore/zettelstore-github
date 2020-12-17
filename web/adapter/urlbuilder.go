@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/config/startup"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 )
 
 type urlQuery struct{ key, val string }
@@ -55,7 +55,7 @@ func (ub *URLBuilder) Clone() *URLBuilder {
 }
 
 // SetZid sets the zettel identifier.
-func (ub *URLBuilder) SetZid(zid domain.ZettelID) *URLBuilder {
+func (ub *URLBuilder) SetZid(zid id.ZettelID) *URLBuilder {
 	if len(ub.path) > 0 {
 		panic("Cannot add Zid")
 	}

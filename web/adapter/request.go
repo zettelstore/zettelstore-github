@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
@@ -59,7 +59,8 @@ func contentType2format(contentType string) (string, bool) {
 }
 
 // GetFilterSorter retrieves the specified filter and sorting options from a query.
-func GetFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter *place.Sorter) {
+func GetFilterSorter(
+	q url.Values, forSearch bool) (filter *place.Filter, sorter *place.Sorter) {
 	sortKey, offsetKey, limitKey, negateKey, sKey := getQueryKeys(forSearch)
 	for key, values := range q {
 		switch key {
@@ -71,7 +72,7 @@ func GetFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter
 					descending = true
 					sortkey = sortkey[1:]
 				}
-				if domain.KeyIsValid(sortkey) {
+				if meta.KeyIsValid(sortkey) {
 					sorter = place.EnsureSorter(sorter)
 					sorter.Order = sortkey
 					sorter.Descending = descending
@@ -106,7 +107,7 @@ func GetFilterSorter(q url.Values, forSearch bool) (filter *place.Filter, sorter
 				filter.Expr[""] = cleanedValues
 			}
 		default:
-			if !forSearch && domain.KeyIsValid(key) {
+			if !forSearch && meta.KeyIsValid(key) {
 				filter = place.EnsureFilter(filter)
 				filter.Expr[key] = values
 			}

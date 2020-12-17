@@ -15,7 +15,8 @@ import (
 	"fmt"
 	"testing"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 func TestPolicies(t *testing.T) {
@@ -55,29 +56,29 @@ func TestPolicies(t *testing.T) {
 	}
 }
 
-func withAuth() bool                   { return true }
-func withoutAuth() bool                { return false }
-func expertMode() bool                 { return true }
-func noExpertMode() bool               { return false }
-func isOwner(zid domain.ZettelID) bool { return zid == ownerZid }
-func getVisibility(meta *domain.Meta) domain.Visibility {
-	if vis, ok := meta.Get(domain.MetaKeyVisibility); ok {
+func withAuth() bool               { return true }
+func withoutAuth() bool            { return false }
+func expertMode() bool             { return true }
+func noExpertMode() bool           { return false }
+func isOwner(zid id.ZettelID) bool { return zid == ownerZid }
+func getVisibility(m *meta.Meta) meta.Visibility {
+	if vis, ok := m.Get(meta.MetaKeyVisibility); ok {
 		switch vis {
-		case domain.MetaValueVisibilityPublic:
-			return domain.VisibilityPublic
-		case domain.MetaValueVisibilityOwner:
-			return domain.VisibilityOwner
-		case domain.MetaValueVisibilityExpert:
-			return domain.VisibilityExpert
+		case meta.MetaValueVisibilityPublic:
+			return meta.VisibilityPublic
+		case meta.MetaValueVisibilityOwner:
+			return meta.VisibilityOwner
+		case meta.MetaValueVisibilityExpert:
+			return meta.VisibilityExpert
 		}
 	}
-	return domain.VisibilityLogin
+	return meta.VisibilityLogin
 }
 
 func testReload(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert bool) {
 	t.Helper()
 	testCases := []struct {
-		user *domain.Meta
+		user *meta.Meta
 		exp  bool
 	}{
 		{newAnon(), !withAuth},
@@ -105,8 +106,8 @@ func testCreate(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert
 	zettel := newZettel()
 	userZettel := newUserZettel()
 	testCases := []struct {
-		user *domain.Meta
-		meta *domain.Meta
+		user *meta.Meta
+		meta *meta.Meta
 		exp  bool
 	}{
 		// No meta
@@ -149,8 +150,8 @@ func testRead(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert b
 	expertZettel := newExpertZettel()
 	userZettel := newUserZettel()
 	testCases := []struct {
-		user *domain.Meta
-		meta *domain.Meta
+		user *meta.Meta
+		meta *meta.Meta
 		exp  bool
 	}{
 		// No meta
@@ -217,16 +218,16 @@ func testWrite(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert 
 	expertZettel := newExpertZettel()
 	userZettel := newUserZettel()
 	writerNew := writer.Clone()
-	writerNew.Set(domain.MetaKeyUserRole, owner.GetDefault(domain.MetaKeyUserRole, ""))
+	writerNew.Set(meta.MetaKeyUserRole, owner.GetDefault(meta.MetaKeyUserRole, ""))
 	roFalse := newRoFalseZettel()
 	roTrue := newRoTrueZettel()
 	roReader := newRoReaderZettel()
 	roWriter := newRoWriterZettel()
 	roOwner := newRoOwnerZettel()
 	testCases := []struct {
-		user *domain.Meta
-		old  *domain.Meta
-		new  *domain.Meta
+		user *meta.Meta
+		old  *meta.Meta
+		new  *meta.Meta
 		exp  bool
 	}{
 		// No old and new meta
@@ -339,8 +340,8 @@ func testRename(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert
 	roWriter := newRoWriterZettel()
 	roOwner := newRoOwnerZettel()
 	testCases := []struct {
-		user *domain.Meta
-		meta *domain.Meta
+		user *meta.Meta
+		meta *meta.Meta
 		exp  bool
 	}{
 		// No meta
@@ -409,8 +410,8 @@ func testDelete(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert
 	roWriter := newRoWriterZettel()
 	roOwner := newRoOwnerZettel()
 	testCases := []struct {
-		user *domain.Meta
-		meta *domain.Meta
+		user *meta.Meta
+		meta *meta.Meta
 		exp  bool
 	}{
 		// No meta
@@ -466,98 +467,98 @@ func testDelete(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert
 }
 
 const (
-	readerZid = domain.ZettelID(1013)
-	writerZid = domain.ZettelID(1015)
-	ownerZid  = domain.ZettelID(1017)
-	zettelZid = domain.ZettelID(1021)
-	visZid    = domain.ZettelID(1023)
-	userZid   = domain.ZettelID(1025)
+	readerZid = id.ZettelID(1013)
+	writerZid = id.ZettelID(1015)
+	ownerZid  = id.ZettelID(1017)
+	zettelZid = id.ZettelID(1021)
+	visZid    = id.ZettelID(1023)
+	userZid   = id.ZettelID(1025)
 )
 
-func newAnon() *domain.Meta { return nil }
-func newReader() *domain.Meta {
-	user := domain.NewMeta(readerZid)
-	user.Set(domain.MetaKeyTitle, "Reader")
-	user.Set(domain.MetaKeyRole, domain.MetaValueRoleUser)
-	user.Set(domain.MetaKeyUserRole, "reader")
+func newAnon() *meta.Meta { return nil }
+func newReader() *meta.Meta {
+	user := meta.NewMeta(readerZid)
+	user.Set(meta.MetaKeyTitle, "Reader")
+	user.Set(meta.MetaKeyRole, meta.MetaValueRoleUser)
+	user.Set(meta.MetaKeyUserRole, "reader")
 	return user
 }
-func newWriter() *domain.Meta {
-	user := domain.NewMeta(writerZid)
-	user.Set(domain.MetaKeyTitle, "Writer")
-	user.Set(domain.MetaKeyRole, domain.MetaValueRoleUser)
-	user.Set(domain.MetaKeyUserRole, "writer")
+func newWriter() *meta.Meta {
+	user := meta.NewMeta(writerZid)
+	user.Set(meta.MetaKeyTitle, "Writer")
+	user.Set(meta.MetaKeyRole, meta.MetaValueRoleUser)
+	user.Set(meta.MetaKeyUserRole, "writer")
 	return user
 }
-func newOwner() *domain.Meta {
-	user := domain.NewMeta(ownerZid)
-	user.Set(domain.MetaKeyTitle, "Owner")
-	user.Set(domain.MetaKeyRole, domain.MetaValueRoleUser)
-	user.Set(domain.MetaKeyUserRole, "owner")
+func newOwner() *meta.Meta {
+	user := meta.NewMeta(ownerZid)
+	user.Set(meta.MetaKeyTitle, "Owner")
+	user.Set(meta.MetaKeyRole, meta.MetaValueRoleUser)
+	user.Set(meta.MetaKeyUserRole, "owner")
 	return user
 }
-func newZettel() *domain.Meta {
-	meta := domain.NewMeta(zettelZid)
-	meta.Set(domain.MetaKeyTitle, "Any Zettel")
-	return meta
+func newZettel() *meta.Meta {
+	m := meta.NewMeta(zettelZid)
+	m.Set(meta.MetaKeyTitle, "Any Zettel")
+	return m
 }
-func newPublicZettel() *domain.Meta {
-	meta := domain.NewMeta(visZid)
-	meta.Set(domain.MetaKeyTitle, "Public Zettel")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityPublic)
-	return meta
+func newPublicZettel() *meta.Meta {
+	m := meta.NewMeta(visZid)
+	m.Set(meta.MetaKeyTitle, "Public Zettel")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityPublic)
+	return m
 }
-func newLoginZettel() *domain.Meta {
-	meta := domain.NewMeta(visZid)
-	meta.Set(domain.MetaKeyTitle, "Login Zettel")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityLogin)
-	return meta
+func newLoginZettel() *meta.Meta {
+	m := meta.NewMeta(visZid)
+	m.Set(meta.MetaKeyTitle, "Login Zettel")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityLogin)
+	return m
 }
-func newOwnerZettel() *domain.Meta {
-	meta := domain.NewMeta(visZid)
-	meta.Set(domain.MetaKeyTitle, "Owner Zettel")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityOwner)
-	return meta
+func newOwnerZettel() *meta.Meta {
+	m := meta.NewMeta(visZid)
+	m.Set(meta.MetaKeyTitle, "Owner Zettel")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityOwner)
+	return m
 }
-func newExpertZettel() *domain.Meta {
-	meta := domain.NewMeta(visZid)
-	meta.Set(domain.MetaKeyTitle, "Expert Zettel")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityExpert)
-	return meta
+func newExpertZettel() *meta.Meta {
+	m := meta.NewMeta(visZid)
+	m.Set(meta.MetaKeyTitle, "Expert Zettel")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityExpert)
+	return m
 }
-func newRoFalseZettel() *domain.Meta {
-	meta := domain.NewMeta(zettelZid)
-	meta.Set(domain.MetaKeyTitle, "No r/o Zettel")
-	meta.Set(domain.MetaKeyReadOnly, "false")
-	return meta
+func newRoFalseZettel() *meta.Meta {
+	m := meta.NewMeta(zettelZid)
+	m.Set(meta.MetaKeyTitle, "No r/o Zettel")
+	m.Set(meta.MetaKeyReadOnly, "false")
+	return m
 }
-func newRoTrueZettel() *domain.Meta {
-	meta := domain.NewMeta(zettelZid)
-	meta.Set(domain.MetaKeyTitle, "A r/o Zettel")
-	meta.Set(domain.MetaKeyReadOnly, "true")
-	return meta
+func newRoTrueZettel() *meta.Meta {
+	m := meta.NewMeta(zettelZid)
+	m.Set(meta.MetaKeyTitle, "A r/o Zettel")
+	m.Set(meta.MetaKeyReadOnly, "true")
+	return m
 }
-func newRoReaderZettel() *domain.Meta {
-	meta := domain.NewMeta(zettelZid)
-	meta.Set(domain.MetaKeyTitle, "Reader r/o Zettel")
-	meta.Set(domain.MetaKeyReadOnly, "reader")
-	return meta
+func newRoReaderZettel() *meta.Meta {
+	m := meta.NewMeta(zettelZid)
+	m.Set(meta.MetaKeyTitle, "Reader r/o Zettel")
+	m.Set(meta.MetaKeyReadOnly, "reader")
+	return m
 }
-func newRoWriterZettel() *domain.Meta {
-	meta := domain.NewMeta(zettelZid)
-	meta.Set(domain.MetaKeyTitle, "Writer r/o Zettel")
-	meta.Set(domain.MetaKeyReadOnly, "writer")
-	return meta
+func newRoWriterZettel() *meta.Meta {
+	m := meta.NewMeta(zettelZid)
+	m.Set(meta.MetaKeyTitle, "Writer r/o Zettel")
+	m.Set(meta.MetaKeyReadOnly, "writer")
+	return m
 }
-func newRoOwnerZettel() *domain.Meta {
-	meta := domain.NewMeta(zettelZid)
-	meta.Set(domain.MetaKeyTitle, "Owner r/o Zettel")
-	meta.Set(domain.MetaKeyReadOnly, "owner")
-	return meta
+func newRoOwnerZettel() *meta.Meta {
+	m := meta.NewMeta(zettelZid)
+	m.Set(meta.MetaKeyTitle, "Owner r/o Zettel")
+	m.Set(meta.MetaKeyReadOnly, "owner")
+	return m
 }
-func newUserZettel() *domain.Meta {
-	meta := domain.NewMeta(userZid)
-	meta.Set(domain.MetaKeyTitle, "Any User")
-	meta.Set(domain.MetaKeyRole, domain.MetaValueRoleUser)
-	return meta
+func newUserZettel() *meta.Meta {
+	m := meta.NewMeta(userZid)
+	m.Set(meta.MetaKeyTitle, "Any User")
+	m.Set(meta.MetaKeyRole, meta.MetaValueRoleUser)
+	return m
 }

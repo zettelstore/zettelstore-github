@@ -20,7 +20,8 @@ import (
 
 	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/config/startup"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/place/progplace"
 )
@@ -86,7 +87,7 @@ func flgRun(fs *flag.FlagSet) {
 	fs.Bool("v", false, "verbose mode")
 }
 
-func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
+func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 	var configFile string
 	if configFlag := fs.Lookup("c"); configFlag != nil {
 		configFile = configFlag.Value.String()
@@ -95,9 +96,9 @@ func getConfig(fs *flag.FlagSet) (cfg *domain.Meta) {
 	}
 	content, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		cfg = domain.NewMeta(domain.InvalidZettelID)
+		cfg = meta.NewMeta(id.InvalidZettelID)
 	} else {
-		cfg = domain.NewMetaFromInput(domain.InvalidZettelID, input.NewInput(string(content)))
+		cfg = meta.NewMetaFromInput(id.InvalidZettelID, input.NewInput(string(content)))
 	}
 	fs.Visit(func(flg *flag.Flag) {
 		switch flg.Name {

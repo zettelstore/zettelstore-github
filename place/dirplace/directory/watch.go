@@ -20,7 +20,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 )
 
 var validFileName = regexp.MustCompile("^(\\d{14}).*(\\.(.+))$")
@@ -43,7 +43,7 @@ const (
 type fileEvent struct {
 	status fileStatus
 	path   string // Full file path
-	zid    domain.ZettelID
+	zid    id.ZettelID
 	ext    string // File extension
 	err    error  // Error if Status == fileStatusError
 }
@@ -83,7 +83,7 @@ func watchDirectory(directory string, events chan<- *fileEvent, tick <-chan stru
 	}
 
 	sendFileEvent := func(status fileStatus, path string, match []string) sendResult {
-		zid, err := domain.ParseZettelID(match[1])
+		zid, err := id.ParseZettelID(match[1])
 		if err != nil {
 			return sendDone
 		}
@@ -168,12 +168,14 @@ func watchDirectory(directory string, events chan<- *fileEvent, tick <-chan stru
 					if fi, err := os.Lstat(path); err != nil || !fi.Mode().IsRegular() {
 						continue
 					}
-					if res := sendFileEvent(fileStatusUpdate, path, match); res != sendDone {
+					if res := sendFileEvent(
+						fileStatusUpdate, path, match); res != sendDone {
 						return res == sendReload
 					}
 				}
 				if wevent.Op&deleteOps != 0 {
-					if res := sendFileEvent(fileStatusDelete, path, match); res != sendDone {
+					if res := sendFileEvent(
+						fileStatusDelete, path, match); res != sendDone {
 						return res == sendReload
 					}
 				}

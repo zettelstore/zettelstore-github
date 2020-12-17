@@ -18,6 +18,8 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 
 	"zettelstore.de/z/domain"
@@ -89,7 +91,7 @@ func getOrigZettel(
 			http.StatusBadRequest)
 		return domain.Zettel{}, false
 	}
-	zid, err := domain.ParseZettelID(r.URL.Path[1:])
+	zid, err := id.ParseZettelID(r.URL.Path[1:])
 	if err != nil {
 		http.NotFound(w, r)
 		return domain.Zettel{}, false
@@ -112,15 +114,15 @@ func renderZettelForm(
 ) {
 	ctx := r.Context()
 	user := session.GetUser(ctx)
-	meta := zettel.Meta
-	te.renderTemplate(r.Context(), w, domain.FormTemplateID, formZettelData{
-		baseData:      te.makeBaseData(ctx, runtime.GetLang(meta), title, user),
+	m := zettel.Meta
+	te.renderTemplate(r.Context(), w, id.FormTemplateID, formZettelData{
+		baseData:      te.makeBaseData(ctx, runtime.GetLang(m), title, user),
 		Heading:       heading,
-		MetaTitle:     runtime.GetTitle(meta),
-		MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),
-		MetaRole:      runtime.GetRole(meta),
-		MetaSyntax:    runtime.GetSyntax(meta),
-		MetaPairsRest: meta.PairsRest(),
+		MetaTitle:     runtime.GetTitle(m),
+		MetaTags:      m.GetDefault(meta.MetaKeyTags, ""),
+		MetaRole:      runtime.GetRole(m),
+		MetaSyntax:    runtime.GetSyntax(m),
+		MetaPairsRest: m.PairsRest(),
 		IsTextContent: !zettel.Content.IsBinary(),
 		Content:       zettel.Content.AsString(),
 	})
@@ -130,7 +132,7 @@ func renderZettelForm(
 // an existing zettel.
 func MakePostCreateZettelHandler(createZettel usecase.CreateZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zettel, hasContent, err := parseZettelForm(r, domain.InvalidZettelID)
+		zettel, hasContent, err := parseZettelForm(r, id.InvalidZettelID)
 		if err != nil {
 			http.Error(w, "Unable to read form data", http.StatusBadRequest)
 			return

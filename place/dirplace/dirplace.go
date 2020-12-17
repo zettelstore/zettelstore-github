@@ -23,6 +23,8 @@ import (
 
 	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/place/dirplace/directory"
 )
@@ -42,7 +44,7 @@ func init() {
 				getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
 			fSrvs: uint32(getQueryInt(u, "worker", 1, 17, 1499)),
 		}
-		dp.cacheChange(true, domain.InvalidZettelID)
+		dp.cacheChange(true, id.InvalidZettelID)
 		return &dp, nil
 	})
 }
@@ -90,7 +92,7 @@ type dirPlace struct {
 	fSrvs      uint32
 	fCmds      []chan fileCmd
 	mxCmds     sync.RWMutex
-	metaCache  map[domain.ZettelID]*domain.Meta
+	metaCache  map[id.ZettelID]*meta.Meta
 	mxCache    sync.RWMutex
 }
 
@@ -131,7 +133,7 @@ func (dp *dirPlace) localStart(ctx context.Context) error {
 	return nil
 }
 
-func (dp *dirPlace) notifyChanged(all bool, zid domain.ZettelID) {
+func (dp *dirPlace) notifyChanged(all bool, zid id.ZettelID) {
 	dp.cacheChange(all, zid)
 	dp.mxObserver.RLock()
 	observers := dp.observers
@@ -141,8 +143,8 @@ func (dp *dirPlace) notifyChanged(all bool, zid domain.ZettelID) {
 	}
 }
 
-func (dp *dirPlace) getFileChan(zid domain.ZettelID) chan fileCmd {
-	/* Based on https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function */
+func (dp *dirPlace) getFileChan(zid id.ZettelID) chan fileCmd {
+	// Based on https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
 	var sum uint32 = 2166136261 ^ uint32(zid)
 	sum *= 16777619
 	sum ^= uint32(zid >> 32)
@@ -195,12 +197,12 @@ func (dp *dirPlace) CanCreateZettel(ctx context.Context) bool {
 }
 
 func (dp *dirPlace) CreateZettel(
-	ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
 	if dp.isStopped() {
-		return domain.InvalidZettelID, place.ErrStopped
+		return id.InvalidZettelID, place.ErrStopped
 	}
 	if dp.readonly {
-		return domain.InvalidZettelID, place.ErrReadOnly
+		return id.InvalidZettelID, place.ErrReadOnly
 	}
 
 	meta := zettel.Meta
@@ -222,8 +224,7 @@ func (dp *dirPlace) CreateZettel(
 }
 
 // GetZettel reads the zettel from a file.
-func (dp *dirPlace) GetZettel(
-	ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+func (dp *dirPlace) GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
 	if dp.isStopped() {
 		return domain.Zettel{}, place.ErrStopped
 	}
@@ -251,7 +252,7 @@ func (dp *dirPlace) GetZettel(
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (dp *dirPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
+func (dp *dirPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
 	if dp.isStopped() {
 		return nil, place.ErrStopped
 	}
@@ -283,7 +284,7 @@ func (dp *dirPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
 func (dp *dirPlace) SelectMeta(
-	ctx context.Context, f *place.Filter, s *place.Sorter) (res []*domain.Meta, err error) {
+	ctx context.Context, f *place.Filter, s *place.Sorter) (res []*meta.Meta, err error) {
 	if dp.isStopped() {
 		return nil, place.ErrStopped
 	}
@@ -291,9 +292,9 @@ func (dp *dirPlace) SelectMeta(
 	hasMatch := place.CreateFilterFunc(f)
 	entries := dp.dirSrv.GetEntries()
 	rc := make(chan resGetMeta)
-	res = make([]*domain.Meta, 0, len(entries))
+	res = make([]*meta.Meta, 0, len(entries))
 	for _, entry := range entries {
-		meta, ok := dp.cacheGetMeta(entry.Zid)
+		m, ok := dp.cacheGetMeta(entry.Zid)
 		if !ok {
 			dp.getFileChan(entry.Zid) <- &fileGetMeta{&entry, rc}
 
@@ -304,13 +305,13 @@ func (dp *dirPlace) SelectMeta(
 			if res.err != nil {
 				continue
 			}
-			meta = res.meta
-			dp.cleanupMeta(ctx, meta)
-			dp.cacheSetMeta(meta)
+			m = res.meta
+			dp.cleanupMeta(ctx, m)
+			dp.cacheSetMeta(m)
 		}
 
-		if hasMatch(meta) {
-			res = append(res, meta)
+		if hasMatch(m) {
+			res = append(res, m)
 		}
 	}
 	close(rc)
@@ -363,7 +364,7 @@ func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	return err
 }
 
-func (dp *dirPlace) updateEntryFromMeta(entry *directory.Entry, meta *domain.Meta) {
+func (dp *dirPlace) updateEntryFromMeta(entry *directory.Entry, meta *meta.Meta) {
 	entry.MetaSpec, entry.ContentExt = calcSpecExt(meta)
 	basePath := filepath.Join(dp.dir, entry.Zid.Format())
 	if entry.MetaSpec == directory.MetaSpecFile {
@@ -373,11 +374,11 @@ func (dp *dirPlace) updateEntryFromMeta(entry *directory.Entry, meta *domain.Met
 	entry.Duplicates = false
 }
 
-func calcSpecExt(meta *domain.Meta) (directory.MetaSpec, string) {
-	if meta.YamlSep {
+func calcSpecExt(m *meta.Meta) (directory.MetaSpec, string) {
+	if m.YamlSep {
 		return directory.MetaSpecHeader, "zettel"
 	}
-	syntax := meta.GetDefault(domain.MetaKeySyntax, "bin")
+	syntax := m.GetDefault(meta.MetaKeySyntax, "bin")
 	switch syntax {
 	case "meta", "zmk":
 		return directory.MetaSpecHeader, "zettel"
@@ -390,7 +391,7 @@ func calcSpecExt(meta *domain.Meta) (directory.MetaSpec, string) {
 	return directory.MetaSpecFile, syntax
 }
 
-func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
+func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
 	if dp.isStopped() || dp.readonly {
 		return false
 	}
@@ -400,7 +401,7 @@ func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bo
 }
 
 // Rename changes the current zettel id to a new zettel id.
-func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
+func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
 	if dp.isStopped() {
 		return place.ErrStopped
 	}
@@ -442,7 +443,7 @@ func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 	return err
 }
 
-func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
+func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
 	if dp.isStopped() || dp.readonly {
 		return false
 	}
@@ -451,7 +452,7 @@ func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bo
 }
 
 // DeleteZettel removes the zettel from the place.
-func (dp *dirPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
+func (dp *dirPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
 	if dp.isStopped() {
 		return place.ErrStopped
 	}
@@ -495,16 +496,16 @@ func (dp *dirPlace) Reload(ctx context.Context) error {
 	return err
 }
 
-func (dp *dirPlace) cleanupMeta(ctx context.Context, meta *domain.Meta) {
-	if role, ok := meta.Get(domain.MetaKeyRole); !ok || role == "" {
-		meta.Set(domain.MetaKeyRole, runtime.GetDefaultRole())
+func (dp *dirPlace) cleanupMeta(ctx context.Context, m *meta.Meta) {
+	if role, ok := m.Get(meta.MetaKeyRole); !ok || role == "" {
+		m.Set(meta.MetaKeyRole, runtime.GetDefaultRole())
 	}
-	if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-		meta.Set(domain.MetaKeySyntax, runtime.GetDefaultSyntax())
+	if syntax, ok := m.Get(meta.MetaKeySyntax); !ok || syntax == "" {
+		m.Set(meta.MetaKeySyntax, runtime.GetDefaultSyntax())
 	}
 }
 
-func renamePath(path string, curID, newID domain.ZettelID) string {
+func renamePath(path string, curID, newID id.ZettelID) string {
 	dir, file := filepath.Split(path)
 	if cur := curID.Format(); strings.HasPrefix(file, cur) {
 		file = newID.Format() + file[len(cur):]
@@ -513,24 +514,24 @@ func renamePath(path string, curID, newID domain.ZettelID) string {
 	return path
 }
 
-func (dp *dirPlace) cacheChange(all bool, zid domain.ZettelID) {
+func (dp *dirPlace) cacheChange(all bool, zid id.ZettelID) {
 	dp.mxCache.Lock()
 	if all {
-		dp.metaCache = make(map[domain.ZettelID]*domain.Meta, len(dp.metaCache))
+		dp.metaCache = make(map[id.ZettelID]*meta.Meta, len(dp.metaCache))
 	} else {
 		delete(dp.metaCache, zid)
 	}
 	dp.mxCache.Unlock()
 }
 
-func (dp *dirPlace) cacheSetMeta(meta *domain.Meta) {
+func (dp *dirPlace) cacheSetMeta(m *meta.Meta) {
 	dp.mxCache.Lock()
-	meta.Freeze()
-	dp.metaCache[meta.Zid] = meta
+	m.Freeze()
+	dp.metaCache[m.Zid] = m
 	dp.mxCache.Unlock()
 }
 
-func (dp *dirPlace) cacheGetMeta(zid domain.ZettelID) (*domain.Meta, bool) {
+func (dp *dirPlace) cacheGetMeta(zid id.ZettelID) (*meta.Meta, bool) {
 	dp.mxCache.RLock()
 	meta, ok := dp.metaCache[zid]
 	dp.mxCache.RUnlock()

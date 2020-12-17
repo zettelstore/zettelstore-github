@@ -15,6 +15,8 @@ import (
 	"context"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/web/session"
 )
@@ -25,8 +27,8 @@ func PlaceWithPolicy(
 	withAuth func() bool,
 	isReadOnlyMode bool,
 	expertMode func() bool,
-	isOwner func(domain.ZettelID) bool,
-	getVisibility func(*domain.Meta) domain.Visibility,
+	isOwner func(id.ZettelID) bool,
+	getVisibility func(*meta.Meta) meta.Visibility,
 ) (place.Place, Policy) {
 	pol := newPolicy(withAuth, isReadOnlyMode, expertMode, isOwner, getVisibility)
 	return wrapPolicyPlace(place, pol), pol
@@ -83,17 +85,15 @@ func (pp *polPlace) CanCreateZettel(ctx context.Context) bool {
 }
 
 func (pp *polPlace) CreateZettel(
-	ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
+	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
 	user := session.GetUser(ctx)
 	if pp.policy.CanCreate(user, zettel.Meta) {
 		return pp.place.CreateZettel(ctx, zettel)
 	}
-	return domain.InvalidZettelID,
-		place.NewErrNotAllowed("Create", user, domain.InvalidZettelID)
+	return id.InvalidZettelID, place.NewErrNotAllowed("Create", user, id.InvalidZettelID)
 }
 
-func (pp *polPlace) GetZettel(
-	ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+func (pp *polPlace) GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
 	zettel, err := pp.place.GetZettel(ctx, zid)
 	if err != nil {
 		return domain.Zettel{}, err
@@ -106,14 +106,14 @@ func (pp *polPlace) GetZettel(
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (pp *polPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
-	meta, err := pp.place.GetMeta(ctx, zid)
+func (pp *polPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
+	m, err := pp.place.GetMeta(ctx, zid)
 	if err != nil {
 		return nil, err
 	}
 	user := session.GetUser(ctx)
-	if pp.policy.CanRead(user, meta) {
-		return meta, nil
+	if pp.policy.CanRead(user, m) {
+		return m, nil
 	}
 	return nil, place.NewErrNotAllowed("GetMeta", user, zid)
 }
@@ -121,17 +121,17 @@ func (pp *polPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.M
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
 func (pp *polPlace) SelectMeta(
-	ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
+	ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error) {
 	user := session.GetUser(ctx)
 	f = place.EnsureFilter(f)
 	canRead := pp.policy.CanRead
 	if sel := f.Select; sel != nil {
-		f.Select = func(meta *domain.Meta) bool {
-			return canRead(user, meta) && sel(meta)
+		f.Select = func(m *meta.Meta) bool {
+			return canRead(user, m) && sel(m)
 		}
 	} else {
-		f.Select = func(meta *domain.Meta) bool {
-			return canRead(user, meta)
+		f.Select = func(m *meta.Meta) bool {
+			return canRead(user, m)
 		}
 	}
 	result, err := pp.place.SelectMeta(ctx, f, s)
@@ -159,12 +159,12 @@ func (pp *polPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	return place.NewErrNotAllowed("Write", user, zid)
 }
 
-func (pp *polPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
+func (pp *polPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
 	return pp.place.CanRenameZettel(ctx, zid)
 }
 
 // Rename changes the current zid to a new zid.
-func (pp *polPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
+func (pp *polPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
 	meta, err := pp.place.GetMeta(ctx, curZid)
 	if err != nil {
 		return err
@@ -176,12 +176,12 @@ func (pp *polPlace) RenameZettel(ctx context.Context, curZid, newZid domain.Zett
 	return place.NewErrNotAllowed("Rename", user, curZid)
 }
 
-func (pp *polPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
+func (pp *polPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
 	return pp.place.CanDeleteZettel(ctx, zid)
 }
 
 // DeleteZettel removes the zettel from the place.
-func (pp *polPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
+func (pp *polPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
 	meta, err := pp.place.GetMeta(ctx, zid)
 	if err != nil {
 		return err
@@ -200,5 +200,5 @@ func (pp *polPlace) Reload(ctx context.Context) error {
 	if pp.policy.CanReload(user) {
 		return pp.place.Reload(ctx)
 	}
-	return place.NewErrNotAllowed("Reload", user, domain.InvalidZettelID)
+	return place.NewErrNotAllowed("Reload", user, id.InvalidZettelID)
 }

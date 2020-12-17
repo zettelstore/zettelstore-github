@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package domain provides domain specific types, constants, and functions.
-package domain
+// Package meta provides the domain specific type 'meta'.
+package meta
 
 import (
 	"bytes"
@@ -18,20 +18,21 @@ import (
 	"sort"
 	"strings"
 
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/runes"
 )
 
 // Meta contains all meta-data of a zettel.
 type Meta struct {
-	Zid     ZettelID
+	Zid     id.ZettelID
 	pairs   map[string]string
 	frozen  bool
 	YamlSep bool
 }
 
 // NewMeta creates a new chunk for storing meta-data
-func NewMeta(zid ZettelID) *Meta {
+func NewMeta(zid id.ZettelID) *Meta {
 	return &Meta{Zid: zid, pairs: make(map[string]string, 3)}
 }
 
@@ -179,8 +180,8 @@ func BoolValue(value string) bool {
 	return true
 }
 
-// MetaPair is one key-value-pair of a Zettel meta.
-type MetaPair struct {
+// Pair is one key-value-pair of a Zettel meta.
+type Pair struct {
 	Key   string
 	Value string
 }
@@ -277,22 +278,22 @@ func (m *Meta) GetListOrNil(key string) []string {
 // Pairs returns all key/values pairs stored, in a specific order. First come
 // the pairs with predefined keys: MetaTitleKey, MetaTagsKey, MetaSyntaxKey,
 // MetaContextKey. Then all other pairs are append to the list, ordered by key.
-func (m *Meta) Pairs() []MetaPair {
+func (m *Meta) Pairs() []Pair {
 	return m.doPairs(true)
 }
 
 // PairsRest returns all key/values pairs stored, except the values with
 // predefined keys. The pairs are ordered by key.
-func (m *Meta) PairsRest() []MetaPair {
+func (m *Meta) PairsRest() []Pair {
 	return m.doPairs(false)
 }
 
-func (m *Meta) doPairs(first bool) []MetaPair {
-	result := make([]MetaPair, 0, len(m.pairs))
+func (m *Meta) doPairs(first bool) []Pair {
+	result := make([]Pair, 0, len(m.pairs))
 	if first {
 		for _, key := range firstKeys {
 			if value, ok := m.pairs[key]; ok {
-				result = append(result, MetaPair{key, strings.TrimSpace(value)})
+				result = append(result, Pair{key, strings.TrimSpace(value)})
 			}
 		}
 	}
@@ -306,7 +307,7 @@ func (m *Meta) doPairs(first bool) []MetaPair {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		result = append(result, MetaPair{k, strings.TrimSpace(m.pairs[k])})
+		result = append(result, Pair{k, strings.TrimSpace(m.pairs[k])})
 	}
 	return result
 }
@@ -378,7 +379,7 @@ func (m *Meta) Equal(o *Meta) bool {
 }
 
 // NewMetaFromInput parses the meta data of a zettel.
-func NewMetaFromInput(zid ZettelID, inp *input.Input) *Meta {
+func NewMetaFromInput(zid id.ZettelID, inp *input.Input) *Meta {
 	if inp.Ch == '-' && inp.PeekN(0) == '-' && inp.PeekN(1) == '-' {
 		skipToEOL(inp)
 		inp.EatEOL()
@@ -526,7 +527,7 @@ func addToMeta(m *Meta, key, val string) {
 	case MetaTypeWordSet:
 		addSet(m, key, strings.ToLower(v), func(s string) bool { return true })
 	case MetaTypeID:
-		if _, err := ParseZettelID(val); err == nil {
+		if _, err := id.ParseZettelID(val); err == nil {
 			m.Set(key, val)
 		}
 	case MetaTypeEmpty:

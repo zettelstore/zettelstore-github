@@ -19,7 +19,7 @@ import (
 	"sort"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 )
 
 // Encoder is an interface that allows to encode different parts of a zettel.
@@ -27,7 +27,7 @@ type Encoder interface {
 	SetOption(Option)
 
 	WriteZettel(io.Writer, *ast.ZettelNode, bool) (int, error)
-	WriteMeta(io.Writer, *domain.Meta) (int, error)
+	WriteMeta(io.Writer, *meta.Meta) (int, error)
 	WriteContent(io.Writer, *ast.ZettelNode) (int, error)
 	WriteBlocks(io.Writer, ast.BlockSlice) (int, error)
 	WriteInlines(io.Writer, ast.InlineSlice) (int, error)

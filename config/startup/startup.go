@@ -18,7 +18,8 @@ import (
 	"strconv"
 	"time"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
@@ -27,7 +28,7 @@ var startupConfig struct {
 	readonlyMode  bool
 	urlPrefix     string
 	listenAddress string
-	owner         domain.ZettelID
+	owner         id.ZettelID
 	withAuth      bool
 	secret        []byte
 	insecCookie   bool
@@ -53,7 +54,7 @@ const (
 )
 
 // SetupStartup initializes the startup data.
-func SetupStartup(cfg *domain.Meta, withPlaces bool, lastPlace place.Place) error {
+func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place) error {
 	if startupConfig.urlPrefix != "" {
 		panic("startupConfig already set")
 	}
@@ -71,9 +72,9 @@ func SetupStartup(cfg *domain.Meta, withPlaces bool, lastPlace place.Place) erro
 	} else {
 		startupConfig.listenAddress = "127.0.0.1:23123"
 	}
-	startupConfig.owner = domain.InvalidZettelID
+	startupConfig.owner = id.InvalidZettelID
 	if owner, ok := cfg.Get(StartupKeyOwner); ok {
-		if zid, err := domain.ParseZettelID(owner); err == nil {
+		if zid, err := id.ParseZettelID(owner); err == nil {
 			startupConfig.owner = zid
 			startupConfig.withAuth = true
 		}
@@ -98,7 +99,7 @@ func SetupStartup(cfg *domain.Meta, withPlaces bool, lastPlace place.Place) erro
 	return err
 }
 
-func calcSecret(cfg *domain.Meta) []byte {
+func calcSecret(cfg *meta.Meta) []byte {
 	h := fnv.New128()
 	if secret, ok := cfg.Get("secret"); ok {
 		h.Write([]byte(secret))
@@ -112,7 +113,7 @@ func calcSecret(cfg *domain.Meta) []byte {
 	return h.Sum(nil)
 }
 
-func getPlaces(cfg *domain.Meta) []string {
+func getPlaces(cfg *meta.Meta) []string {
 	hasConst := false
 	var result []string = nil
 	for cnt := 1; ; cnt++ {
@@ -160,7 +161,7 @@ func connectPlaces(placeURIs []string, lastPlace place.Place) (place.Place, erro
 }
 
 func getDuration(
-	cfg *domain.Meta, key string, defDur, minDur, maxDur time.Duration) time.Duration {
+	cfg *meta.Meta, key string, defDur, minDur, maxDur time.Duration) time.Duration {
 	if s, ok := cfg.Get(key); ok && len(s) > 0 {
 		if d, err := strconv.ParseUint(s, 10, 64); err == nil {
 			secs := time.Duration(d) * time.Minute
@@ -199,10 +200,10 @@ func PersistentCookie() bool { return startupConfig.persistCookie }
 
 // Owner returns the zid of the zettelkasten's owner.
 // If there is no owner defined, the value ZettelID(0) is returned.
-func Owner() domain.ZettelID { return startupConfig.owner }
+func Owner() id.ZettelID { return startupConfig.owner }
 
 // IsOwner returns true, if the given user is the owner of the Zettelstore.
-func IsOwner(zid domain.ZettelID) bool { return zid.IsValid() && zid == startupConfig.owner }
+func IsOwner(zid id.ZettelID) bool { return zid.IsValid() && zid == startupConfig.owner }
 
 // WithAuth returns true if user authentication is enabled.
 func WithAuth() bool { return startupConfig.withAuth }

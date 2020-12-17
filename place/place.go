@@ -20,13 +20,15 @@ import (
 	"sort"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // ObserverFunc is the function that will be called if something changed.
 // If the first parameter, a bool, is true, then all zettel are possibly
 // changed. If it has the value false, the given ZettelID will identify the
 // changed zettel.
-type ObserverFunc func(bool, domain.ZettelID)
+type ObserverFunc func(bool, id.ZettelID)
 
 // Place is implemented by all Zettel places.
 type Place interface {
@@ -53,17 +55,17 @@ type Place interface {
 
 	// CreateZettel creates a new zettel.
 	// Returns the new zettel id (and an error indication).
-	CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error)
+	CreateZettel(ctx context.Context, zettel domain.Zettel) (id.ZettelID, error)
 
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error)
 
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
+	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
 
 	// SelectMeta returns all zettel meta data that match the selection criteria.
 	// TODO: more docs
-	SelectMeta(ctx context.Context, f *Filter, s *Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *Filter, s *Sorter) ([]*meta.Meta, error)
 
 	// CanUpdateZettel returns true, if place could possibly update the given zettel.
 	CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool
@@ -72,16 +74,16 @@ type Place interface {
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
 
 	// CanDeleteZettel returns true, if place could possibly delete the given zettel.
-	CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool
+	CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool
 
 	// DeleteZettel removes the zettel from the place.
-	DeleteZettel(ctx context.Context, zid domain.ZettelID) error
+	DeleteZettel(ctx context.Context, zid id.ZettelID) error
 
 	// CanRenameZettel returns true, if place could possibly rename the given zettel.
-	CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool
+	CanRenameZettel(ctx context.Context, zid id.ZettelID) bool
 
 	// RenameZettel changes the current Zid to a new Zid.
-	RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error
+	RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error
 
 	// Reload clears all caches, reloads all internal data to reflect changes
 	// that were possibly undetected.
@@ -91,12 +93,12 @@ type Place interface {
 // ErrNotAllowed is returned if the caller is not allowed to perform the operation.
 type ErrNotAllowed struct {
 	Op   string
-	User *domain.Meta
-	Zid  domain.ZettelID
+	User *meta.Meta
+	Zid  id.ZettelID
 }
 
 // NewErrNotAllowed creates an new authorization error.
-func NewErrNotAllowed(op string, user *domain.Meta, zid domain.ZettelID) error {
+func NewErrNotAllowed(op string, user *meta.Meta, zid id.ZettelID) error {
 	return &ErrNotAllowed{
 		Op:   op,
 		User: user,
@@ -119,13 +121,13 @@ func (err *ErrNotAllowed) Error() string {
 			"Operation %q on zettel %v not allowed for user %v/%v",
 			err.Op,
 			err.Zid.Format(),
-			err.User.GetDefault(domain.MetaKeyUserID, "?"),
+			err.User.GetDefault(meta.MetaKeyUserID, "?"),
 			err.User.Zid.Format())
 	}
 	return fmt.Sprintf(
 		"Operation %q not allowed for user %v/%v",
 		err.Op,
-		err.User.GetDefault(domain.MetaKeyUserID, "?"),
+		err.User.GetDefault(meta.MetaKeyUserID, "?"),
 		err.User.Zid.Format())
 }
 
@@ -142,12 +144,12 @@ var ErrStopped = errors.New("Place is stopped")
 var ErrReadOnly = errors.New("Read-only place")
 
 // ErrUnknownID is returned if the zettel id is unknown to the place.
-type ErrUnknownID struct{ Zid domain.ZettelID }
+type ErrUnknownID struct{ Zid id.ZettelID }
 
 func (err *ErrUnknownID) Error() string { return "Unknown Zettel id: " + err.Zid.Format() }
 
 // ErrInvalidID is returned if the zettel id is not appropriate for the place operation.
-type ErrInvalidID struct{ Zid domain.ZettelID }
+type ErrInvalidID struct{ Zid id.ZettelID }
 
 func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid.Format() }
 
@@ -155,7 +157,7 @@ func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid
 type Filter struct {
 	Expr   FilterExpr
 	Negate bool
-	Select func(*domain.Meta) bool
+	Select func(*meta.Meta) bool
 }
 
 // FilterExpr is the encoding of a search filter.

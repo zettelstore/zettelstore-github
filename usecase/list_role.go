@@ -15,7 +15,7 @@ import (
 	"context"
 	"sort"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
@@ -23,7 +23,7 @@ import (
 type ListRolePort interface {
 	// SelectMeta returns all zettel meta data that match the selection
 	// criteria. The result is ordered by descending zettel id.
-	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error)
 }
 
 // ListRole is the data for this use case.
@@ -43,8 +43,8 @@ func (uc ListRole) Run(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 	roles := make(map[string]bool, 8)
-	for _, meta := range metas {
-		if role, ok := meta.Get(domain.MetaKeyRole); ok && role != "" {
+	for _, m := range metas {
+		if role, ok := m.Get(meta.MetaKeyRole); ok && role != "" {
 			roles[role] = true
 		}
 	}

@@ -18,7 +18,8 @@ import (
 	"github.com/pascaldekloe/jwt"
 
 	"zettelstore.de/z/config/startup"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 const reqHash = jwt.HS512
@@ -46,11 +47,11 @@ const (
 )
 
 // GetToken returns a token to be used for authentification.
-func GetToken(ident *domain.Meta, d time.Duration, kind Kind) ([]byte, error) {
-	if role, ok := ident.Get(domain.MetaKeyRole); !ok || role != domain.MetaValueRoleUser {
+func GetToken(ident *meta.Meta, d time.Duration, kind Kind) ([]byte, error) {
+	if role, ok := ident.Get(meta.MetaKeyRole); !ok || role != meta.MetaValueRoleUser {
 		return nil, ErrNoUser
 	}
-	subject, ok := ident.Get(domain.MetaKeyUserID)
+	subject, ok := ident.Get(meta.MetaKeyUserID)
 	if !ok || len(subject) == 0 {
 		return nil, ErrNoIdent
 	}
@@ -84,7 +85,7 @@ type Data struct {
 	Issued  time.Time
 	Expires time.Time
 	Ident   string
-	Zid     domain.ZettelID
+	Zid     id.ZettelID
 }
 
 // CheckToken checks the validity of the token and returns relevant data.
@@ -107,7 +108,7 @@ func CheckToken(token []byte, k Kind) (Data, error) {
 		return Data{}, ErrNoIdent
 	}
 	if zidS, ok := claims.Set["zid"].(string); ok {
-		if zid, err := domain.ParseZettelID(zidS); err == nil {
+		if zid, err := id.ParseZettelID(zidS); err == nil {
 			if kind, ok := claims.Set["_tk"].(float64); ok {
 				if Kind(kind) == k {
 					return Data{

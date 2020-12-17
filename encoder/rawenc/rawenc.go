@@ -15,7 +15,7 @@ import (
 	"io"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -31,7 +31,8 @@ type rawEncoder struct{}
 func (re *rawEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
-func (re *rawEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
+func (re *rawEncoder) WriteZettel(
+	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	b := encoder.NewBufWriter(w)
 	if inhMeta {
 		zn.InhMeta.Write(&b)
@@ -45,9 +46,9 @@ func (re *rawEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool)
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (re *rawEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (re *rawEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
 	b := encoder.NewBufWriter(w)
-	meta.Write(&b)
+	m.Write(&b)
 	length, err := b.Flush()
 	return length, err
 }

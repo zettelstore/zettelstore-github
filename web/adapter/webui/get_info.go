@@ -23,7 +23,8 @@ import (
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/collect"
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
@@ -38,7 +39,7 @@ type metaDataInfo struct {
 }
 
 type zettelReference struct {
-	Zid    domain.ZettelID
+	Zid    id.ZettelID
 	Title  template.HTML
 	HasURL bool
 	URL    string
@@ -66,7 +67,7 @@ func MakeGetInfoHandler(
 			return
 		}
 
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -79,16 +80,18 @@ func MakeGetInfoHandler(
 			return
 		}
 
-		langOption := &encoder.StringOption{Key: "lang", Value: runtime.GetLang(zn.InhMeta)}
-		getTitle := func(zid domain.ZettelID) (string, int) {
-			meta, err := getMeta.Run(r.Context(), zid)
+		langOption := &encoder.StringOption{
+			Key:   "lang",
+			Value: runtime.GetLang(zn.InhMeta)}
+		getTitle := func(zid id.ZettelID) (string, int) {
+			m, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
 				if place.IsErrNotAllowed(err) {
 					return "", -1
 				}
 				return "", 0
 			}
-			astTitle := parser.ParseTitle(meta.GetDefault(domain.MetaKeyTitle, ""))
+			astTitle := parser.ParseTitle(m.GetDefault(meta.MetaKeyTitle, ""))
 			title, err := adapter.FormatInlines(astTitle, "html", langOption)
 			if err == nil {
 				return title, 1
@@ -133,7 +136,7 @@ func MakeGetInfoHandler(
 		}
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
 		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
-		te.renderTemplate(ctx, w, domain.InfoTemplateID, struct {
+		te.renderTemplate(ctx, w, id.InfoTemplateID, struct {
 			baseData
 			Zid          string
 			WebURL       string
@@ -165,8 +168,8 @@ func MakeGetInfoHandler(
 			EditURL:  adapter.NewURLBuilder('e').SetZid(zid).String(),
 			CanCopy:  canCopy,
 			CopyURL:  adapter.NewURLBuilder('c').SetZid(zid).String(),
-			CanNew: canCopy && zn.Zettel.Meta.GetDefault(domain.MetaKeyRole, "") ==
-				domain.MetaValueRoleNewTemplate,
+			CanNew: canCopy && zn.Zettel.Meta.GetDefault(meta.MetaKeyRole, "") ==
+				meta.MetaValueRoleNewTemplate,
 			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			CanRename:    te.canRename(ctx, user, zn.Zettel.Meta),
 			RenameURL:    adapter.NewURLBuilder('r').SetZid(zid).String(),
@@ -186,20 +189,20 @@ func MakeGetInfoHandler(
 	}
 }
 
-func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
-	switch meta.Type(key) {
-	case domain.MetaTypeBool:
+func htmlMetaValue(m *meta.Meta, key string) template.HTML {
+	switch m.Type(key) {
+	case meta.MetaTypeBool:
 		var b strings.Builder
-		if meta.GetBool(key) {
+		if m.GetBool(key) {
 			writeLink(&b, key, "True")
 		} else {
 			writeLink(&b, key, "False")
 		}
 		return template.HTML(b.String())
 
-	case domain.MetaTypeID:
-		value, _ := meta.Get(key)
-		zid, err := domain.ParseZettelID(value)
+	case meta.MetaTypeID:
+		value, _ := m.Get(key)
+		zid, err := id.ParseZettelID(value)
 		if err != nil {
 			return template.HTML(value)
 		}
@@ -207,8 +210,8 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 			"<a href=\"" + adapter.NewURLBuilder('h').SetZid(zid).String() + "\">" +
 				value + "</a>")
 
-	case domain.MetaTypeTagSet, domain.MetaTypeWordSet:
-		values, _ := meta.GetList(key)
+	case meta.MetaTypeTagSet, meta.MetaTypeWordSet:
+		values, _ := m.GetList(key)
 		var b strings.Builder
 		for i, tag := range values {
 			if i > 0 {
@@ -218,8 +221,8 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 		}
 		return template.HTML(b.String())
 
-	case domain.MetaTypeURL:
-		value, _ := meta.Get(key)
+	case meta.MetaTypeURL:
+		value, _ := m.Get(key)
 		url, err := url.Parse(value)
 		if err != nil {
 			return template.HTML(html.EscapeString(value))
@@ -227,14 +230,14 @@ func htmlMetaValue(meta *domain.Meta, key string) template.HTML {
 		return template.HTML(
 			"<a href=\"" + url.String() + "\">" + html.EscapeString(value) + "</a>")
 
-	case domain.MetaTypeWord:
-		value, _ := meta.Get(key)
+	case meta.MetaTypeWord:
+		value, _ := m.Get(key)
 		var b strings.Builder
 		writeLink(&b, key, value)
 		return template.HTML(b.String())
 
 	default:
-		value, _ := meta.Get(key)
+		value, _ := m.Get(key)
 		return template.HTML(html.EscapeString(value))
 	}
 }
@@ -252,7 +255,7 @@ func writeLink(b *strings.Builder, key, value string) {
 }
 
 func splitIntExtLinks(
-	getTitle func(domain.ZettelID) (string, int),
+	getTitle func(id.ZettelID) (string, int),
 	links []*ast.Reference,
 ) (zetLinks []zettelReference, locLinks []string, extLinks []string) {
 	if len(links) == 0 {
@@ -263,7 +266,7 @@ func splitIntExtLinks(
 			continue
 		}
 		if ref.IsZettel() {
-			zid, err := domain.ParseZettelID(ref.URL.Path)
+			zid, err := id.ParseZettelID(ref.URL.Path)
 			if err != nil {
 				panic(err)
 			}

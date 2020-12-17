@@ -15,16 +15,18 @@ import (
 	"net/url"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // ZettelNode is the root node of the abstract syntax tree.
 // It is *not* part of the visitor pattern.
 type ZettelNode struct {
 	Zettel  domain.Zettel
-	Zid     domain.ZettelID // Zettel identification.
-	InhMeta *domain.Meta    // Meta data of the zettel, with inherited values.
-	Title   InlineSlice     // Zettel title is a sequence of inline nodes.
-	Ast     BlockSlice      // Zettel abstract syntax tree is a sequence of block nodes.
+	Zid     id.ZettelID // Zettel identification.
+	InhMeta *meta.Meta  // Meta data of the zettel, with inherited values.
+	Title   InlineSlice // Zettel title is a sequence of inline nodes.
+	Ast     BlockSlice  // Zettel abstract syntax tree is a sequence of block nodes.
 }
 
 // Node is the interface, all nodes must implement.
@@ -99,7 +101,7 @@ func ParseReference(s string) *Reference {
 		return &Reference{URL: nil, Value: s, State: RefStateInvalid}
 	}
 	if len(u.Scheme)+len(u.Opaque)+len(u.Host) == 0 && u.User == nil {
-		if _, err := domain.ParseZettelID(u.Path); err == nil {
+		if _, err := id.ParseZettelID(u.Path); err == nil {
 			return &Reference{URL: u, Value: s, State: RefStateZettel}
 		}
 		if u.Path == "" && u.Fragment != "" {

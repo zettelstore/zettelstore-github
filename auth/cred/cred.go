@@ -15,12 +15,11 @@ import (
 	"bytes"
 
 	"golang.org/x/crypto/bcrypt"
-
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 )
 
 // HashCredential returns a hashed vesion of the given credential
-func HashCredential(zid domain.ZettelID, ident string, credential string) (string, error) {
+func HashCredential(zid id.ZettelID, ident string, credential string) (string, error) {
 	res, err := bcrypt.GenerateFromPassword(
 		createFullCredential(zid, ident, credential), bcrypt.DefaultCost)
 	if err != nil {
@@ -32,7 +31,11 @@ func HashCredential(zid domain.ZettelID, ident string, credential string) (strin
 // CompareHashAndCredential checks, whether the hashedCredential is a possible
 // value when hashing the credential.
 func CompareHashAndCredential(
-	hashedCredential string, zid domain.ZettelID, ident string, credential string) (bool, error) {
+	hashedCredential string,
+	zid id.ZettelID,
+	ident string,
+	credential string,
+) (bool, error) {
 	err := bcrypt.CompareHashAndPassword(
 		[]byte(hashedCredential), createFullCredential(zid, ident, credential))
 	if err == nil {
@@ -44,7 +47,7 @@ func CompareHashAndCredential(
 	return false, err
 }
 
-func createFullCredential(zid domain.ZettelID, ident string, credential string) []byte {
+func createFullCredential(zid id.ZettelID, ident string, credential string) []byte {
 	var buf bytes.Buffer
 	buf.WriteString(zid.Format())
 	buf.WriteByte(' ')

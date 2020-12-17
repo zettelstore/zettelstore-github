@@ -18,6 +18,8 @@ import (
 
 	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
@@ -55,15 +57,15 @@ func cmdFile(name string, fs *flag.FlagSet) (int, error) {
 	return 0, nil
 }
 
-func getInput(args []string) (*domain.Meta, *input.Input, error) {
+func getInput(args []string) (*meta.Meta, *input.Input, error) {
 	if len(args) < 1 {
 		src, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return nil, nil, err
 		}
 		inp := input.NewInput(string(src))
-		meta := domain.NewMetaFromInput(domain.NewZettelID(true), inp)
-		return meta, inp, nil
+		m := meta.NewMetaFromInput(id.NewZettelID(true), inp)
+		return m, inp, nil
 	}
 
 	src, err := ioutil.ReadFile(args[0])
@@ -71,7 +73,7 @@ func getInput(args []string) (*domain.Meta, *input.Input, error) {
 		return nil, nil, err
 	}
 	inp := input.NewInput(string(src))
-	meta := domain.NewMetaFromInput(domain.NewZettelID(true), inp)
+	m := meta.NewMetaFromInput(id.NewZettelID(true), inp)
 
 	if len(args) > 1 {
 		src, err := ioutil.ReadFile(args[1])
@@ -80,5 +82,5 @@ func getInput(args []string) (*domain.Meta, *input.Input, error) {
 		}
 		inp = input.NewInput(string(src))
 	}
-	return meta, inp, nil
+	return m, inp, nil
 }

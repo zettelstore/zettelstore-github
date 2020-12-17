@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/usecase"
@@ -27,7 +27,8 @@ import (
 var ErrNoSuchFormat = errors.New("no such format")
 
 // FormatInlines returns a string representation of the inline slice.
-func FormatInlines(is ast.InlineSlice, format string, options ...encoder.Option) (string, error) {
+func FormatInlines(
+	is ast.InlineSlice, format string, options ...encoder.Option) (string, error) {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return "", ErrNoSuchFormat
@@ -42,13 +43,18 @@ func FormatInlines(is ast.InlineSlice, format string, options ...encoder.Option)
 }
 
 // MakeLinkAdapter creates an adapter to change a link node during encoding.
-func MakeLinkAdapter(ctx context.Context, key byte, getMeta usecase.GetMeta, part, format string) func(*ast.LinkNode) ast.InlineNode {
+func MakeLinkAdapter(
+	ctx context.Context,
+	key byte,
+	getMeta usecase.GetMeta,
+	part, format string,
+) func(*ast.LinkNode) ast.InlineNode {
 	return func(origLink *ast.LinkNode) ast.InlineNode {
 		origRef := origLink.Ref
 		if origRef == nil || origRef.State != ast.RefStateZettel {
 			return origLink
 		}
-		zid, err := domain.ParseZettelID(origRef.URL.Path)
+		zid, err := id.ParseZettelID(origRef.URL.Path)
 		if err != nil {
 			panic(err)
 		}
@@ -91,11 +97,13 @@ func MakeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 			return origImage
 		}
 		newImage := *origImage
-		zid, err := domain.ParseZettelID(newImage.Ref.Value)
+		zid, err := id.ParseZettelID(newImage.Ref.Value)
 		if err != nil {
 			panic(err)
 		}
-		newImage.Ref = ast.ParseReference(NewURLBuilder('z').SetZid(zid).AppendQuery("_part", "content").AppendQuery("_format", "raw").String())
+		newImage.Ref = ast.ParseReference(
+			NewURLBuilder('z').SetZid(zid).AppendQuery("_part", "content").AppendQuery(
+				"_format", "raw").String())
 		newImage.Ref.State = ast.RefStateZettelFound
 		return &newImage
 	}

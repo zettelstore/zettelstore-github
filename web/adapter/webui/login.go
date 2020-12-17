@@ -20,7 +20,7 @@ import (
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/config/startup"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
@@ -35,7 +35,7 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 
 func renderLoginForm(
 	ctx context.Context, w http.ResponseWriter, te *TemplateEngine, retry bool) {
-	te.renderTemplate(ctx, w, domain.LoginTemplateID, struct {
+	te.renderTemplate(ctx, w, id.LoginTemplateID, struct {
 		baseData
 		Retry bool
 	}{

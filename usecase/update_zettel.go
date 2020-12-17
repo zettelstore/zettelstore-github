@@ -15,12 +15,14 @@ import (
 	"context"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // UpdateZettelPort is the interface used by this use case.
 type UpdateZettelPort interface {
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error)
 
 	// UpdateZettel updates an existing zettel.
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
@@ -37,18 +39,19 @@ func NewUpdateZettel(port UpdateZettelPort) UpdateZettel {
 }
 
 // Run executes the use case.
-func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel, hasContent bool) error {
-	meta := zettel.Meta
-	oldZettel, err := uc.port.GetZettel(ctx, meta.Zid)
+func (uc UpdateZettel) Run(
+	ctx context.Context, zettel domain.Zettel, hasContent bool) error {
+	m := zettel.Meta
+	oldZettel, err := uc.port.GetZettel(ctx, m.Zid)
 	if err != nil {
 		return err
 	}
 	if zettel.Equal(oldZettel) {
 		return nil
 	}
-	meta.YamlSep = oldZettel.Meta.YamlSep
-	if meta.Zid == domain.ConfigurationID {
-		meta.Set(domain.MetaKeySyntax, "meta")
+	m.YamlSep = oldZettel.Meta.YamlSep
+	if m.Zid == id.ConfigurationID {
+		m.Set(meta.MetaKeySyntax, "meta")
 	}
 	if !hasContent {
 		zettel.Content = oldZettel.Content

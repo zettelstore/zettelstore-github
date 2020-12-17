@@ -17,7 +17,7 @@ import (
 	"sort"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -33,7 +33,8 @@ type zmkEncoder struct{}
 func (ze *zmkEncoder) SetOption(option encoder.Option) {}
 
 // WriteZettel writes the encoded zettel to the writer.
-func (ze *zmkEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
+func (ze *zmkEncoder) WriteZettel(
+	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(w, ze)
 	if inhMeta {
 		zn.InhMeta.WriteAsHeader(&v.b)
@@ -46,8 +47,8 @@ func (ze *zmkEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool)
 }
 
 // WriteMeta encodes meta data as zmk.
-func (ze *zmkEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
-	return meta.Write(w)
+func (ze *zmkEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
+	return m.Write(w)
 }
 
 func (ze *zmkEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {
@@ -231,7 +232,12 @@ func (v *visitor) VisitTable(tn *ast.TableNode) {
 
 // VisitBLOB writes the binary object as a value.
 func (v *visitor) VisitBLOB(bn *ast.BLOBNode) {
-	v.b.WriteStrings("%% Unable to display BLOB with title '", bn.Title, "' and syntax '", bn.Syntax, "'\n")
+	v.b.WriteStrings(
+		"%% Unable to display BLOB with title '",
+		bn.Title,
+		"' and syntax '",
+		bn.Syntax,
+		"'\n")
 }
 
 var escapeSeqs = map[string]bool{

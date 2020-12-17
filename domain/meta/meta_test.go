@@ -8,17 +8,18 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package domain provides domain specific types, constants, and functions.
-package domain
+// Package meta provides the domain specific type 'meta'.
+package meta
 
 import (
 	"strings"
 	"testing"
 
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/input"
 )
 
-const testID = ZettelID(98765432101234)
+const testID = id.ZettelID(98765432101234)
 
 func newMeta(title string, tags []string, syntax string) *Meta {
 	m := NewMeta(testID)
@@ -153,7 +154,7 @@ func TestSyntax(t *testing.T) {
 	}
 }
 
-func checkHeader(t *testing.T, exp map[string]string, gotP []MetaPair) {
+func checkHeader(t *testing.T, exp map[string]string, gotP []Pair) {
 	t.Helper()
 	got := make(map[string]string, len(gotP))
 	for _, p := range gotP {
@@ -248,18 +249,18 @@ func TestDelete(t *testing.T) {
 func TestNewMetaFromInput(t *testing.T) {
 	testcases := []struct {
 		input string
-		exp   []MetaPair
+		exp   []Pair
 	}{
-		{"", []MetaPair{}},
-		{" a:b", []MetaPair{{"a", "b"}}},
-		{"%a:b", []MetaPair{}},
-		{"a:b\r\n\r\nc:d", []MetaPair{{"a", "b"}}},
-		{"a:b\r\n%c:d", []MetaPair{{"a", "b"}}},
-		{"% a:b\r\n c:d", []MetaPair{{"c", "d"}}},
-		{"---\r\na:b\r\n", []MetaPair{{"a", "b"}}},
-		{"---\r\na:b\r\n--\r\nc:d", []MetaPair{{"a", "b"}, {"c", "d"}}},
-		{"---\r\na:b\r\n---\r\nc:d", []MetaPair{{"a", "b"}}},
-		{"---\r\na:b\r\n----\r\nc:d", []MetaPair{{"a", "b"}}},
+		{"", []Pair{}},
+		{" a:b", []Pair{{"a", "b"}}},
+		{"%a:b", []Pair{}},
+		{"a:b\r\n\r\nc:d", []Pair{{"a", "b"}}},
+		{"a:b\r\n%c:d", []Pair{{"a", "b"}}},
+		{"% a:b\r\n c:d", []Pair{{"c", "d"}}},
+		{"---\r\na:b\r\n", []Pair{{"a", "b"}}},
+		{"---\r\na:b\r\n--\r\nc:d", []Pair{{"a", "b"}, {"c", "d"}}},
+		{"---\r\na:b\r\n---\r\nc:d", []Pair{{"a", "b"}}},
+		{"---\r\na:b\r\n----\r\nc:d", []Pair{{"a", "b"}}},
 	}
 	for i, tc := range testcases {
 		meta := parseMetaStr(tc.input)
@@ -271,7 +272,7 @@ func TestNewMetaFromInput(t *testing.T) {
 	// Test, whether input position is correct.
 	inp := input.NewInput("---\na:b\n---\nX")
 	meta := NewMetaFromInput(testID, inp)
-	exp := []MetaPair{{"a", "b"}}
+	exp := []Pair{{"a", "b"}}
 	if got := meta.Pairs(); !equalPairs(exp, got) {
 		t.Errorf("Expected=%v, got=%v", exp, got)
 	}
@@ -281,7 +282,7 @@ func TestNewMetaFromInput(t *testing.T) {
 	}
 }
 
-func equalPairs(one, two []MetaPair) bool {
+func equalPairs(one, two []Pair) bool {
 	if len(one) != len(two) {
 		return false
 	}

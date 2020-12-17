@@ -17,7 +17,8 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
@@ -27,7 +28,7 @@ import (
 func MakeGetZettelHandler(
 	parseZettel usecase.ParseZettel, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -49,7 +50,9 @@ func MakeGetZettelHandler(
 			case "zettel", "meta", "content", "id":
 			default:
 				http.Error(
-					w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
+					w,
+					fmt.Sprintf("Unknown _part=%v parameter", part),
+					http.StatusBadRequest)
 				return
 			}
 			w.Header().Set("Content-Type", format2ContentType(format))
@@ -84,7 +87,7 @@ func MakeGetZettelHandler(
 				&encoder.StringsOption{
 					Key: "no-meta",
 					Value: []string{
-						domain.MetaKeyLang,
+						meta.MetaKeyLang,
 					},
 				},
 			)
@@ -112,7 +115,7 @@ func MakeGetZettelHandler(
 			err = writeContent(w, zn, format,
 				&langOption,
 				&encoder.StringOption{
-					Key:   domain.MetaKeyMarkerExternal,
+					Key:   meta.MetaKeyMarkerExternal,
 					Value: runtime.GetMarkerExternal()},
 				&linkAdapter,
 				&imageAdapter,
@@ -126,7 +129,8 @@ func MakeGetZettelHandler(
 			if err == adapter.ErrNoSuchFormat {
 				http.Error(
 					w,
-					fmt.Sprintf("Zettel %q not available in format %q", zid.Format(), format),
+					fmt.Sprintf(
+						"Zettel %q not available in format %q", zid.Format(), format),
 					http.StatusBadRequest)
 				return
 			}

@@ -17,6 +17,8 @@ import (
 	"strings"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 )
 
@@ -27,45 +29,46 @@ type formZettelData struct {
 	MetaRole      string
 	MetaTags      string
 	MetaSyntax    string
-	MetaPairsRest []domain.MetaPair
+	MetaPairsRest []meta.Pair
 	IsTextContent bool
 	Content       string
 }
 
-func parseZettelForm(r *http.Request, zid domain.ZettelID) (domain.Zettel, bool, error) {
+func parseZettelForm(r *http.Request, zid id.ZettelID) (domain.Zettel, bool, error) {
 	err := r.ParseForm()
 	if err != nil {
 		return domain.Zettel{}, false, err
 	}
 
-	var meta *domain.Meta
+	var m *meta.Meta
 	if postMeta, ok := trimmedFormValue(r, "meta"); ok {
-		meta = domain.NewMetaFromInput(zid, input.NewInput(postMeta))
+		m = meta.NewMetaFromInput(zid, input.NewInput(postMeta))
 	} else {
-		meta = domain.NewMeta(zid)
+		m = meta.NewMeta(zid)
 	}
 	if postTitle, ok := trimmedFormValue(r, "title"); ok {
-		meta.Set(domain.MetaKeyTitle, postTitle)
+		m.Set(meta.MetaKeyTitle, postTitle)
 	}
 	if postTags, ok := trimmedFormValue(r, "tags"); ok {
 		if tags := strings.Fields(postTags); len(tags) > 0 {
-			meta.SetList(domain.MetaKeyTags, tags)
+			m.SetList(meta.MetaKeyTags, tags)
 		}
 	}
 	if postRole, ok := trimmedFormValue(r, "role"); ok {
-		meta.Set(domain.MetaKeyRole, postRole)
+		m.Set(meta.MetaKeyRole, postRole)
 	}
 	if postSyntax, ok := trimmedFormValue(r, "syntax"); ok {
-		meta.Set(domain.MetaKeySyntax, postSyntax)
+		m.Set(meta.MetaKeySyntax, postSyntax)
 	}
 	if values, ok := r.PostForm["content"]; ok && len(values) > 0 {
 		return domain.Zettel{
-			Meta:    meta,
-			Content: domain.NewContent(strings.ReplaceAll(strings.TrimSpace(values[0]), "\r\n", "\n")),
+			Meta: m,
+			Content: domain.NewContent(
+				strings.ReplaceAll(strings.TrimSpace(values[0]), "\r\n", "\n")),
 		}, true, nil
 	}
 	return domain.Zettel{
-		Meta:    meta,
+		Meta:    m,
 		Content: domain.NewContent(""),
 	}, false, nil
 }

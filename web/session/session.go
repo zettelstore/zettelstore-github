@@ -19,7 +19,7 @@ import (
 
 	"zettelstore.de/z/auth/token"
 	"zettelstore.de/z/config/startup"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/usecase"
 )
 
@@ -69,7 +69,7 @@ var ctxKey ctxKeyType
 
 // AuthData stores all relevant authentication data for a context.
 type AuthData struct {
-	User    *domain.Meta
+	User    *meta.Meta
 	Token   []byte
 	Now     time.Time
 	Issued  time.Time
@@ -87,7 +87,7 @@ func GetAuthData(ctx context.Context) *AuthData {
 }
 
 // GetUser returns the user meta data from the context, if there is one. Else return nil.
-func GetUser(ctx context.Context) *domain.Meta {
+func GetUser(ctx context.Context) *meta.Meta {
 	if data := GetAuthData(ctx); data != nil {
 		return data.User
 	}
@@ -95,7 +95,7 @@ func GetUser(ctx context.Context) *domain.Meta {
 }
 
 func updateContext(
-	ctx context.Context, user *domain.Meta, data *token.Data) context.Context {
+	ctx context.Context, user *meta.Meta, data *token.Data) context.Context {
 	if data == nil {
 		return context.WithValue(ctx, ctxKey, &AuthData{User: user})
 	}

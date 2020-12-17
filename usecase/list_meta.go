@@ -14,7 +14,7 @@ package usecase
 import (
 	"context"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
@@ -22,7 +22,7 @@ import (
 type ListMetaPort interface {
 	// SelectMeta returns all zettel meta data that match the selection
 	// criteria. The result is ordered by descending zettel id.
-	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error)
 }
 
 // ListMeta is the data for this use case.
@@ -36,6 +36,7 @@ func NewListMeta(port ListMetaPort) ListMeta {
 }
 
 // Run executes the use case.
-func (uc ListMeta) Run(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error) {
+func (uc ListMeta) Run(
+	ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error) {
 	return uc.port.SelectMeta(ctx, f, s)
 }

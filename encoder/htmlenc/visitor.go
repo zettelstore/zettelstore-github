@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -42,12 +42,12 @@ func newVisitor(he *htmlEncoder, w io.Writer) *visitor {
 }
 
 var mapMetaKey = map[string]string{
-	domain.MetaKeyCopyright: "copyright",
-	domain.MetaKeyLicense:   "license",
+	meta.MetaKeyCopyright: "copyright",
+	meta.MetaKeyLicense:   "license",
 }
 
-func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
-	for i, pair := range meta.Pairs() {
+func (v *visitor) acceptMeta(m *meta.Meta, withTitle bool) {
+	for i, pair := range m.Pairs() {
 		if i == 0 { // "title" is number 0...
 			if withTitle && !v.enc.ignoreMeta[pair.Key] {
 				v.b.WriteStrings("<meta name=\"zs-", pair.Key, "\" content=\"")
@@ -57,9 +57,9 @@ func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
 			continue
 		}
 		if !v.enc.ignoreMeta[pair.Key] {
-			if pair.Key == domain.MetaKeyTags {
+			if pair.Key == meta.MetaKeyTags {
 				v.b.WriteString("\n<meta name=\"keywords\" content=\"")
-				for i, val := range domain.ListFromValue(pair.Value) {
+				for i, val := range meta.ListFromValue(pair.Value) {
 					if i > 0 {
 						v.b.WriteString(", ")
 					}
@@ -107,7 +107,10 @@ func (v *visitor) writeEndnotes() {
 			n := strconv.Itoa(i + 1)
 			v.b.WriteStrings("<li id=\"fn:", n, "\" role=\"doc-endnote\">")
 			v.acceptInlineSlice(fn.Inlines)
-			v.b.WriteStrings(" <a href=\"#fnref:", n, "\" class=\"zs-footnote-backref\" role=\"doc-backlink\">&#x21a9;&#xfe0e;</a></li>\n")
+			v.b.WriteStrings(
+				" <a href=\"#fnref:",
+				n,
+				"\" class=\"zs-footnote-backref\" role=\"doc-backlink\">&#x21a9;&#xfe0e;</a></li>\n")
 		}
 		v.b.WriteString("</ol>\n")
 	}

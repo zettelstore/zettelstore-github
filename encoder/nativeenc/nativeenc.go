@@ -18,7 +18,7 @@ import (
 	"strconv"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -44,7 +44,8 @@ func (ne *nativeEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel encodes the zettel to the writer.
-func (ne *nativeEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
+func (ne *nativeEncoder) WriteZettel(
+	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(w, ne)
 	v.b.WriteString("[Title ")
 	v.acceptInlineSlice(zn.Title)
@@ -61,9 +62,9 @@ func (ne *nativeEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bo
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (ne *nativeEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (ne *nativeEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
 	v := newVisitor(w, ne)
-	v.acceptMeta(meta, true)
+	v.acceptMeta(m, true)
 	length, err := v.b.Flush()
 	return length, err
 }
@@ -105,16 +106,16 @@ var (
 	rawNewline     = []byte{'\\', 'n'}
 )
 
-func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
+func (v *visitor) acceptMeta(m *meta.Meta, withTitle bool) {
 	if withTitle {
 		v.b.WriteString("[Title \"")
-		v.writeEscaped(meta.GetDefault(domain.MetaKeyTitle, ""))
+		v.writeEscaped(m.GetDefault(meta.MetaKeyTitle, ""))
 		v.b.WriteString("\"]")
 	}
-	v.writeMetaString(meta, domain.MetaKeyRole, "Role")
-	v.writeMetaList(meta, domain.MetaKeyTags, "Tags")
-	v.writeMetaString(meta, domain.MetaKeySyntax, "Syntax")
-	if pairs := meta.PairsRest(); len(pairs) > 0 {
+	v.writeMetaString(m, meta.MetaKeyRole, "Role")
+	v.writeMetaList(m, meta.MetaKeyTags, "Tags")
+	v.writeMetaString(m, meta.MetaKeySyntax, "Syntax")
+	if pairs := m.PairsRest(); len(pairs) > 0 {
 		v.b.WriteString("\n[Header")
 		first := true
 		v.level++
@@ -134,14 +135,14 @@ func (v *visitor) acceptMeta(meta *domain.Meta, withTitle bool) {
 	}
 }
 
-func (v *visitor) writeMetaString(meta *domain.Meta, key string, native string) {
-	if val, ok := meta.Get(key); ok && len(val) > 0 {
+func (v *visitor) writeMetaString(m *meta.Meta, key string, native string) {
+	if val, ok := m.Get(key); ok && len(val) > 0 {
 		v.b.WriteStrings("\n[", native, " \"", val, "\"]")
 	}
 }
 
-func (v *visitor) writeMetaList(meta *domain.Meta, key string, native string) {
-	if vals, ok := meta.GetList(key); ok && len(vals) > 0 {
+func (v *visitor) writeMetaList(m *meta.Meta, key string, native string) {
+	if vals, ok := m.GetList(key); ok && len(vals) > 0 {
 		v.b.WriteStrings("\n[", native)
 		for _, val := range vals {
 			v.b.WriteByte(' ')

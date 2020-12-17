@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 )
@@ -29,16 +29,17 @@ func init() {
 	})
 }
 
-func parseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+func parseBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
 	descrlist := &ast.DescriptionListNode{}
-	for _, p := range meta.Pairs() {
-		descrlist.Descriptions = append(descrlist.Descriptions, getDescription(p.Key, p.Value))
+	for _, p := range m.Pairs() {
+		descrlist.Descriptions = append(
+			descrlist.Descriptions, getDescription(p.Key, p.Value))
 	}
 	return ast.BlockSlice{descrlist}
 }
 
 func getDescription(key, value string) ast.Description {
-	makeLink := domain.KeyType(key) == domain.MetaTypeID
+	makeLink := meta.KeyType(key) == meta.MetaTypeID
 	return ast.Description{
 		Term: ast.InlineSlice{&ast.TextNode{Text: key}},
 		Descriptions: []ast.DescriptionSlice{

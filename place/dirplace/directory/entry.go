@@ -14,7 +14,8 @@ package directory
 import (
 	"strings"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // MetaSpec defines all possibilities where meta data can be stored.
@@ -30,7 +31,7 @@ const (
 
 // Entry stores everything for a directory entry.
 type Entry struct {
-	Zid         domain.ZettelID
+	Zid         id.ZettelID
 	MetaSpec    MetaSpec // location of meta information
 	MetaPath    string   // file path of meta information
 	ContentPath string   // file path of zettel content
@@ -57,9 +58,9 @@ func (e *Entry) calculateSyntax() string {
 }
 
 // CalcDefaultMeta returns metadata with default values for the given entry.
-func (e *Entry) CalcDefaultMeta() *domain.Meta {
-	meta := domain.NewMeta(e.Zid)
-	meta.Set(domain.MetaKeyTitle, e.Zid.Format())
-	meta.Set(domain.MetaKeySyntax, e.calculateSyntax())
-	return meta
+func (e *Entry) CalcDefaultMeta() *meta.Meta {
+	m := meta.NewMeta(e.Zid)
+	m.Set(meta.MetaKeyTitle, e.Zid.Format())
+	m.Set(meta.MetaKeySyntax, e.calculateSyntax())
+	return m
 }

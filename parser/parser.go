@@ -17,6 +17,7 @@ import (
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/config/runtime"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 )
 
@@ -28,7 +29,7 @@ import (
 type Info struct {
 	Name         string
 	AltNames     []string
-	ParseBlocks  func(*input.Input, *domain.Meta, string) ast.BlockSlice
+	ParseBlocks  func(*input.Input, *meta.Meta, string) ast.BlockSlice
 	ParseInlines func(*input.Input, string) ast.InlineSlice
 }
 
@@ -62,8 +63,8 @@ func Get(name string) *Info {
 }
 
 // ParseBlocks parses some input and returns a slice of block nodes.
-func ParseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
-	bs := Get(syntax).ParseBlocks(inp, meta, syntax)
+func ParseBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
+	bs := Get(syntax).ParseBlocks(inp, m, syntax)
 	cleanupBlockSlice(bs)
 	return bs
 }
@@ -80,19 +81,19 @@ func ParseTitle(title string) ast.InlineSlice {
 
 // ParseZettel parses the zettel based on the syntax.
 func ParseZettel(zettel domain.Zettel, syntax string) *ast.ZettelNode {
-	meta := zettel.Meta
+	m := zettel.Meta
 	inhMeta := runtime.AddDefaultValues(zettel.Meta)
 	if len(syntax) == 0 {
-		syntax, _ = inhMeta.Get(domain.MetaKeySyntax)
+		syntax, _ = inhMeta.Get(meta.MetaKeySyntax)
 	}
-	title, _ := inhMeta.Get(domain.MetaKeyTitle)
+	title, _ := inhMeta.Get(meta.MetaKeyTitle)
 	parseMeta := inhMeta
 	if syntax == "meta" {
-		parseMeta = meta
+		parseMeta = m
 	}
 	return &ast.ZettelNode{
 		Zettel:  zettel,
-		Zid:     meta.Zid,
+		Zid:     m.Zid,
 		InhMeta: inhMeta,
 		Title:   ParseTitle(title),
 		Ast:     ParseBlocks(input.NewInput(zettel.Content.AsString()), parseMeta, syntax),

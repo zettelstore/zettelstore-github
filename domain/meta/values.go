@@ -8,8 +8,8 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package domain provides domain specific types, constants, and functions.
-package domain
+// Package meta provides the domain specific type 'meta'.
+package meta
 
 // Visibility enumerates the variations of the 'visibility' meta key.
 type Visibility int

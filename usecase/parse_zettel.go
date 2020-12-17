@@ -15,7 +15,7 @@ import (
 	"context"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/parser"
 )
 
@@ -30,7 +30,8 @@ func NewParseZettel(getZettel GetZettel) ParseZettel {
 }
 
 // Run executes the use case.
-func (uc ParseZettel) Run(ctx context.Context, zid domain.ZettelID, syntax string) (*ast.ZettelNode, error) {
+func (uc ParseZettel) Run(
+	ctx context.Context, zid id.ZettelID, syntax string) (*ast.ZettelNode, error) {
 	zettel, err := uc.getZettel.Run(ctx, zid)
 	if err != nil {
 		return nil, err

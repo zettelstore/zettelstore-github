@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/runes"
@@ -45,7 +45,7 @@ func init() {
 	})
 }
 
-func parseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+func parseBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
 	return ast.BlockSlice{
 		&ast.VerbatimNode{
 			Code:  ast.VerbatimProg,
@@ -79,7 +79,7 @@ func parseInlines(inp *input.Input, syntax string) ast.InlineSlice {
 	}
 }
 
-func parseSVGBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+func parseSVGBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
 	ins := parseSVGInlines(inp, syntax)
 	if ins == nil {
 		return nil

@@ -16,7 +16,8 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
@@ -27,7 +28,7 @@ import (
 func MakeEditGetZettelHandler(
 	te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -43,30 +44,32 @@ func MakeEditGetZettelHandler(
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
 			http.Error(
 				w,
-				fmt.Sprintf("Edit zettel %q not possible in format %q", zid.Format(), format),
+				fmt.Sprintf(
+					"Edit zettel %q not possible in format %q", zid.Format(), format),
 				http.StatusBadRequest)
 			return
 		}
 
 		user := session.GetUser(ctx)
-		meta := zettel.Meta
-		te.renderTemplate(ctx, w, domain.FormTemplateID, formZettelData{
-			baseData:      te.makeBaseData(ctx, runtime.GetLang(meta), "Edit Zettel", user),
-			MetaTitle:     meta.GetDefault(domain.MetaKeyTitle, ""),
-			MetaRole:      meta.GetDefault(domain.MetaKeyRole, ""),
-			MetaTags:      meta.GetDefault(domain.MetaKeyTags, ""),
-			MetaSyntax:    meta.GetDefault(domain.MetaKeySyntax, ""),
-			MetaPairsRest: meta.PairsRest(),
+		m := zettel.Meta
+		te.renderTemplate(ctx, w, id.FormTemplateID, formZettelData{
+			baseData:      te.makeBaseData(ctx, runtime.GetLang(m), "Edit Zettel", user),
+			MetaTitle:     m.GetDefault(meta.MetaKeyTitle, ""),
+			MetaRole:      m.GetDefault(meta.MetaKeyRole, ""),
+			MetaTags:      m.GetDefault(meta.MetaKeyTags, ""),
+			MetaSyntax:    m.GetDefault(meta.MetaKeySyntax, ""),
+			MetaPairsRest: m.PairsRest(),
 			IsTextContent: !zettel.Content.IsBinary(),
 			Content:       zettel.Content.AsString(),
 		})
 	}
 }
 
-// MakeEditSetZettelHandler creates a new HTTP handler to store content of an existing zettel.
+// MakeEditSetZettelHandler creates a new HTTP handler to store content of
+// an existing zettel.
 func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -81,6 +84,7 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 			adapter.ReportUsecaseError(w, err)
 			return
 		}
-		http.Redirect(w, r, adapter.NewURLBuilder('h').SetZid(zid).String(), http.StatusFound)
+		http.Redirect(
+			w, r, adapter.NewURLBuilder('h').SetZid(zid).String(), http.StatusFound)
 	}
 }

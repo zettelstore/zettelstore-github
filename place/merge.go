@@ -11,14 +11,14 @@
 // Package place provides a generic interface to zettel places.
 package place
 
-import "zettelstore.de/z/domain"
+import "zettelstore.de/z/domain/meta"
 
 // MergeSorted returns a merged sequence of meta data, sorted by a given Sorter.
 // The lists first and second must be sorted descending by Zid.
-func MergeSorted(first, second []*domain.Meta, s *Sorter) []*domain.Meta {
+func MergeSorted(first, second []*meta.Meta, s *Sorter) []*meta.Meta {
 	lenFirst := len(first)
 	lenSecond := len(second)
-	result := make([]*domain.Meta, 0, lenFirst+lenSecond)
+	result := make([]*meta.Meta, 0, lenFirst+lenSecond)
 	iFirst := 0
 	iSecond := 0
 	for iFirst < lenFirst && iSecond < lenSecond {

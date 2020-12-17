@@ -12,39 +12,39 @@
 package policy
 
 import (
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 )
 
 type anonPolicy struct {
 	expertMode    func() bool
-	getVisibility func(*domain.Meta) domain.Visibility
+	getVisibility func(*meta.Meta) meta.Visibility
 	pre           Policy
 }
 
-func (ap *anonPolicy) CanReload(user *domain.Meta) bool {
+func (ap *anonPolicy) CanReload(user *meta.Meta) bool {
 	return ap.pre.CanReload(user)
 }
 
-func (ap *anonPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
+func (ap *anonPolicy) CanCreate(user *meta.Meta, newMeta *meta.Meta) bool {
 	return ap.pre.CanCreate(user, newMeta)
 }
 
-func (ap *anonPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
-	return ap.pre.CanRead(user, meta) &&
-		(ap.getVisibility(meta) != domain.VisibilityExpert || ap.expertMode())
+func (ap *anonPolicy) CanRead(user *meta.Meta, m *meta.Meta) bool {
+	return ap.pre.CanRead(user, m) &&
+		(ap.getVisibility(m) != meta.VisibilityExpert || ap.expertMode())
 }
 
-func (ap *anonPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
+func (ap *anonPolicy) CanWrite(user *meta.Meta, oldMeta, newMeta *meta.Meta) bool {
 	return ap.pre.CanWrite(user, oldMeta, newMeta) &&
-		(ap.getVisibility(oldMeta) != domain.VisibilityExpert || ap.expertMode())
+		(ap.getVisibility(oldMeta) != meta.VisibilityExpert || ap.expertMode())
 }
 
-func (ap *anonPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
-	return ap.pre.CanRename(user, meta) &&
-		(ap.getVisibility(meta) != domain.VisibilityExpert || ap.expertMode())
+func (ap *anonPolicy) CanRename(user *meta.Meta, m *meta.Meta) bool {
+	return ap.pre.CanRename(user, m) &&
+		(ap.getVisibility(m) != meta.VisibilityExpert || ap.expertMode())
 }
 
-func (ap *anonPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
-	return ap.pre.CanDelete(user, meta) &&
-		(ap.getVisibility(meta) != domain.VisibilityExpert || ap.expertMode())
+func (ap *anonPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
+	return ap.pre.CanDelete(user, m) &&
+		(ap.getVisibility(m) != meta.VisibilityExpert || ap.expertMode())
 }

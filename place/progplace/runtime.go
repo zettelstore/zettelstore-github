@@ -17,23 +17,24 @@ import (
 	"strings"
 	"time"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
-func genRuntimeM(zid domain.ZettelID) *domain.Meta {
+func genRuntimeM(zid id.ZettelID) *meta.Meta {
 	if myPlace.startConfig == nil {
 		return nil
 	}
-	meta := domain.NewMeta(zid)
-	meta.Set(domain.MetaKeyTitle, "Zettelstore Runtime Values")
-	meta.Set(domain.MetaKeyRole, "configuration")
-	meta.Set(domain.MetaKeySyntax, "zmk")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityExpert)
-	meta.Set(domain.MetaKeyReadOnly, "true")
-	return meta
+	m := meta.NewMeta(zid)
+	m.Set(meta.MetaKeyTitle, "Zettelstore Runtime Values")
+	m.Set(meta.MetaKeyRole, "configuration")
+	m.Set(meta.MetaKeySyntax, "zmk")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityExpert)
+	m.Set(meta.MetaKeyReadOnly, "true")
+	return m
 }
 
-func genRuntimeC(meta *domain.Meta) string {
+func genRuntimeC(*meta.Meta) string {
 	var sb strings.Builder
 	sb.WriteString("|=Name|=Value>\n")
 	fmt.Fprintf(&sb, "|Number of CPUs|%v\n", runtime.NumCPU())

@@ -15,7 +15,7 @@ import (
 	"sort"
 	"strconv"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 )
 
 // EnsureSorter makes sure that there is a sorter object.
@@ -27,18 +27,22 @@ func EnsureSorter(sorter *Sorter) *Sorter {
 }
 
 // ApplySorter applies the given sorter to the slide of meta data.
-func ApplySorter(metaList []*domain.Meta, s *Sorter) []*domain.Meta {
+func ApplySorter(metaList []*meta.Meta, s *Sorter) []*meta.Meta {
 	if len(metaList) == 0 {
 		return metaList
 	}
 
 	if s == nil {
-		sort.Slice(metaList, func(i, j int) bool { return metaList[i].Zid > metaList[j].Zid })
+		sort.Slice(
+			metaList,
+			func(i, j int) bool {
+				return metaList[i].Zid > metaList[j].Zid
+			})
 		return metaList
 	}
 	var sorter sortFunc
 	if s.Order == "" {
-		sorter = getSortFunc(domain.MetaKeyID, true, metaList)
+		sorter = getSortFunc(meta.MetaKeyID, true, metaList)
 	} else {
 		sorter = getSortFunc(s.Order, s.Descending, metaList)
 	}
@@ -57,14 +61,14 @@ func ApplySorter(metaList []*domain.Meta, s *Sorter) []*domain.Meta {
 
 type sortFunc func(i, j int) bool
 
-func getSortFunc(key string, descending bool, ml []*domain.Meta) sortFunc {
-	keyType := domain.KeyType(key)
-	if key == domain.MetaKeyID || keyType == domain.MetaTypeCredential {
+func getSortFunc(key string, descending bool, ml []*meta.Meta) sortFunc {
+	keyType := meta.KeyType(key)
+	if key == meta.MetaKeyID || keyType == meta.MetaTypeCredential {
 		if descending {
 			return func(i, j int) bool { return ml[i].Zid > ml[j].Zid }
 		}
 		return func(i, j int) bool { return ml[i].Zid < ml[j].Zid }
-	} else if keyType == domain.MetaTypeBool {
+	} else if keyType == meta.MetaTypeBool {
 		if descending {
 			return func(i, j int) bool {
 				left := ml[i].GetBool(key)
@@ -81,7 +85,7 @@ func getSortFunc(key string, descending bool, ml []*domain.Meta) sortFunc {
 			}
 			return right
 		}
-	} else if keyType == domain.MetaTypeNumber {
+	} else if keyType == meta.MetaTypeNumber {
 		if descending {
 			return func(i, j int) bool {
 				iVal, iOk := getNum(ml[i], key)
@@ -110,8 +114,8 @@ func getSortFunc(key string, descending bool, ml []*domain.Meta) sortFunc {
 	}
 }
 
-func getNum(meta *domain.Meta, key string) (int, bool) {
-	if s, ok := meta.Get(key); ok {
+func getNum(m *meta.Meta, key string) (int, bool) {
+	if s, ok := m.Get(key); ok {
 		if i, err := strconv.Atoi(s); err == nil {
 			return i, true
 		}

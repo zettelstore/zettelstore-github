@@ -14,7 +14,8 @@ package runtime
 import (
 	"strconv"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/place/stock"
 )
@@ -29,23 +30,23 @@ func SetupConfiguration(place place.Place) {
 		panic("configStock already set")
 	}
 	configStock = stock.NewStock(place)
-	if err := configStock.Subscribe(domain.ConfigurationID); err != nil {
+	if err := configStock.Subscribe(id.ConfigurationID); err != nil {
 		panic(err)
 	}
 }
 
 // getConfigurationMeta returns the meta data of the configuration zettel.
-func getConfigurationMeta() *domain.Meta {
+func getConfigurationMeta() *meta.Meta {
 	if configStock == nil {
 		panic("configStock not set")
 	}
-	return configStock.GetMeta(domain.ConfigurationID)
+	return configStock.GetMeta(id.ConfigurationID)
 }
 
 // GetDefaultTitle returns the current value of the "default-title" key.
 func GetDefaultTitle() string {
 	if config := getConfigurationMeta(); config != nil {
-		if title, ok := config.Get(domain.MetaKeyDefaultTitle); ok {
+		if title, ok := config.Get(meta.MetaKeyDefaultTitle); ok {
 			return title
 		}
 	}
@@ -56,7 +57,7 @@ func GetDefaultTitle() string {
 func GetDefaultSyntax() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
-			if syntax, ok := config.Get(domain.MetaKeyDefaultSyntax); ok {
+			if syntax, ok := config.Get(meta.MetaKeyDefaultSyntax); ok {
 				return syntax
 			}
 		}
@@ -68,7 +69,7 @@ func GetDefaultSyntax() string {
 func GetDefaultRole() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
-			if role, ok := config.Get(domain.MetaKeyDefaultRole); ok {
+			if role, ok := config.Get(meta.MetaKeyDefaultRole); ok {
 				return role
 			}
 		}
@@ -80,7 +81,7 @@ func GetDefaultRole() string {
 func GetDefaultLang() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
-			if lang, ok := config.Get(domain.MetaKeyDefaultLang); ok {
+			if lang, ok := config.Get(meta.MetaKeyDefaultLang); ok {
 				return lang
 			}
 		}
@@ -92,7 +93,7 @@ func GetDefaultLang() string {
 func GetDefaultCopyright() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
-			if copyright, ok := config.Get(domain.MetaKeyDefaultCopyright); ok {
+			if copyright, ok := config.Get(meta.MetaKeyDefaultCopyright); ok {
 				return copyright
 			}
 		}
@@ -105,7 +106,7 @@ func GetDefaultCopyright() string {
 func GetDefaultLicense() string {
 	if configStock != nil {
 		if config := getConfigurationMeta(); config != nil {
-			if license, ok := config.Get(domain.MetaKeyDefaultLicense); ok {
+			if license, ok := config.Get(meta.MetaKeyDefaultLicense); ok {
 				return license
 			}
 		}
@@ -116,8 +117,8 @@ func GetDefaultLicense() string {
 // GetExpertMode returns the current value of the "expert-mode" key
 func GetExpertMode() bool {
 	if config := getConfigurationMeta(); config != nil {
-		if mode, ok := config.Get(domain.MetaKeyExpertMode); ok {
-			return domain.BoolValue(mode)
+		if mode, ok := config.Get(meta.MetaKeyExpertMode); ok {
+			return meta.BoolValue(mode)
 		}
 	}
 	return false
@@ -126,7 +127,7 @@ func GetExpertMode() bool {
 // GetSiteName returns the current value of the "site-name" key.
 func GetSiteName() string {
 	if config := getConfigurationMeta(); config != nil {
-		if name, ok := config.Get(domain.MetaKeySiteName); ok {
+		if name, ok := config.Get(meta.MetaKeySiteName); ok {
 			return name
 		}
 	}
@@ -134,33 +135,33 @@ func GetSiteName() string {
 }
 
 // GetStart returns the value of the "start" key.
-func GetStart() domain.ZettelID {
+func GetStart() id.ZettelID {
 	if config := getConfigurationMeta(); config != nil {
-		if start, ok := config.Get(domain.MetaKeyStart); ok {
-			if startID, err := domain.ParseZettelID(start); err == nil {
+		if start, ok := config.Get(meta.MetaKeyStart); ok {
+			if startID, err := id.ParseZettelID(start); err == nil {
 				return startID
 			}
 		}
 	}
-	return domain.InvalidZettelID
+	return id.InvalidZettelID
 }
 
 // GetDefaultVisibility returns the default value for zettel visibility.
-func GetDefaultVisibility() domain.Visibility {
+func GetDefaultVisibility() meta.Visibility {
 	if config := getConfigurationMeta(); config != nil {
-		if value, ok := config.Get(domain.MetaKeyDefaultVisibility); ok {
-			if vis := domain.GetVisibility(value); vis != domain.VisibilityUnknown {
+		if value, ok := config.Get(meta.MetaKeyDefaultVisibility); ok {
+			if vis := meta.GetVisibility(value); vis != meta.VisibilityUnknown {
 				return vis
 			}
 		}
 	}
-	return domain.VisibilityLogin
+	return meta.VisibilityLogin
 }
 
 // GetYAMLHeader returns the current value of the "yaml-header" key.
 func GetYAMLHeader() bool {
 	if config := getConfigurationMeta(); config != nil {
-		return config.GetBool(domain.MetaKeyYAMLHeader)
+		return config.GetBool(meta.MetaKeyYAMLHeader)
 	}
 	return false
 }
@@ -168,7 +169,7 @@ func GetYAMLHeader() bool {
 // GetZettelFileSyntax returns the current value of the "zettel-file-syntax" key.
 func GetZettelFileSyntax() []string {
 	if config := getConfigurationMeta(); config != nil {
-		return config.GetListOrNil(domain.MetaKeyZettelFileSyntax)
+		return config.GetListOrNil(meta.MetaKeyZettelFileSyntax)
 	}
 	return nil
 }
@@ -176,17 +177,18 @@ func GetZettelFileSyntax() []string {
 // GetMarkerExternal returns the current value of the "marker-external" key.
 func GetMarkerExternal() string {
 	if config := getConfigurationMeta(); config != nil {
-		if html, ok := config.Get(domain.MetaKeyMarkerExternal); ok {
+		if html, ok := config.Get(meta.MetaKeyMarkerExternal); ok {
 			return html
 		}
 	}
 	return "&#8599;&#xfe0e;"
 }
 
-// GetFooterHTML returns HTML code tht should be embedded into the footer of each WebUI page.
+// GetFooterHTML returns HTML code that should be embedded into the footer
+// of each WebUI page.
 func GetFooterHTML() string {
 	if config := getConfigurationMeta(); config != nil {
-		if data, ok := config.Get(domain.MetaKeyFooterHTML); ok {
+		if data, ok := config.Get(meta.MetaKeyFooterHTML); ok {
 			return data
 		}
 	}
@@ -197,7 +199,7 @@ func GetFooterHTML() string {
 // A value less or equal to zero signals no limit.
 func GetListPageSize() int {
 	if config := getConfigurationMeta(); config != nil {
-		if data, ok := config.Get(domain.MetaKeyListPageSize); ok {
+		if data, ok := config.Get(meta.MetaKeyListPageSize); ok {
 			if value, err := strconv.Atoi(data); err == nil {
 				return value
 			}

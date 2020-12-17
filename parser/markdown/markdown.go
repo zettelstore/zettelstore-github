@@ -21,7 +21,7 @@ import (
 	gmText "github.com/yuin/goldmark/text"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
@@ -37,7 +37,7 @@ func init() {
 	})
 }
 
-func parseBlocks(inp *input.Input, meta *domain.Meta, syntax string) ast.BlockSlice {
+func parseBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
 	p := parseMarkdown(inp)
 	return p.acceptBlockSlice(p.docNode)
 }
@@ -332,7 +332,9 @@ func cleanText(text string, cleanBS bool) string {
 		case '\\':
 			if cleanBS && pos < len(text)-1 {
 				switch b := text[pos+1]; b {
-				case '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~':
+				case '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+',
+					',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@',
+					'[', '\\', ']', '^', '_', '`', '{', '|', '}', '~':
 					sb.WriteString(text[lastPos:pos])
 					sb.WriteByte(b)
 					lastPos = pos + 2
@@ -453,7 +455,8 @@ func (p *mdP) flattenInlineSlice(node gmAst.Node) ast.InlineSlice {
 
 func (p *mdP) acceptAutoLink(node *gmAst.AutoLink) ast.InlineSlice {
 	url := node.URL(p.source)
-	if node.AutoLinkType == gmAst.AutoLinkEmail && !bytes.HasPrefix(bytes.ToLower(url), []byte("mailto:")) {
+	if node.AutoLinkType == gmAst.AutoLinkEmail &&
+		!bytes.HasPrefix(bytes.ToLower(url), []byte("mailto:")) {
 		url = append([]byte("mailto:"), url...)
 	}
 	ref := ast.ParseReference(cleanText(string(url), false))

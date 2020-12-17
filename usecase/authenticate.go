@@ -17,14 +17,15 @@ import (
 
 	"zettelstore.de/z/auth/cred"
 	"zettelstore.de/z/auth/token"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
 // AuthenticatePort is the interface used by this use case.
 type AuthenticatePort interface {
-	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
-	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*domain.Meta, error)
+	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
+	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error)
 }
 
 // Authenticate is the data for this use case.
@@ -42,14 +43,20 @@ func NewAuthenticate(port AuthenticatePort) Authenticate {
 }
 
 // Run executes the use case.
-func (uc Authenticate) Run(ctx context.Context, ident string, credential string, d time.Duration, k token.Kind) ([]byte, error) {
+func (uc Authenticate) Run(
+	ctx context.Context,
+	ident string,
+	credential string,
+	d time.Duration,
+	k token.Kind,
+) ([]byte, error) {
 	identMeta, err := uc.ucGetUser.Run(ctx, ident)
 	if identMeta == nil || err != nil {
 		wait()
 		return nil, err
 	}
 
-	if hashCred, ok := identMeta.Get(domain.MetaKeyCredential); ok {
+	if hashCred, ok := identMeta.Get(meta.MetaKeyCredential); ok {
 		ok, err := cred.CompareHashAndCredential(hashCred, identMeta.Zid, ident, credential)
 		if err != nil {
 			return nil, err
@@ -70,5 +77,8 @@ func (uc Authenticate) Run(ctx context.Context, ident string, credential string,
 // wait for same time as if password was checked, to avoid timing hints.
 func wait() {
 	cred.CompareHashAndCredential(
-		"$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze", domain.InvalidZettelID, "", "")
+		"$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze",
+		id.InvalidZettelID,
+		"",
+		"")
 }

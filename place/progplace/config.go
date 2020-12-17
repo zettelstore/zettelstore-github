@@ -14,23 +14,24 @@ package progplace
 import (
 	"strings"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
-func genConfigM(zid domain.ZettelID) *domain.Meta {
+func genConfigM(zid id.ZettelID) *meta.Meta {
 	if myPlace.startConfig == nil {
 		return nil
 	}
-	meta := domain.NewMeta(zid)
-	meta.Set(domain.MetaKeyTitle, "Zettelstore Startup Configuration")
-	meta.Set(domain.MetaKeyRole, "configuration")
-	meta.Set(domain.MetaKeySyntax, "zmk")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityExpert)
-	meta.Set(domain.MetaKeyReadOnly, "true")
-	return meta
+	m := meta.NewMeta(zid)
+	m.Set(meta.MetaKeyTitle, "Zettelstore Startup Configuration")
+	m.Set(meta.MetaKeyRole, "configuration")
+	m.Set(meta.MetaKeySyntax, "zmk")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityExpert)
+	m.Set(meta.MetaKeyReadOnly, "true")
+	return m
 }
 
-func genConfigC(meta *domain.Meta) string {
+func genConfigC(m *meta.Meta) string {
 	var sb strings.Builder
 	for i, p := range myPlace.startConfig.Pairs() {
 		if i > 0 {

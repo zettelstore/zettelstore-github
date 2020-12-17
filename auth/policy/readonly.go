@@ -11,32 +11,30 @@
 // Package policy provides some interfaces and implementation for authorization policies.
 package policy
 
-import (
-	"zettelstore.de/z/domain"
-)
+import "zettelstore.de/z/domain/meta"
 
 type roPolicy struct{}
 
-func (p *roPolicy) CanReload(user *domain.Meta) bool {
+func (p *roPolicy) CanReload(user *meta.Meta) bool {
 	return true
 }
 
-func (p *roPolicy) CanCreate(user *domain.Meta, newMeta *domain.Meta) bool {
+func (p *roPolicy) CanCreate(user *meta.Meta, newMeta *meta.Meta) bool {
 	return false
 }
 
-func (p *roPolicy) CanRead(user *domain.Meta, meta *domain.Meta) bool {
+func (p *roPolicy) CanRead(user *meta.Meta, m *meta.Meta) bool {
 	return true
 }
 
-func (p *roPolicy) CanWrite(user *domain.Meta, oldMeta, newMeta *domain.Meta) bool {
+func (p *roPolicy) CanWrite(user *meta.Meta, oldMeta, newMeta *meta.Meta) bool {
 	return false
 }
 
-func (p *roPolicy) CanRename(user *domain.Meta, meta *domain.Meta) bool {
+func (p *roPolicy) CanRename(user *meta.Meta, m *meta.Meta) bool {
 	return false
 }
 
-func (p *roPolicy) CanDelete(user *domain.Meta, meta *domain.Meta) bool {
+func (p *roPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
 	return false
 }

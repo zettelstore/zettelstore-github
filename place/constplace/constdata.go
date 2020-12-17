@@ -13,6 +13,8 @@ package constplace
 
 import (
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 const (
@@ -20,23 +22,23 @@ const (
 	roleConfiguration = "configuration"
 )
 
-var constZettelMap = map[domain.ZettelID]constZettel{
-	domain.ConfigurationID: constZettel{
+var constZettelMap = map[id.ZettelID]constZettel{
+	id.ConfigurationID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Zettelstore Runtime Configuration",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     "meta",
+			meta.MetaKeyTitle:      "Zettelstore Runtime Configuration",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     "meta",
 		},
 		"Zettelstore Runtime Configuration",
 	},
 
-	domain.BaseTemplateID: constZettel{
+	id.BaseTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Base HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "Base HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`<!DOCTYPE html>
@@ -106,12 +108,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 		),
 	},
 
-	domain.LoginTemplateID: constZettel{
+	id.LoginTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Login Form HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "Login Form HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "content"}}
@@ -137,12 +139,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{end}}`,
 		)},
 
-	domain.ListTemplateID: constZettel{
+	id.ListTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "List Meta HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "List Meta HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "content"}}
@@ -163,12 +165,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{- end}}
 {{end}}`)},
 
-	domain.DetailTemplateID: constZettel{
+	id.DetailTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Detail HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "Detail HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "meta-header"}}
@@ -193,12 +195,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 </article>
 {{- end}}`)},
 
-	domain.InfoTemplateID: constZettel{
+	id.InfoTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Info HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "Info HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
 			`{{define "content"}}
@@ -254,12 +256,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{- end}}`),
 	},
 
-	domain.FormTemplateID: constZettel{
+	id.FormTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Form HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "Form HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <article>
@@ -305,12 +307,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	domain.RenameTemplateID: constZettel{
+	id.RenameTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Rename Form HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "Rename Form HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <article>
@@ -335,12 +337,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	domain.DeleteTemplateID: constZettel{
+	id.DeleteTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Delete HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "Delete HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <article>
@@ -360,12 +362,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	domain.RolesTemplateID: constZettel{
+	id.RolesTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "List Roles HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "List Roles HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <h1>Currently used roles</h1>
@@ -375,12 +377,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	domain.TagsTemplateID: constZettel{
+	id.TagsTemplateID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "List Tags HTML Template",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityOwner,
-			domain.MetaKeySyntax:     syntaxTemplate,
+			meta.MetaKeyTitle:      "List Tags HTML Template",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityOwner,
+			meta.MetaKeySyntax:     syntaxTemplate,
 		},
 		`{{define "content"}}
 <h1>Currently used tags</h1>
@@ -391,12 +393,12 @@ var constZettelMap = map[domain.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	domain.BaseCSSID: constZettel{
+	id.BaseCSSID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "Base CSS",
-			domain.MetaKeyRole:       roleConfiguration,
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityPublic,
-			domain.MetaKeySyntax:     "css",
+			meta.MetaKeyTitle:      "Base CSS",
+			meta.MetaKeyRole:       roleConfiguration,
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityPublic,
+			meta.MetaKeySyntax:     "css",
 		},
 		`/* Default CSS */
 *,*::before,*::after {
@@ -669,27 +671,27 @@ footer {
 `,
 	},
 
-	domain.TemplateNewZettelID: constZettel{
+	id.TemplateNewZettelID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "New Zettel",
-			domain.MetaKeyRole:       domain.MetaValueRoleNewTemplate,
-			domain.MetaKeyNewRole:    "zettel",
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityLogin,
-			domain.MetaKeySyntax:     "zmk",
+			meta.MetaKeyTitle:      "New Zettel",
+			meta.MetaKeyRole:       meta.MetaValueRoleNewTemplate,
+			meta.MetaKeyNewRole:    "zettel",
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityLogin,
+			meta.MetaKeySyntax:     "zmk",
 		},
 		"",
 	},
 
-	domain.TemplateNewUserID: constZettel{
+	id.TemplateNewUserID: constZettel{
 		constHeader{
-			domain.MetaKeyTitle:      "New User",
-			domain.MetaKeyRole:       domain.MetaValueRoleNewTemplate,
-			domain.MetaKeyNewRole:    "user",
-			domain.MetaKeyCredential: "",
-			domain.MetaKeyUserID:     "",
-			domain.MetaKeyUserRole:   "reader",
-			domain.MetaKeyVisibility: domain.MetaValueVisibilityLogin,
-			domain.MetaKeySyntax:     "meta",
+			meta.MetaKeyTitle:      "New User",
+			meta.MetaKeyRole:       meta.MetaValueRoleNewTemplate,
+			meta.MetaKeyNewRole:    "user",
+			meta.MetaKeyCredential: "",
+			meta.MetaKeyUserID:     "",
+			meta.MetaKeyUserRole:   "reader",
+			meta.MetaKeyVisibility: meta.MetaValueVisibilityLogin,
+			meta.MetaKeySyntax:     "meta",
 		},
 		"",
 	},

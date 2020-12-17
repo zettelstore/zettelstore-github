@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/place"
 )
 
@@ -73,7 +73,7 @@ func (srv *Service) Subscribe(changeFunc place.ObserverFunc) {
 	srv.mxFuncs.Unlock()
 }
 
-func (srv *Service) notifyChange(all bool, zid domain.ZettelID) {
+func (srv *Service) notifyChange(all bool, zid id.ZettelID) {
 	srv.mxFuncs.RLock()
 	changeFuncs := srv.changeFuncs
 	srv.mxFuncs.RUnlock()
@@ -91,7 +91,7 @@ func (srv *Service) GetEntries() []Entry {
 
 // GetEntry returns the entry with the specified zettel id. If there is no such
 // zettel id, an empty entry is returned.
-func (srv *Service) GetEntry(zid domain.ZettelID) Entry {
+func (srv *Service) GetEntry(zid id.ZettelID) Entry {
 	resChan := make(chan resGetEntry)
 	srv.cmds <- &cmdGetEntry{zid, resChan}
 	return <-resChan
@@ -119,7 +119,7 @@ func (srv *Service) RenameEntry(curEntry, newEntry *Entry) error {
 }
 
 // DeleteEntry removes a zettel id from the directory of entries.
-func (srv *Service) DeleteEntry(zid domain.ZettelID) {
+func (srv *Service) DeleteEntry(zid id.ZettelID) {
 	resChan := make(chan struct{})
 	srv.cmds <- &cmdDeleteEntry{zid, resChan}
 	<-resChan

@@ -16,6 +16,8 @@ import (
 	"net/url"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 )
 
@@ -29,8 +31,8 @@ func init() {
 
 type constHeader map[string]string
 
-func makeMeta(zid domain.ZettelID, h constHeader) *domain.Meta {
-	m := domain.NewMeta(zid)
+func makeMeta(zid id.ZettelID, h constHeader) *meta.Meta {
+	m := meta.NewMeta(zid)
 	for k, v := range h {
 		m.Set(k, v)
 	}
@@ -46,7 +48,7 @@ type constZettel struct {
 type constPlace struct {
 	u      *url.URL
 	next   place.Place
-	zettel map[domain.ZettelID]constZettel
+	zettel map[id.ZettelID]constZettel
 }
 
 func (cp *constPlace) Next() place.Place { return cp.next }
@@ -84,12 +86,14 @@ func (cp *constPlace) RegisterChangeObserver(f place.ObserverFunc) {
 
 func (cp *constPlace) CanCreateZettel(ctx context.Context) bool { return false }
 
-func (cp *constPlace) CreateZettel(ctx context.Context, zettel domain.Zettel) (domain.ZettelID, error) {
-	return domain.InvalidZettelID, place.ErrReadOnly
+func (cp *constPlace) CreateZettel(
+	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
+	return id.InvalidZettelID, place.ErrReadOnly
 }
 
 // GetZettel retrieves a specific zettel.
-func (cp *constPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domain.Zettel, error) {
+func (cp *constPlace) GetZettel(
+	ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
 	if z, ok := cp.zettel[zid]; ok {
 		return domain.Zettel{Meta: makeMeta(zid, z.header), Content: z.content}, nil
 	}
@@ -100,7 +104,7 @@ func (cp *constPlace) GetZettel(ctx context.Context, zid domain.ZettelID) (domai
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (cp *constPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error) {
+func (cp *constPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
 	if z, ok := cp.zettel[zid]; ok {
 		return makeMeta(zid, z.header), nil
 	}
@@ -112,7 +116,8 @@ func (cp *constPlace) GetMeta(ctx context.Context, zid domain.ZettelID) (*domain
 
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
-func (cp *constPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) (res []*domain.Meta, err error) {
+func (cp *constPlace) SelectMeta(
+	ctx context.Context, f *place.Filter, s *place.Sorter) (res []*meta.Meta, err error) {
 	hasMatch := place.CreateFilterFunc(f)
 	for zid, zettel := range cp.zettel {
 		meta := makeMeta(zid, zettel.header)
@@ -144,7 +149,7 @@ func (cp *constPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) er
 	return place.ErrReadOnly
 }
 
-func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) bool {
+func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
 	if _, ok := cp.zettel[zid]; !ok && cp.next != nil {
 		return cp.next.CanDeleteZettel(ctx, zid)
 	}
@@ -152,14 +157,14 @@ func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid domain.ZettelID) 
 }
 
 // DeleteZettel removes the zettel from the place.
-func (cp *constPlace) DeleteZettel(ctx context.Context, zid domain.ZettelID) error {
+func (cp *constPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
 	if _, ok := cp.zettel[zid]; !ok && cp.next != nil {
 		return cp.next.DeleteZettel(ctx, zid)
 	}
 	return place.ErrReadOnly
 }
 
-func (cp *constPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) bool {
+func (cp *constPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
 	if _, ok := cp.zettel[zid]; !ok {
 		return cp.next == nil || cp.next.CanRenameZettel(ctx, zid)
 	}
@@ -167,7 +172,7 @@ func (cp *constPlace) CanRenameZettel(ctx context.Context, zid domain.ZettelID) 
 }
 
 // Rename changes the current id to a new id.
-func (cp *constPlace) RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error {
+func (cp *constPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
 	if _, ok := cp.zettel[curZid]; !ok {
 		if cp.next != nil {
 			return cp.next.RenameZettel(ctx, curZid, newZid)

@@ -16,6 +16,8 @@ import (
 	"os"
 
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/place/dirplace/directory"
 )
@@ -39,25 +41,25 @@ type fileGetMeta struct {
 	rc    chan<- resGetMeta
 }
 type resGetMeta struct {
-	meta *domain.Meta
+	meta *meta.Meta
 	err  error
 }
 
 func (cmd *fileGetMeta) run() {
-	var meta *domain.Meta
+	var m *meta.Meta
 	var err error
 	switch cmd.entry.MetaSpec {
 	case directory.MetaSpecFile:
-		meta, err = parseMetaFile(cmd.entry.Zid, cmd.entry.MetaPath)
+		m, err = parseMetaFile(cmd.entry.Zid, cmd.entry.MetaPath)
 	case directory.MetaSpecHeader:
-		meta, _, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
+		m, _, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
 	default:
-		meta = cmd.entry.CalcDefaultMeta()
+		m = cmd.entry.CalcDefaultMeta()
 	}
 	if err == nil {
-		cleanupMeta(meta, cmd.entry)
+		cleanupMeta(m, cmd.entry)
 	}
-	cmd.rc <- resGetMeta{meta, err}
+	cmd.rc <- resGetMeta{m, err}
 }
 
 // COMMAND: getMetaContent ----------------------------------------
@@ -69,30 +71,30 @@ type fileGetMetaContent struct {
 	rc    chan<- resGetMetaContent
 }
 type resGetMetaContent struct {
-	meta    *domain.Meta
+	meta    *meta.Meta
 	content string
 	err     error
 }
 
 func (cmd *fileGetMetaContent) run() {
-	var meta *domain.Meta
+	var m *meta.Meta
 	var content string
 	var err error
 
 	switch cmd.entry.MetaSpec {
 	case directory.MetaSpecFile:
-		meta, err = parseMetaFile(cmd.entry.Zid, cmd.entry.MetaPath)
+		m, err = parseMetaFile(cmd.entry.Zid, cmd.entry.MetaPath)
 		content, err = readFileContent(cmd.entry.ContentPath)
 	case directory.MetaSpecHeader:
-		meta, content, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
+		m, content, err = parseMetaContentFile(cmd.entry.Zid, cmd.entry.ContentPath)
 	default:
-		meta = cmd.entry.CalcDefaultMeta()
+		m = cmd.entry.CalcDefaultMeta()
 		content, err = readFileContent(cmd.entry.ContentPath)
 	}
 	if err == nil {
-		cleanupMeta(meta, cmd.entry)
+		cleanupMeta(m, cmd.entry)
 	}
-	cmd.rc <- resGetMetaContent{meta, content, err}
+	cmd.rc <- resGetMetaContent{m, content, err}
 }
 
 // COMMAND: setZettel ----------------------------------------
@@ -137,7 +139,8 @@ func (cmd *fileSetZettel) run() {
 		}
 
 	case directory.MetaSpecNone:
-		// TODO: if meta has some additional infos: write meta to new .meta; update entry in dir
+		// TODO: if meta has some additional infos: write meta to new .meta;
+		// update entry in dir
 
 		err = writeFileContent(cmd.entry.ContentPath, cmd.zettel.Content.AsString())
 
@@ -217,44 +220,44 @@ func readFileContent(path string) (string, error) {
 	return string(data), nil
 }
 
-func parseMetaFile(zid domain.ZettelID, path string) (*domain.Meta, error) {
+func parseMetaFile(zid id.ZettelID, path string) (*meta.Meta, error) {
 	src, err := readFileContent(path)
 	if err != nil {
 		return nil, err
 	}
 	inp := input.NewInput(src)
-	return domain.NewMetaFromInput(zid, inp), nil
+	return meta.NewMetaFromInput(zid, inp), nil
 }
 
-func parseMetaContentFile(zid domain.ZettelID, path string) (*domain.Meta, string, error) {
+func parseMetaContentFile(zid id.ZettelID, path string) (*meta.Meta, string, error) {
 	src, err := readFileContent(path)
 	if err != nil {
 		return nil, "", err
 	}
 	inp := input.NewInput(src)
-	meta := domain.NewMetaFromInput(zid, inp)
+	meta := meta.NewMetaFromInput(zid, inp)
 	return meta, src[inp.Pos:], nil
 }
 
-func cleanupMeta(meta *domain.Meta, entry *directory.Entry) {
-	if title, ok := meta.Get(domain.MetaKeyTitle); !ok || title == "" {
-		meta.Set(domain.MetaKeyTitle, entry.Zid.Format())
+func cleanupMeta(m *meta.Meta, entry *directory.Entry) {
+	if title, ok := m.Get(meta.MetaKeyTitle); !ok || title == "" {
+		m.Set(meta.MetaKeyTitle, entry.Zid.Format())
 	}
 
 	switch entry.MetaSpec {
 	case directory.MetaSpecFile:
-		if syntax, ok := meta.Get(domain.MetaKeySyntax); !ok || syntax == "" {
-			m := entry.CalcDefaultMeta()
-			syntax, ok = m.Get(domain.MetaKeySyntax)
+		if syntax, ok := m.Get(meta.MetaKeySyntax); !ok || syntax == "" {
+			dm := entry.CalcDefaultMeta()
+			syntax, ok = dm.Get(meta.MetaKeySyntax)
 			if !ok {
 				panic("Default meta must rcontain syntax")
 			}
-			meta.Set(domain.MetaKeySyntax, syntax)
+			m.Set(meta.MetaKeySyntax, syntax)
 		}
 	}
 
 	if entry.Duplicates {
-		meta.Set("duplicates", "yes")
+		m.Set("duplicates", "yes")
 	}
 }
 

@@ -17,7 +17,7 @@ import (
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/usecase"
@@ -62,12 +62,12 @@ func MakeListMetaHandler(
 	}
 }
 
-func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
+func renderListMetaHTML(w http.ResponseWriter, metaList []*meta.Meta) {
 	buf := encoder.NewBufWriter(w)
 
 	buf.WriteStrings("<html lang=\"", runtime.GetDefaultLang(), "\">\n<body>\n<ul>\n")
-	for _, meta := range metaList {
-		title := meta.GetDefault(domain.MetaKeyTitle, "")
+	for _, m := range metaList {
+		title := m.GetDefault(meta.MetaKeyTitle, "")
 		htmlTitle, err := adapter.FormatInlines(parser.ParseTitle(title), "html")
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -76,7 +76,8 @@ func renderListMetaHTML(w http.ResponseWriter, metaList []*domain.Meta) {
 		}
 		buf.WriteStrings(
 			"<li><a href=\"",
-			adapter.NewURLBuilder('z').SetZid(meta.Zid).AppendQuery("format", "html").String(), "\">",
+			adapter.NewURLBuilder('z').SetZid(m.Zid).AppendQuery("format", "html").String(),
+			"\">",
 			htmlTitle,
 			"</a></li>\n")
 	}

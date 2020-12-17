@@ -15,40 +15,41 @@ import (
 	"fmt"
 
 	"zettelstore.de/z/config/startup"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
-func getVersionMeta(zid domain.ZettelID, title string) *domain.Meta {
-	meta := domain.NewMeta(zid)
-	meta.Set(domain.MetaKeyTitle, title)
-	meta.Set(domain.MetaKeyRole, "configuration")
-	meta.Set(domain.MetaKeySyntax, "zmk")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityExpert)
-	meta.Set(domain.MetaKeyReadOnly, "true")
-	return meta
+func getVersionMeta(zid id.ZettelID, title string) *meta.Meta {
+	m := meta.NewMeta(zid)
+	m.Set(meta.MetaKeyTitle, title)
+	m.Set(meta.MetaKeyRole, "configuration")
+	m.Set(meta.MetaKeySyntax, "zmk")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityExpert)
+	m.Set(meta.MetaKeyReadOnly, "true")
+	return m
 }
 
-func genVersionBuildM(zid domain.ZettelID) *domain.Meta {
-	meta := getVersionMeta(zid, "Zettelstore Version")
-	meta.Set(domain.MetaKeyVisibility, domain.MetaValueVisibilityPublic)
-	return meta
+func genVersionBuildM(zid id.ZettelID) *meta.Meta {
+	m := getVersionMeta(zid, "Zettelstore Version")
+	m.Set(meta.MetaKeyVisibility, meta.MetaValueVisibilityPublic)
+	return m
 }
-func genVersionBuildC(meta *domain.Meta) string { return startup.GetVersion().Build }
+func genVersionBuildC(*meta.Meta) string { return startup.GetVersion().Build }
 
-func genVersionHostM(zid domain.ZettelID) *domain.Meta {
+func genVersionHostM(zid id.ZettelID) *meta.Meta {
 	return getVersionMeta(zid, "Zettelstore Host")
 }
-func genVersionHostC(meta *domain.Meta) string { return startup.GetVersion().Hostname }
+func genVersionHostC(*meta.Meta) string { return startup.GetVersion().Hostname }
 
-func genVersionOSM(zid domain.ZettelID) *domain.Meta {
+func genVersionOSM(zid id.ZettelID) *meta.Meta {
 	return getVersionMeta(zid, "Zettelstore Operating System")
 }
-func genVersionOSC(meta *domain.Meta) string {
+func genVersionOSC(*meta.Meta) string {
 	v := startup.GetVersion()
 	return fmt.Sprintf("%v/%v", v.Os, v.Arch)
 }
 
-func genVersionGoM(zid domain.ZettelID) *domain.Meta {
+func genVersionGoM(zid id.ZettelID) *meta.Meta {
 	return getVersionMeta(zid, "Zettelstore Go Version")
 }
-func genVersionGoC(meta *domain.Meta) string { return startup.GetVersion().GoVersion }
+func genVersionGoC(*meta.Meta) string { return startup.GetVersion().GoVersion }

@@ -13,6 +13,7 @@ package usecase
 
 import (
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 )
 
 // CopyZettel is the data for this use case.
@@ -25,14 +26,14 @@ func NewCopyZettel() CopyZettel {
 
 // Run executes the use case.
 func (uc CopyZettel) Run(origZettel domain.Zettel) domain.Zettel {
-	meta := origZettel.Meta.Clone()
-	if title, ok := meta.Get(domain.MetaKeyTitle); ok {
+	m := origZettel.Meta.Clone()
+	if title, ok := m.Get(meta.MetaKeyTitle); ok {
 		if len(title) > 0 {
 			title = "Copy of " + title
 		} else {
 			title = "Copy"
 		}
-		meta.Set(domain.MetaKeyTitle, title)
+		m.Set(meta.MetaKeyTitle, title)
 	}
-	return domain.Zettel{Meta: meta, Content: origZettel.Content}
+	return domain.Zettel{Meta: m, Content: origZettel.Content}
 }

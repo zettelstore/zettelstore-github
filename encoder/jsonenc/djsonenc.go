@@ -19,7 +19,7 @@ import (
 	"unicode"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -48,7 +48,8 @@ func (je *jsonDetailEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel writes the encoded zettel to the writer.
-func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
+func (je *jsonDetailEncoder) WriteZettel(
+	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newDetailVisitor(w, je)
 	v.b.WriteString("{\"meta\":{\"title\":")
 	v.acceptInlineSlice(zn.Title)
@@ -66,15 +67,15 @@ func (je *jsonDetailEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMet
 }
 
 // WriteMeta encodes meta data as JSON.
-func (je *jsonDetailEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (je *jsonDetailEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
 	v := newDetailVisitor(w, je)
 	v.b.WriteByte('{')
 	if je.title == nil {
-		v.writeMeta(meta, true)
+		v.writeMeta(m, true)
 	} else {
 		v.b.WriteString("\"title\":")
 		v.acceptInlineSlice(je.title)
-		v.writeMeta(meta, false)
+		v.writeMeta(m, false)
 	}
 	v.b.WriteByte('}')
 	length, err := v.b.Flush()
@@ -566,9 +567,9 @@ func (v *detailVisitor) writeContentStart(code rune) {
 	panic("Unknown content code " + strconv.Itoa(int(code)))
 }
 
-func (v *detailVisitor) writeMeta(meta *domain.Meta, withTitle bool) {
+func (v *detailVisitor) writeMeta(m *meta.Meta, withTitle bool) {
 	first := withTitle
-	for _, p := range meta.Pairs() {
+	for _, p := range m.Pairs() {
 		if p.Key == "title" && !withTitle {
 			continue
 		}
@@ -580,9 +581,9 @@ func (v *detailVisitor) writeMeta(meta *domain.Meta, withTitle bool) {
 		}
 		v.b.Write(Escape(p.Key))
 		v.b.WriteString("\":")
-		if unicode.IsUpper(rune(meta.Type(p.Key))) {
+		if unicode.IsUpper(rune(m.Type(p.Key))) {
 			v.b.WriteByte('[')
-			for i, val := range domain.ListFromValue(p.Value) {
+			for i, val := range meta.ListFromValue(p.Value) {
 				if i > 0 {
 					v.b.WriteByte(',')
 				}

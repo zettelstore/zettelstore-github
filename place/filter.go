@@ -14,7 +14,7 @@ package place
 import (
 	"strings"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 )
 
 // EnsureFilter make sure that there is a current filter.
@@ -27,9 +27,9 @@ func EnsureFilter(filter *Filter) *Filter {
 }
 
 // FilterFunc is a predicate to check if given meta must be selected.
-type FilterFunc func(*domain.Meta) bool
+type FilterFunc func(*meta.Meta) bool
 
-func selectAll(m *domain.Meta) bool { return true }
+func selectAll(m *meta.Meta) bool { return true }
 
 type matchFunc func(value string) bool
 
@@ -55,7 +55,7 @@ func CreateFilterFunc(filter *Filter) FilterFunc {
 			searchAll = createSearchAllFunc(values, filter.Negate)
 			continue
 		}
-		if domain.KeyIsValid(key) {
+		if meta.KeyIsValid(key) {
 			match := createMatchFunc(key, values)
 			if match != nil {
 				specs = append(specs, matchSpec{key, match})
@@ -72,7 +72,7 @@ func CreateFilterFunc(filter *Filter) FilterFunc {
 		return addSelectFunc(filter, searchAll)
 	}
 	negate := filter.Negate
-	searchMeta := func(m *domain.Meta) bool {
+	searchMeta := func(m *meta.Meta) bool {
 		for _, s := range specs {
 			value, ok := m.Get(s.key)
 			if !ok || !s.match(value) {
@@ -84,7 +84,7 @@ func CreateFilterFunc(filter *Filter) FilterFunc {
 	if searchAll == nil {
 		return addSelectFunc(filter, searchMeta)
 	}
-	return addSelectFunc(filter, func(meta *domain.Meta) bool {
+	return addSelectFunc(filter, func(meta *meta.Meta) bool {
 		return searchAll(meta) || searchMeta(meta)
 	})
 }
@@ -94,7 +94,7 @@ func addSelectFunc(filter *Filter, f FilterFunc) FilterFunc {
 		return f
 	}
 	if sel := filter.Select; sel != nil {
-		return func(meta *domain.Meta) bool {
+		return func(meta *meta.Meta) bool {
 			return sel(meta) && f(meta)
 		}
 	}
@@ -102,14 +102,14 @@ func addSelectFunc(filter *Filter, f FilterFunc) FilterFunc {
 }
 
 func createMatchFunc(key string, values []string) matchFunc {
-	switch domain.KeyType(key) {
-	case domain.MetaTypeBool:
+	switch meta.KeyType(key) {
+	case meta.MetaTypeBool:
 		preValues := make([]bool, 0, len(values))
 		for _, v := range values {
-			preValues = append(preValues, domain.BoolValue(v))
+			preValues = append(preValues, meta.BoolValue(v))
 		}
 		return func(value string) bool {
-			bValue := domain.BoolValue(value)
+			bValue := meta.BoolValue(value)
 			for _, v := range preValues {
 				if bValue != v {
 					return false
@@ -117,9 +117,9 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case domain.MetaTypeCredential:
+	case meta.MetaTypeCredential:
 		return matchNever
-	case domain.MetaTypeID:
+	case meta.MetaTypeID:
 		return func(value string) bool {
 			for _, v := range values {
 				if !strings.HasPrefix(value, v) {
@@ -128,10 +128,10 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case domain.MetaTypeTagSet:
+	case meta.MetaTypeTagSet:
 		tagValues := preprocessSet(values)
 		return func(value string) bool {
-			tags := domain.ListFromValue(value)
+			tags := meta.ListFromValue(value)
 			for _, neededTags := range tagValues {
 				for _, neededTag := range neededTags {
 					if !matchAllTag(tags, neededTag) {
@@ -141,7 +141,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case domain.MetaTypeWord:
+	case meta.MetaTypeWord:
 		values = sliceToLower(values)
 		return func(value string) bool {
 			value = strings.ToLower(value)
@@ -152,10 +152,10 @@ func createMatchFunc(key string, values []string) matchFunc {
 			}
 			return true
 		}
-	case domain.MetaTypeWordSet:
+	case meta.MetaTypeWordSet:
 		wordValues := preprocessSet(sliceToLower(values))
 		return func(value string) bool {
-			words := domain.ListFromValue(value)
+			words := meta.ListFromValue(value)
 			for _, neededWords := range wordValues {
 				for _, neededWord := range neededWords {
 					if !matchAllWord(words, neededWord) {
@@ -181,9 +181,9 @@ func createMatchFunc(key string, values []string) matchFunc {
 
 func createSearchAllFunc(values []string, negate bool) FilterFunc {
 	matchFuncs := map[byte]matchFunc{}
-	return func(meta *domain.Meta) bool {
-		for _, p := range meta.Pairs() {
-			keyType := domain.KeyType(p.Key)
+	return func(m *meta.Meta) bool {
+		for _, p := range m.Pairs() {
+			keyType := meta.KeyType(p.Key)
 			match, ok := matchFuncs[keyType]
 			if !ok {
 				match = createMatchFunc(p.Key, values)
@@ -193,11 +193,11 @@ func createSearchAllFunc(values []string, negate bool) FilterFunc {
 				return !negate
 			}
 		}
-		match, ok := matchFuncs[domain.KeyType(domain.MetaKeyID)]
+		match, ok := matchFuncs[meta.KeyType(meta.MetaKeyID)]
 		if !ok {
-			match = createMatchFunc(domain.MetaKeyID, values)
+			match = createMatchFunc(meta.MetaKeyID, values)
 		}
-		return match(meta.Zid.Format()) != negate
+		return match(m.Zid.Format()) != negate
 	}
 }
 

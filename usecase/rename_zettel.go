@@ -14,16 +14,17 @@ package usecase
 import (
 	"context"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 )
 
 // RenameZettelPort is the interface used by this use case.
 type RenameZettelPort interface {
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, zid domain.ZettelID) (*domain.Meta, error)
+	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
 
 	// Rename changes the current id to a new id.
-	RenameZettel(ctx context.Context, curZid, newZid domain.ZettelID) error
+	RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error
 }
 
 // RenameZettel is the data for this use case.
@@ -32,9 +33,11 @@ type RenameZettel struct {
 }
 
 // ErrZidInUse is returned if the zettel id is not appropriate for the place operation.
-type ErrZidInUse struct{ Zid domain.ZettelID }
+type ErrZidInUse struct{ Zid id.ZettelID }
 
-func (err *ErrZidInUse) Error() string { return "Zettel id already in use: " + err.Zid.Format() }
+func (err *ErrZidInUse) Error() string {
+	return "Zettel id already in use: " + err.Zid.Format()
+}
 
 // NewRenameZettel creates a new use case.
 func NewRenameZettel(port RenameZettelPort) RenameZettel {
@@ -42,7 +45,7 @@ func NewRenameZettel(port RenameZettelPort) RenameZettel {
 }
 
 // Run executes the use case.
-func (uc RenameZettel) Run(ctx context.Context, curZid, newZid domain.ZettelID) error {
+func (uc RenameZettel) Run(ctx context.Context, curZid, newZid id.ZettelID) error {
 	if _, err := uc.port.GetMeta(ctx, curZid); err != nil {
 		return err
 	}

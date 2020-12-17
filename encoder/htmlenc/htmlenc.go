@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/ast"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 )
 
@@ -45,7 +45,7 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 		switch opt.Key {
 		case "lang":
 			he.lang = opt.Value
-		case domain.MetaKeyMarkerExternal:
+		case meta.MetaKeyMarkerExternal:
 			he.markerExternal = opt.Value
 		}
 	case *encoder.BoolOption:
@@ -79,7 +79,8 @@ func (he *htmlEncoder) SetOption(option encoder.Option) {
 }
 
 // WriteZettel encodes a full zettel as HTML5.
-func (he *htmlEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
+func (he *htmlEncoder) WriteZettel(
+	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(he, w)
 	if !he.xhtml {
 		v.b.WriteString("<!DOCTYPE html>\n")
@@ -103,9 +104,9 @@ func (he *htmlEncoder) WriteZettel(w io.Writer, zn *ast.ZettelNode, inhMeta bool
 }
 
 // WriteMeta encodes meta data as HTML5.
-func (he *htmlEncoder) WriteMeta(w io.Writer, meta *domain.Meta) (int, error) {
+func (he *htmlEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
 	v := newVisitor(he, w)
-	v.acceptMeta(meta, true)
+	v.acceptMeta(m, true)
 	length, err := v.b.Flush()
 	return length, err
 }

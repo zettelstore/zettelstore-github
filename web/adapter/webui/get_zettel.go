@@ -19,7 +19,8 @@ import (
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/config/runtime"
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
@@ -32,7 +33,7 @@ func MakeGetHTMLZettelHandler(
 	parseZettel usecase.ParseZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := domain.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.ParseZettelID(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -51,7 +52,7 @@ func MakeGetHTMLZettelHandler(
 			"html",
 			&encoder.StringsOption{
 				Key:   "no-meta",
-				Value: []string{domain.MetaKeyTitle, domain.MetaKeyLang},
+				Value: []string{meta.MetaKeyTitle, meta.MetaKeyLang},
 			},
 		)
 		if err != nil {
@@ -78,7 +79,7 @@ func MakeGetHTMLZettelHandler(
 			"html",
 			&langOption,
 			&encoder.StringOption{
-				Key:   domain.MetaKeyMarkerExternal,
+				Key:   meta.MetaKeyMarkerExternal,
 				Value: runtime.GetMarkerExternal()},
 			&encoder.BoolOption{Key: "newwindow", Value: newWindow},
 			&encoder.AdaptLinkOption{
@@ -92,12 +93,12 @@ func MakeGetHTMLZettelHandler(
 			return
 		}
 		user := session.GetUser(ctx)
-		roleText := zn.Zettel.Meta.GetDefault(domain.MetaKeyRole, "*")
+		roleText := zn.Zettel.Meta.GetDefault(meta.MetaKeyRole, "*")
 		tags := buildTagInfos(zn.Zettel.Meta)
-		extURL, hasExtURL := zn.Zettel.Meta.Get(domain.MetaKeyURL)
+		extURL, hasExtURL := zn.Zettel.Meta.Get(meta.MetaKeyURL)
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
 		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
-		te.renderTemplate(ctx, w, domain.DetailTemplateID, struct {
+		te.renderTemplate(ctx, w, id.DetailTemplateID, struct {
 			baseData
 			MetaHeader   template.HTML
 			HTMLTitle    template.HTML
@@ -131,7 +132,7 @@ func MakeGetHTMLZettelHandler(
 			Tags:         tags,
 			CanCopy:      canCopy,
 			CopyURL:      adapter.NewURLBuilder('c').SetZid(zid).String(),
-			CanNew:       canCopy && roleText == domain.MetaValueRoleNewTemplate,
+			CanNew:       canCopy && roleText == meta.MetaValueRoleNewTemplate,
 			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
 			ExtURL:       extURL,
 			HasExtURL:    hasExtURL,
@@ -156,23 +157,23 @@ func formatBlocks(
 	return content.String(), nil
 }
 
-func formatMeta(meta *domain.Meta, format string, options ...encoder.Option) (string, error) {
+func formatMeta(m *meta.Meta, format string, options ...encoder.Option) (string, error) {
 	enc := encoder.Create(format, options...)
 	if enc == nil {
 		return "", adapter.ErrNoSuchFormat
 	}
 
 	var content strings.Builder
-	_, err := enc.WriteMeta(&content, meta)
+	_, err := enc.WriteMeta(&content, m)
 	if err != nil {
 		return "", err
 	}
 	return content.String(), nil
 }
 
-func buildTagInfos(meta *domain.Meta) []simpleLink {
+func buildTagInfos(m *meta.Meta) []simpleLink {
 	var tagInfos []simpleLink
-	if tags, ok := meta.GetList(domain.MetaKeyTags); ok {
+	if tags, ok := m.GetList(meta.MetaKeyTags); ok {
 		tagInfos = make([]simpleLink, 0, len(tags))
 		ub := adapter.NewURLBuilder('h')
 		for _, t := range tags {

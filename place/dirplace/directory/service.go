@@ -15,7 +15,7 @@ import (
 	"log"
 	"time"
 
-	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/place"
 )
 
@@ -67,7 +67,7 @@ func updateEntry(de *Entry, ev *fileEvent) {
 	de.ContentExt = ev.ext
 }
 
-type dirMap map[domain.ZettelID]*Entry
+type dirMap map[id.ZettelID]*Entry
 
 func dirMapUpdate(dm dirMap, ev *fileEvent) {
 	de := dm[ev.zid]
@@ -111,7 +111,7 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 					close(ready)
 					ready = nil
 				}
-				srv.notifyChange(true, domain.InvalidZettelID)
+				srv.notifyChange(true, id.InvalidZettelID)
 			case fileStatusError:
 				log.Println("DIRPLACE", "ERROR", ev.err)
 			case fileStatusUpdate:
@@ -155,7 +155,7 @@ func (cmd *cmdGetEntries) run(m dirMap) {
 }
 
 type cmdGetEntry struct {
-	zid    domain.ZettelID
+	zid    id.ZettelID
 	result chan<- resGetEntry
 }
 type resGetEntry = Entry
@@ -163,7 +163,7 @@ type resGetEntry = Entry
 func (cmd *cmdGetEntry) run(m dirMap) {
 	entry := m[cmd.zid]
 	if entry == nil {
-		cmd.result <- Entry{Zid: domain.InvalidZettelID}
+		cmd.result <- Entry{Zid: id.InvalidZettelID}
 	} else {
 		cmd.result <- *entry
 	}
@@ -175,7 +175,7 @@ type cmdNewEntry struct {
 type resNewEntry = Entry
 
 func (cmd *cmdNewEntry) run(m dirMap) {
-	zid := domain.NewZettelID(false)
+	zid := id.NewZettelID(false)
 	if _, ok := m[zid]; !ok {
 		entry := &Entry{Zid: zid, MetaSpec: MetaSpecUnknown}
 		m[zid] = entry
@@ -183,7 +183,7 @@ func (cmd *cmdNewEntry) run(m dirMap) {
 		return
 	}
 	for {
-		zid = domain.NewZettelID(true)
+		zid = id.NewZettelID(true)
 		if _, ok := m[zid]; !ok {
 			entry := &Entry{Zid: zid, MetaSpec: MetaSpecUnknown}
 			m[zid] = entry
@@ -227,7 +227,7 @@ func (cmd *cmdRenameEntry) run(m dirMap) {
 }
 
 type cmdDeleteEntry struct {
-	zid    domain.ZettelID
+	zid    id.ZettelID
 	result chan<- struct{}
 }
 
