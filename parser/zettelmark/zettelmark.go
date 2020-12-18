@@ -22,7 +22,7 @@ import (
 
 func init() {
 	parser.Register(&parser.Info{
-		Name:         "zmk",
+		Name:         meta.ValueSyntaxZmk,
 		AltNames:     nil,
 		ParseBlocks:  parseBlocks,
 		ParseInlines: parseInlines,

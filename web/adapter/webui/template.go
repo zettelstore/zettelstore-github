@@ -266,7 +266,8 @@ func (te *TemplateEngine) fetchNewTemplates(
 		if te.policy.CanRead(user, m) {
 			title := runtime.GetTitle(m)
 			langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(m)}
-			astTitle := parser.ParseInlines(input.NewInput(runtime.GetTitle(m)), "zmk")
+			astTitle := parser.ParseInlines(
+				input.NewInput(runtime.GetTitle(m)), meta.ValueSyntaxZmk)
 			menuTitle, err := adapter.FormatInlines(astTitle, "html", &langOption)
 			if err != nil {
 				menuTitle, err = adapter.FormatInlines(astTitle, "text", &langOption)

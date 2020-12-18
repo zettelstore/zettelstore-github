@@ -18,17 +18,16 @@ import (
 )
 
 const (
-	syntaxTemplate    = "go-template-html"
-	roleConfiguration = "configuration"
+	syntaxTemplate = "go-template-html"
 )
 
 var constZettelMap = map[id.Zid]constZettel{
 	id.ConfigurationZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Zettelstore Runtime Configuration",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityOwner,
-			meta.KeySyntax:     "meta",
+			meta.KeySyntax:     meta.ValueSyntaxMeta,
 		},
 		"Zettelstore Runtime Configuration",
 	},
@@ -36,7 +35,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.BaseTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Base HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -111,7 +110,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.LoginTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Login Form HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -142,7 +141,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.ListTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "List Meta HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -168,7 +167,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.DetailTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Detail HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -198,7 +197,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.InfoTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Info HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -259,7 +258,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.FormTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Form HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -310,7 +309,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.RenameTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Rename Form HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -340,7 +339,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.DeleteTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Delete HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -365,7 +364,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.RolesTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "List Roles HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -380,7 +379,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.TagsTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "List Tags HTML Template",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
@@ -396,7 +395,7 @@ var constZettelMap = map[id.Zid]constZettel{
 	id.BaseCSSZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Base CSS",
-			meta.KeyRole:       roleConfiguration,
+			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityPublic,
 			meta.KeySyntax:     "css",
 		},
@@ -677,7 +676,7 @@ footer {
 			meta.KeyRole:       meta.ValueRoleNewTemplate,
 			meta.KeyNewRole:    "zettel",
 			meta.KeyVisibility: meta.ValueVisibilityLogin,
-			meta.KeySyntax:     "zmk",
+			meta.KeySyntax:     meta.ValueSyntaxZmk,
 		},
 		"",
 	},
@@ -691,7 +690,7 @@ footer {
 			meta.KeyUserID:     "",
 			meta.KeyUserRole:   "reader",
 			meta.KeyVisibility: meta.ValueVisibilityLogin,
-			meta.KeySyntax:     "meta",
+			meta.KeySyntax:     meta.ValueSyntaxMeta,
 		},
 		"",
 	},

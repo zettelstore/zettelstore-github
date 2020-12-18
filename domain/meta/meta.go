@@ -148,14 +148,17 @@ var keyTypeMap = map[string]byte{
 
 // Important values for some keys.
 const (
-	ValueRoleUser         = "user"
-	ValueRoleNewTemplate  = "new-template"
-	ValueTrue             = "true"
-	ValueFalse            = "false"
-	ValueVisibilityExpert = "expert"
-	ValueVisibilityOwner  = "owner"
-	ValueVisibilityLogin  = "login"
-	ValueVisibilityPublic = "public"
+	ValueRoleConfiguration = "configuration"
+	ValueRoleUser          = "user"
+	ValueRoleNewTemplate   = "new-template"
+	ValueSyntaxMeta        = "meta"
+	ValueSyntaxZmk         = "zmk"
+	ValueTrue              = "true"
+	ValueFalse             = "false"
+	ValueVisibilityExpert  = "expert"
+	ValueVisibilityOwner   = "owner"
+	ValueVisibilityLogin   = "login"
+	ValueVisibilityPublic  = "public"
 )
 
 // Type returns a type hint for the given key. If no type hint is specified,

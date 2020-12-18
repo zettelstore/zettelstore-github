@@ -22,10 +22,10 @@ import (
 func getVersionMeta(zid id.Zid, title string) *meta.Meta {
 	m := meta.New(zid)
 	m.Set(meta.KeyTitle, title)
-	m.Set(meta.KeyRole, "configuration")
-	m.Set(meta.KeySyntax, "zmk")
+	m.Set(meta.KeyRole, meta.ValueRoleConfiguration)
+	m.Set(meta.KeySyntax, meta.ValueSyntaxZmk)
 	m.Set(meta.KeyVisibility, meta.ValueVisibilityExpert)
-	m.Set(meta.KeyReadOnly, "true")
+	m.Set(meta.KeyReadOnly, meta.ValueTrue)
 	return m
 }
 

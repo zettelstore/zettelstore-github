@@ -57,9 +57,10 @@ func MakeGetNewZettelHandler(
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if origZettel, ok := getOrigZettel(w, r, getZettel, "New"); ok {
-			meta := origZettel.Meta
-			title := parser.ParseInlines(input.NewInput(runtime.GetTitle(meta)), "zmk")
-			langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(meta)}
+			m := origZettel.Meta
+			title := parser.ParseInlines(
+				input.NewInput(runtime.GetTitle(m)), meta.ValueSyntaxZmk)
+			langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(m)}
 			textTitle, err := adapter.FormatInlines(title, "text", &langOption)
 			if err != nil {
 				http.Error(w, "Internal error", http.StatusInternalServerError)

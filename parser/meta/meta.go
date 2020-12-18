@@ -22,7 +22,7 @@ import (
 
 func init() {
 	parser.Register(&parser.Info{
-		Name:         "meta",
+		Name:         meta.ValueSyntaxMeta,
 		AltNames:     []string{},
 		ParseBlocks:  parseBlocks,
 		ParseInlines: parseInlines,

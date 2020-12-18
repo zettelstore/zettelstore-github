@@ -219,12 +219,5 @@ func TokenLifetime() (htmlLifetime, apiLifetime time.Duration) {
 	return startupConfig.htmlLifetime, startupConfig.apiLifetime
 }
 
-// Places returns a list of all place URIs
-func xPlaces() []string {
-	result := make([]string, len(startupConfig.places))
-	copy(result, startupConfig.places)
-	return result
-}
-
 // Place returns the linked list of places.
 func Place() place.Place { return startupConfig.place }

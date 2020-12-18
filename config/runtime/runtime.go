@@ -62,7 +62,7 @@ func GetDefaultSyntax() string {
 			}
 		}
 	}
-	return "zmk"
+	return meta.ValueSyntaxZmk
 }
 
 // GetDefaultRole returns the current value of the "default-role" key.
