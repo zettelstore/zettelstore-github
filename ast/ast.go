@@ -107,11 +107,24 @@ func ParseReference(s string) *Reference {
 		if u.Path == "" && u.Fragment != "" {
 			return &Reference{URL: u, Value: s, State: RefStateZettelSelf}
 		}
-		if u.Path != "" && u.Path[0] == '/' {
+		if isLocalPath(u.Path) {
 			return &Reference{URL: u, Value: s, State: RefStateLocal}
 		}
 	}
 	return &Reference{URL: u, Value: s, State: RefStateExternal}
+}
+
+func isLocalPath(path string) bool {
+	if len(path) > 0 && path[0] == '/' {
+		return true
+	}
+	if len(path) > 1 && path[0] == '.' {
+		if len(path) > 2 && path[1] == '.' && path[2] == '/' {
+			return true
+		}
+		return path[1] == '/'
+	}
+	return false
 }
 
 // String returns the string representation of a reference.
