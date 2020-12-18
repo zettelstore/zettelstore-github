@@ -96,9 +96,9 @@ func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 	}
 	content, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		cfg = meta.NewMeta(id.InvalidZettelID)
+		cfg = meta.NewMeta(id.Invalid)
 	} else {
-		cfg = meta.NewMetaFromInput(id.InvalidZettelID, input.NewInput(string(content)))
+		cfg = meta.NewMetaFromInput(id.Invalid, input.NewInput(string(content)))
 	}
 	fs.Visit(func(flg *flag.Flag) {
 		switch flg.Name {

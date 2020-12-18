@@ -28,7 +28,7 @@ var startupConfig struct {
 	readonlyMode  bool
 	urlPrefix     string
 	listenAddress string
-	owner         id.ZettelID
+	owner         id.Zid
 	withAuth      bool
 	secret        []byte
 	insecCookie   bool
@@ -72,9 +72,9 @@ func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place) error 
 	} else {
 		startupConfig.listenAddress = "127.0.0.1:23123"
 	}
-	startupConfig.owner = id.InvalidZettelID
+	startupConfig.owner = id.Invalid
 	if owner, ok := cfg.Get(StartupKeyOwner); ok {
-		if zid, err := id.ParseZettelID(owner); err == nil {
+		if zid, err := id.Parse(owner); err == nil {
 			startupConfig.owner = zid
 			startupConfig.withAuth = true
 		}
@@ -200,10 +200,10 @@ func PersistentCookie() bool { return startupConfig.persistCookie }
 
 // Owner returns the zid of the zettelkasten's owner.
 // If there is no owner defined, the value ZettelID(0) is returned.
-func Owner() id.ZettelID { return startupConfig.owner }
+func Owner() id.Zid { return startupConfig.owner }
 
 // IsOwner returns true, if the given user is the owner of the Zettelstore.
-func IsOwner(zid id.ZettelID) bool { return zid.IsValid() && zid == startupConfig.owner }
+func IsOwner(zid id.Zid) bool { return zid.IsValid() && zid == startupConfig.owner }
 
 // WithAuth returns true if user authentication is enabled.
 func WithAuth() bool { return startupConfig.withAuth }

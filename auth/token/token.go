@@ -85,7 +85,7 @@ type Data struct {
 	Issued  time.Time
 	Expires time.Time
 	Ident   string
-	Zid     id.ZettelID
+	Zid     id.Zid
 }
 
 // CheckToken checks the validity of the token and returns relevant data.
@@ -108,7 +108,7 @@ func CheckToken(token []byte, k Kind) (Data, error) {
 		return Data{}, ErrNoIdent
 	}
 	if zidS, ok := claims.Set["zid"].(string); ok {
-		if zid, err := id.ParseZettelID(zidS); err == nil {
+		if zid, err := id.Parse(zidS); err == nil {
 			if kind, ok := claims.Set["_tk"].(float64); ok {
 				if Kind(kind) == k {
 					return Data{

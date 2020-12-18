@@ -29,7 +29,7 @@ import (
 func MakeGetRenameZettelHandler(
 	te *TemplateEngine, getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -52,7 +52,7 @@ func MakeGetRenameZettelHandler(
 		}
 
 		user := session.GetUser(ctx)
-		te.renderTemplate(ctx, w, id.RenameTemplateID, struct {
+		te.renderTemplate(ctx, w, id.RenameTemplateZid, struct {
 			baseData
 			Zid       string
 			MetaPairs []meta.Pair
@@ -68,7 +68,7 @@ func MakeGetRenameZettelHandler(
 // MakePostRenameZettelHandler creates a new HTTP handler to rename an existing zettel.
 func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		curZid, err := id.ParseZettelID(r.URL.Path[1:])
+		curZid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -77,7 +77,7 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 			http.Error(w, "Unable to read rename zettel form", http.StatusBadRequest)
 			return
 		}
-		if formCurZid, err := id.ParseZettelID(
+		if formCurZid, err := id.Parse(
 			r.PostFormValue("curzid")); err != nil || formCurZid != curZid {
 			http.Error(
 				w,
@@ -85,7 +85,7 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 				http.StatusBadRequest)
 			return
 		}
-		newZid, err := id.ParseZettelID(strings.TrimSpace(r.PostFormValue("newzid")))
+		newZid, err := id.Parse(strings.TrimSpace(r.PostFormValue("newzid")))
 		if err != nil {
 			http.Error(
 				w,

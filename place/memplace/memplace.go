@@ -34,13 +34,13 @@ func init() {
 type memPlace struct {
 	u         *url.URL
 	next      place.Place
-	zettel    map[id.ZettelID]domain.Zettel
+	zettel    map[id.Zid]domain.Zettel
 	started   bool
 	mx        sync.RWMutex
 	observers []place.ObserverFunc
 }
 
-func (mp *memPlace) notifyChanged(all bool, zid id.ZettelID) {
+func (mp *memPlace) notifyChanged(all bool, zid id.Zid) {
 	for _, ob := range mp.observers {
 		ob(all, zid)
 	}
@@ -63,7 +63,7 @@ func (mp *memPlace) Start(ctx context.Context) error {
 	if mp.started {
 		panic("memPlace started twice")
 	}
-	mp.zettel = make(map[id.ZettelID]domain.Zettel)
+	mp.zettel = make(map[id.Zid]domain.Zettel)
 	mp.started = true
 	return nil
 }
@@ -96,11 +96,11 @@ func (mp *memPlace) CanCreateZettel(ctx context.Context) bool {
 }
 
 func (mp *memPlace) CreateZettel(
-	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
+	ctx context.Context, zettel domain.Zettel) (id.Zid, error) {
 	mp.mx.Lock()
 	defer mp.mx.Unlock()
 	if !mp.started {
-		return id.InvalidZettelID, place.ErrStopped
+		return id.Invalid, place.ErrStopped
 	}
 
 	meta := zettel.Meta.Clone()
@@ -112,13 +112,13 @@ func (mp *memPlace) CreateZettel(
 	return meta.Zid, nil
 }
 
-func (mp *memPlace) calcNewZid() id.ZettelID {
-	zid := id.NewZettelID(false)
+func (mp *memPlace) calcNewZid() id.Zid {
+	zid := id.New(false)
 	if _, ok := mp.zettel[zid]; !ok {
 		return zid
 	}
 	for {
-		zid = id.NewZettelID(true)
+		zid = id.New(true)
 		if _, ok := mp.zettel[zid]; !ok {
 			return zid
 		}
@@ -126,7 +126,7 @@ func (mp *memPlace) calcNewZid() id.ZettelID {
 	}
 }
 
-func (mp *memPlace) GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
+func (mp *memPlace) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, error) {
 	mp.mx.RLock()
 	if !mp.started {
 		mp.mx.RUnlock()
@@ -143,7 +143,7 @@ func (mp *memPlace) GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zett
 	return zettel, nil
 }
 
-func (mp *memPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
+func (mp *memPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error) {
 	mp.mx.RLock()
 	if !mp.started {
 		mp.mx.RUnlock()
@@ -207,7 +207,7 @@ func (mp *memPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	return nil
 }
 
-func (mp *memPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
+func (mp *memPlace) CanDeleteZettel(ctx context.Context, zid id.Zid) bool {
 	mp.mx.RLock()
 	defer mp.mx.Unlock()
 	if !mp.started {
@@ -217,7 +217,7 @@ func (mp *memPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
 	return ok || (mp.next != nil && mp.next.CanDeleteZettel(ctx, zid))
 }
 
-func (mp *memPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
+func (mp *memPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	mp.mx.Lock()
 	defer mp.mx.Unlock()
 	if !mp.started {
@@ -234,7 +234,7 @@ func (mp *memPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
 	return nil
 }
 
-func (mp *memPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
+func (mp *memPlace) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
 	mp.mx.RLock()
 	defer mp.mx.Unlock()
 	if !mp.started {
@@ -244,7 +244,7 @@ func (mp *memPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
 	return ok || (mp.next != nil && mp.next.CanRenameZettel(ctx, zid))
 }
 
-func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
+func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) error {
 	mp.mx.Lock()
 	defer mp.mx.Unlock()
 	if !mp.started {

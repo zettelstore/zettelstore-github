@@ -91,7 +91,7 @@ func getOrigZettel(
 			http.StatusBadRequest)
 		return domain.Zettel{}, false
 	}
-	zid, err := id.ParseZettelID(r.URL.Path[1:])
+	zid, err := id.Parse(r.URL.Path[1:])
 	if err != nil {
 		http.NotFound(w, r)
 		return domain.Zettel{}, false
@@ -115,7 +115,7 @@ func renderZettelForm(
 	ctx := r.Context()
 	user := session.GetUser(ctx)
 	m := zettel.Meta
-	te.renderTemplate(r.Context(), w, id.FormTemplateID, formZettelData{
+	te.renderTemplate(r.Context(), w, id.FormTemplateZid, formZettelData{
 		baseData:      te.makeBaseData(ctx, runtime.GetLang(m), title, user),
 		Heading:       heading,
 		MetaTitle:     runtime.GetTitle(m),
@@ -132,7 +132,7 @@ func renderZettelForm(
 // an existing zettel.
 func MakePostCreateZettelHandler(createZettel usecase.CreateZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zettel, hasContent, err := parseZettelForm(r, id.InvalidZettelID)
+		zettel, hasContent, err := parseZettelForm(r, id.Invalid)
 		if err != nil {
 			http.Error(w, "Unable to read form data", http.StatusBadRequest)
 			return

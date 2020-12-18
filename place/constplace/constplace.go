@@ -31,7 +31,7 @@ func init() {
 
 type constHeader map[string]string
 
-func makeMeta(zid id.ZettelID, h constHeader) *meta.Meta {
+func makeMeta(zid id.Zid, h constHeader) *meta.Meta {
 	m := meta.NewMeta(zid)
 	for k, v := range h {
 		m.Set(k, v)
@@ -48,7 +48,7 @@ type constZettel struct {
 type constPlace struct {
 	u      *url.URL
 	next   place.Place
-	zettel map[id.ZettelID]constZettel
+	zettel map[id.Zid]constZettel
 }
 
 func (cp *constPlace) Next() place.Place { return cp.next }
@@ -87,13 +87,13 @@ func (cp *constPlace) RegisterChangeObserver(f place.ObserverFunc) {
 func (cp *constPlace) CanCreateZettel(ctx context.Context) bool { return false }
 
 func (cp *constPlace) CreateZettel(
-	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
-	return id.InvalidZettelID, place.ErrReadOnly
+	ctx context.Context, zettel domain.Zettel) (id.Zid, error) {
+	return id.Invalid, place.ErrReadOnly
 }
 
 // GetZettel retrieves a specific zettel.
 func (cp *constPlace) GetZettel(
-	ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
+	ctx context.Context, zid id.Zid) (domain.Zettel, error) {
 	if z, ok := cp.zettel[zid]; ok {
 		return domain.Zettel{Meta: makeMeta(zid, z.header), Content: z.content}, nil
 	}
@@ -104,7 +104,7 @@ func (cp *constPlace) GetZettel(
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (cp *constPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
+func (cp *constPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error) {
 	if z, ok := cp.zettel[zid]; ok {
 		return makeMeta(zid, z.header), nil
 	}
@@ -149,7 +149,7 @@ func (cp *constPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) er
 	return place.ErrReadOnly
 }
 
-func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
+func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid id.Zid) bool {
 	if _, ok := cp.zettel[zid]; !ok && cp.next != nil {
 		return cp.next.CanDeleteZettel(ctx, zid)
 	}
@@ -157,14 +157,14 @@ func (cp *constPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool
 }
 
 // DeleteZettel removes the zettel from the place.
-func (cp *constPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
+func (cp *constPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	if _, ok := cp.zettel[zid]; !ok && cp.next != nil {
 		return cp.next.DeleteZettel(ctx, zid)
 	}
 	return place.ErrReadOnly
 }
 
-func (cp *constPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
+func (cp *constPlace) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
 	if _, ok := cp.zettel[zid]; !ok {
 		return cp.next == nil || cp.next.CanRenameZettel(ctx, zid)
 	}
@@ -172,7 +172,7 @@ func (cp *constPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool
 }
 
 // Rename changes the current id to a new id.
-func (cp *constPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
+func (cp *constPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) error {
 	if _, ok := cp.zettel[curZid]; !ok {
 		if cp.next != nil {
 			return cp.next.RenameZettel(ctx, curZid, newZid)

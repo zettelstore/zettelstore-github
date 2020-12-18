@@ -42,7 +42,7 @@ func TestIsValid(t *testing.T) {
 	}
 
 	for i, sid := range validIDs {
-		zid, err := id.ParseZettelID(sid)
+		zid, err := id.Parse(sid)
 		if err != nil {
 			t.Errorf("i=%d: sid=%q is not valid, but should be. err=%v", i, sid, err)
 		}
@@ -62,7 +62,7 @@ func TestIsValid(t *testing.T) {
 	}
 
 	for i, zid := range invalidIDs {
-		if _, err := id.ParseZettelID(zid); err == nil {
+		if _, err := id.Parse(zid); err == nil {
 			t.Errorf("i=%d: zid=%q is valid, but should not be", i, zid)
 		}
 	}

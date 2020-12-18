@@ -38,7 +38,7 @@ func MakeGetDeleteZettelHandler(
 			return
 		}
 
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -53,7 +53,7 @@ func MakeGetDeleteZettelHandler(
 
 		user := session.GetUser(ctx)
 		m := zettel.Meta
-		te.renderTemplate(ctx, w, id.DeleteTemplateID, struct {
+		te.renderTemplate(ctx, w, id.DeleteTemplateZid, struct {
 			baseData
 			Zid       string
 			MetaPairs []meta.Pair
@@ -69,7 +69,7 @@ func MakeGetDeleteZettelHandler(
 // MakePostDeleteZettelHandler creates a new HTTP handler to delete a zettel.
 func MakePostDeleteZettelHandler(deleteZettel usecase.DeleteZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return

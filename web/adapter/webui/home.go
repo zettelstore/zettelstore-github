@@ -22,7 +22,7 @@ import (
 
 type getRootStore interface {
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
+	GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 }
 
 // MakeGetRootHandler creates a new HTTP handler to show the root URL.

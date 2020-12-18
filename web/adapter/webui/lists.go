@@ -47,7 +47,7 @@ func MakeWebUIListsHandler(
 	listTags usecase.ListTags,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -104,7 +104,7 @@ func renderWebUIRolesList(
 	}
 
 	user := session.GetUser(ctx)
-	te.renderTemplate(ctx, w, id.RolesTemplateID, struct {
+	te.renderTemplate(ctx, w, id.RolesTemplateZid, struct {
 		baseData
 		Roles []roleInfo
 	}{
@@ -179,7 +179,7 @@ func renderWebUITagsList(
 			minCounts, countInfo{sCount, base.ListTagsURL + "?min=" + sCount})
 	}
 
-	te.renderTemplate(ctx, w, id.TagsTemplateID, struct {
+	te.renderTemplate(ctx, w, id.TagsTemplateZid, struct {
 		baseData
 		MinCounts []countInfo
 		Tags      []tagInfo
@@ -262,7 +262,7 @@ func renderWebUIMetaList(
 		log.Println(err)
 		return
 	}
-	te.renderTemplate(ctx, w, id.ListTemplateID, struct {
+	te.renderTemplate(ctx, w, id.ListTemplateZid, struct {
 		baseData
 		Metas       []metaInfo
 		HasPrevNext bool

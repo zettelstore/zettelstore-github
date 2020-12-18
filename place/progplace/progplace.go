@@ -23,12 +23,12 @@ import (
 
 type (
 	zettelGen struct {
-		meta    func(id.ZettelID) *meta.Meta
+		meta    func(id.Zid) *meta.Meta
 		content func(*meta.Meta) string
 	}
 
 	progPlace struct {
-		zettel      map[id.ZettelID]zettelGen
+		zettel      map[id.Zid]zettelGen
 		startConfig *meta.Meta
 		startPlace  place.Place
 	}
@@ -40,13 +40,13 @@ var myPlace *progPlace
 func Get() place.Place {
 	if myPlace == nil {
 		myPlace = &progPlace{}
-		myPlace.zettel = map[id.ZettelID]zettelGen{
-			id.ZettelID(1):  {genVersionBuildM, genVersionBuildC},
-			id.ZettelID(2):  {genVersionHostM, genVersionHostC},
-			id.ZettelID(3):  {genVersionOSM, genVersionOSC},
-			id.ZettelID(4):  {genVersionGoM, genVersionGoC},
-			id.ZettelID(5):  {genRuntimeM, genRuntimeC},
-			id.ZettelID(99): {genConfigM, genConfigC},
+		myPlace.zettel = map[id.Zid]zettelGen{
+			id.Zid(1):  {genVersionBuildM, genVersionBuildC},
+			id.Zid(2):  {genVersionHostM, genVersionHostC},
+			id.Zid(3):  {genVersionOSM, genVersionOSC},
+			id.Zid(4):  {genVersionGoM, genVersionGoC},
+			id.Zid(5):  {genRuntimeM, genRuntimeC},
+			id.Zid(99): {genConfigM, genConfigC},
 		}
 	}
 	return myPlace
@@ -85,13 +85,13 @@ func (pp *progPlace) RegisterChangeObserver(f place.ObserverFunc) {}
 func (pp *progPlace) CanCreateZettel(ctx context.Context) bool { return false }
 
 func (pp *progPlace) CreateZettel(
-	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
-	return id.InvalidZettelID, place.ErrReadOnly
+	ctx context.Context, zettel domain.Zettel) (id.Zid, error) {
+	return id.Invalid, place.ErrReadOnly
 }
 
 // GetZettel retrieves a specific zettel.
 func (pp *progPlace) GetZettel(
-	ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
+	ctx context.Context, zid id.Zid) (domain.Zettel, error) {
 	if gen, ok := pp.zettel[zid]; ok && gen.meta != nil {
 		if meta := gen.meta(zid); meta != nil {
 			if genContent := gen.content; genContent != nil {
@@ -107,7 +107,7 @@ func (pp *progPlace) GetZettel(
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (pp *progPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
+func (pp *progPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error) {
 	if gen, ok := pp.zettel[zid]; ok {
 		if genMeta := gen.meta; genMeta != nil {
 			if meta := genMeta(zid); meta != nil {
@@ -141,21 +141,21 @@ func (pp *progPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) err
 	return place.ErrReadOnly
 }
 
-func (pp *progPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
+func (pp *progPlace) CanDeleteZettel(ctx context.Context, zid id.Zid) bool {
 	return false
 }
 
 // DeleteZettel removes the zettel from the place.
-func (pp *progPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
+func (pp *progPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	return place.ErrReadOnly
 }
 
-func (pp *progPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
+func (pp *progPlace) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
 	return false
 }
 
 // Rename changes the current id to a new id.
-func (pp *progPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
+func (pp *progPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) error {
 	return place.ErrReadOnly
 }
 

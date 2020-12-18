@@ -33,7 +33,7 @@ func MakeGetHTMLZettelHandler(
 	parseZettel usecase.ParseZettel,
 	getMeta usecase.GetMeta) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -98,7 +98,7 @@ func MakeGetHTMLZettelHandler(
 		extURL, hasExtURL := zn.Zettel.Meta.Get(meta.KeyURL)
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
 		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
-		te.renderTemplate(ctx, w, id.DetailTemplateID, struct {
+		te.renderTemplate(ctx, w, id.DetailTemplateZid, struct {
 			baseData
 			MetaHeader   template.HTML
 			HTMLTitle    template.HTML

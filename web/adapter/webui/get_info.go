@@ -39,7 +39,7 @@ type metaDataInfo struct {
 }
 
 type zettelReference struct {
-	Zid    id.ZettelID
+	Zid    id.Zid
 	Title  template.HTML
 	HasURL bool
 	URL    string
@@ -67,7 +67,7 @@ func MakeGetInfoHandler(
 			return
 		}
 
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -83,7 +83,7 @@ func MakeGetInfoHandler(
 		langOption := &encoder.StringOption{
 			Key:   "lang",
 			Value: runtime.GetLang(zn.InhMeta)}
-		getTitle := func(zid id.ZettelID) (string, int) {
+		getTitle := func(zid id.Zid) (string, int) {
 			m, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
 				if place.IsErrNotAllowed(err) {
@@ -136,7 +136,7 @@ func MakeGetInfoHandler(
 		}
 		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
 		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
-		te.renderTemplate(ctx, w, id.InfoTemplateID, struct {
+		te.renderTemplate(ctx, w, id.InfoTemplateZid, struct {
 			baseData
 			Zid          string
 			WebURL       string
@@ -202,7 +202,7 @@ func htmlMetaValue(m *meta.Meta, key string) template.HTML {
 
 	case meta.TypeID:
 		value, _ := m.Get(key)
-		zid, err := id.ParseZettelID(value)
+		zid, err := id.Parse(value)
 		if err != nil {
 			return template.HTML(value)
 		}
@@ -255,7 +255,7 @@ func writeLink(b *strings.Builder, key, value string) {
 }
 
 func splitIntExtLinks(
-	getTitle func(id.ZettelID) (string, int),
+	getTitle func(id.Zid) (string, int),
 	links []*ast.Reference,
 ) (zetLinks []zettelReference, locLinks []string, extLinks []string) {
 	if len(links) == 0 {
@@ -266,7 +266,7 @@ func splitIntExtLinks(
 			continue
 		}
 		if ref.IsZettel() {
-			zid, err := id.ParseZettelID(ref.URL.Path)
+			zid, err := id.Parse(ref.URL.Path)
 			if err != nil {
 				panic(err)
 			}

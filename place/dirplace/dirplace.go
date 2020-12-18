@@ -44,7 +44,7 @@ func init() {
 				getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
 			fSrvs: uint32(getQueryInt(u, "worker", 1, 17, 1499)),
 		}
-		dp.cacheChange(true, id.InvalidZettelID)
+		dp.cacheChange(true, id.Invalid)
 		return &dp, nil
 	})
 }
@@ -92,7 +92,7 @@ type dirPlace struct {
 	fSrvs      uint32
 	fCmds      []chan fileCmd
 	mxCmds     sync.RWMutex
-	metaCache  map[id.ZettelID]*meta.Meta
+	metaCache  map[id.Zid]*meta.Meta
 	mxCache    sync.RWMutex
 }
 
@@ -133,7 +133,7 @@ func (dp *dirPlace) localStart(ctx context.Context) error {
 	return nil
 }
 
-func (dp *dirPlace) notifyChanged(all bool, zid id.ZettelID) {
+func (dp *dirPlace) notifyChanged(all bool, zid id.Zid) {
 	dp.cacheChange(all, zid)
 	dp.mxObserver.RLock()
 	observers := dp.observers
@@ -143,7 +143,7 @@ func (dp *dirPlace) notifyChanged(all bool, zid id.ZettelID) {
 	}
 }
 
-func (dp *dirPlace) getFileChan(zid id.ZettelID) chan fileCmd {
+func (dp *dirPlace) getFileChan(zid id.Zid) chan fileCmd {
 	// Based on https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
 	var sum uint32 = 2166136261 ^ uint32(zid)
 	sum *= 16777619
@@ -197,12 +197,12 @@ func (dp *dirPlace) CanCreateZettel(ctx context.Context) bool {
 }
 
 func (dp *dirPlace) CreateZettel(
-	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
+	ctx context.Context, zettel domain.Zettel) (id.Zid, error) {
 	if dp.isStopped() {
-		return id.InvalidZettelID, place.ErrStopped
+		return id.Invalid, place.ErrStopped
 	}
 	if dp.readonly {
-		return id.InvalidZettelID, place.ErrReadOnly
+		return id.Invalid, place.ErrReadOnly
 	}
 
 	meta := zettel.Meta
@@ -224,7 +224,7 @@ func (dp *dirPlace) CreateZettel(
 }
 
 // GetZettel reads the zettel from a file.
-func (dp *dirPlace) GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error) {
+func (dp *dirPlace) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, error) {
 	if dp.isStopped() {
 		return domain.Zettel{}, place.ErrStopped
 	}
@@ -252,7 +252,7 @@ func (dp *dirPlace) GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zett
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
-func (dp *dirPlace) GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error) {
+func (dp *dirPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error) {
 	if dp.isStopped() {
 		return nil, place.ErrStopped
 	}
@@ -391,7 +391,7 @@ func calcSpecExt(m *meta.Meta) (directory.MetaSpec, string) {
 	return directory.MetaSpecFile, syntax
 }
 
-func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
+func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
 	if dp.isStopped() || dp.readonly {
 		return false
 	}
@@ -401,7 +401,7 @@ func (dp *dirPlace) CanRenameZettel(ctx context.Context, zid id.ZettelID) bool {
 }
 
 // Rename changes the current zettel id to a new zettel id.
-func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error {
+func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) error {
 	if dp.isStopped() {
 		return place.ErrStopped
 	}
@@ -443,7 +443,7 @@ func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid id.ZettelID
 	return err
 }
 
-func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
+func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid id.Zid) bool {
 	if dp.isStopped() || dp.readonly {
 		return false
 	}
@@ -452,7 +452,7 @@ func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool {
 }
 
 // DeleteZettel removes the zettel from the place.
-func (dp *dirPlace) DeleteZettel(ctx context.Context, zid id.ZettelID) error {
+func (dp *dirPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	if dp.isStopped() {
 		return place.ErrStopped
 	}
@@ -505,7 +505,7 @@ func (dp *dirPlace) cleanupMeta(ctx context.Context, m *meta.Meta) {
 	}
 }
 
-func renamePath(path string, curID, newID id.ZettelID) string {
+func renamePath(path string, curID, newID id.Zid) string {
 	dir, file := filepath.Split(path)
 	if cur := curID.Format(); strings.HasPrefix(file, cur) {
 		file = newID.Format() + file[len(cur):]
@@ -514,10 +514,10 @@ func renamePath(path string, curID, newID id.ZettelID) string {
 	return path
 }
 
-func (dp *dirPlace) cacheChange(all bool, zid id.ZettelID) {
+func (dp *dirPlace) cacheChange(all bool, zid id.Zid) {
 	dp.mxCache.Lock()
 	if all {
-		dp.metaCache = make(map[id.ZettelID]*meta.Meta, len(dp.metaCache))
+		dp.metaCache = make(map[id.Zid]*meta.Meta, len(dp.metaCache))
 	} else {
 		delete(dp.metaCache, zid)
 	}
@@ -531,7 +531,7 @@ func (dp *dirPlace) cacheSetMeta(m *meta.Meta) {
 	dp.mxCache.Unlock()
 }
 
-func (dp *dirPlace) cacheGetMeta(zid id.ZettelID) (*meta.Meta, bool) {
+func (dp *dirPlace) cacheGetMeta(zid id.Zid) (*meta.Meta, bool) {
 	dp.mxCache.RLock()
 	meta, ok := dp.metaCache[zid]
 	dp.mxCache.RUnlock()

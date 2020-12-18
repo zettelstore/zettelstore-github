@@ -23,7 +23,7 @@ import (
 // It is *not* part of the visitor pattern.
 type ZettelNode struct {
 	Zettel  domain.Zettel
-	Zid     id.ZettelID // Zettel identification.
+	Zid     id.Zid      // Zettel identification.
 	InhMeta *meta.Meta  // Meta data of the zettel, with inherited values.
 	Title   InlineSlice // Zettel title is a sequence of inline nodes.
 	Ast     BlockSlice  // Zettel abstract syntax tree is a sequence of block nodes.
@@ -101,7 +101,7 @@ func ParseReference(s string) *Reference {
 		return &Reference{URL: nil, Value: s, State: RefStateInvalid}
 	}
 	if len(u.Scheme)+len(u.Opaque)+len(u.Host) == 0 && u.User == nil {
-		if _, err := id.ParseZettelID(u.Path); err == nil {
+		if _, err := id.Parse(u.Path); err == nil {
 			return &Reference{URL: u, Value: s, State: RefStateZettel}
 		}
 		if u.Path == "" && u.Fragment != "" {

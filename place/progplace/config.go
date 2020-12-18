@@ -18,7 +18,7 @@ import (
 	"zettelstore.de/z/domain/meta"
 )
 
-func genConfigM(zid id.ZettelID) *meta.Meta {
+func genConfigM(zid id.Zid) *meta.Meta {
 	if myPlace.startConfig == nil {
 		return nil
 	}

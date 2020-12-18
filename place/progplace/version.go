@@ -19,7 +19,7 @@ import (
 	"zettelstore.de/z/domain/meta"
 )
 
-func getVersionMeta(zid id.ZettelID, title string) *meta.Meta {
+func getVersionMeta(zid id.Zid, title string) *meta.Meta {
 	m := meta.NewMeta(zid)
 	m.Set(meta.KeyTitle, title)
 	m.Set(meta.KeyRole, "configuration")
@@ -29,19 +29,19 @@ func getVersionMeta(zid id.ZettelID, title string) *meta.Meta {
 	return m
 }
 
-func genVersionBuildM(zid id.ZettelID) *meta.Meta {
+func genVersionBuildM(zid id.Zid) *meta.Meta {
 	m := getVersionMeta(zid, "Zettelstore Version")
 	m.Set(meta.KeyVisibility, meta.ValueVisibilityPublic)
 	return m
 }
 func genVersionBuildC(*meta.Meta) string { return startup.GetVersion().Build }
 
-func genVersionHostM(zid id.ZettelID) *meta.Meta {
+func genVersionHostM(zid id.Zid) *meta.Meta {
 	return getVersionMeta(zid, "Zettelstore Host")
 }
 func genVersionHostC(*meta.Meta) string { return startup.GetVersion().Hostname }
 
-func genVersionOSM(zid id.ZettelID) *meta.Meta {
+func genVersionOSM(zid id.Zid) *meta.Meta {
 	return getVersionMeta(zid, "Zettelstore Operating System")
 }
 func genVersionOSC(*meta.Meta) string {
@@ -49,7 +49,7 @@ func genVersionOSC(*meta.Meta) string {
 	return fmt.Sprintf("%v/%v", v.Os, v.Arch)
 }
 
-func genVersionGoM(zid id.ZettelID) *meta.Meta {
+func genVersionGoM(zid id.Zid) *meta.Meta {
 	return getVersionMeta(zid, "Zettelstore Go Version")
 }
 func genVersionGoC(*meta.Meta) string { return startup.GetVersion().GoVersion }

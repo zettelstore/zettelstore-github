@@ -31,7 +31,7 @@ func NewParseZettel(getZettel GetZettel) ParseZettel {
 
 // Run executes the use case.
 func (uc ParseZettel) Run(
-	ctx context.Context, zid id.ZettelID, syntax string) (*ast.ZettelNode, error) {
+	ctx context.Context, zid id.Zid, syntax string) (*ast.ZettelNode, error) {
 	zettel, err := uc.getZettel.Run(ctx, zid)
 	if err != nil {
 		return nil, err

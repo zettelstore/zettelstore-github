@@ -21,7 +21,7 @@ import (
 	"zettelstore.de/z/domain/meta"
 )
 
-func genRuntimeM(zid id.ZettelID) *meta.Meta {
+func genRuntimeM(zid id.Zid) *meta.Meta {
 	if myPlace.startConfig == nil {
 		return nil
 	}

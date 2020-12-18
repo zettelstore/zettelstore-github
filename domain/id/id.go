@@ -17,46 +17,62 @@ import (
 	"time"
 )
 
-// ZettelID ------------------------------------------------------------------
-
-// ZettelID is the internal identification of a zettel. Typically, it is a
+// Zid is the internal identifier of a zettel. Typically, it is a
 // time stamp of the form "YYYYMMDDHHmmSS" converted to an unsigned integer.
 // A zettelstore implementation should try to set the last two digits to zero,
 // e.g. the seconds should be zero,
-type ZettelID uint64
+type Zid uint64
 
-// InvalidZettelID is a ZettelID that will never be valid
-const InvalidZettelID = ZettelID(0)
+// Some important ZettelIDs
+const (
+	Invalid           = Zid(0) // Invalid is a Zid that will never be valid
+	ConfigurationZid  = Zid(100)
+	BaseTemplateZid   = Zid(10100)
+	LoginTemplateZid  = Zid(10200)
+	ListTemplateZid   = Zid(10300)
+	DetailTemplateZid = Zid(10401)
+	InfoTemplateZid   = Zid(10402)
+	FormTemplateZid   = Zid(10403)
+	RenameTemplateZid = Zid(10404)
+	DeleteTemplateZid = Zid(10405)
+	RolesTemplateZid  = Zid(10500)
+	TagsTemplateZid   = Zid(10600)
+	BaseCSSZid        = Zid(20001)
 
-const maxZettelID = 99999999999999
+	// Range 90000...99999 is reserved for zettel templates
+	TemplateNewZettelZid = Zid(91001)
+	TemplateNewUserZid   = Zid(96001)
+)
 
-// ParseZettelID interprets a string as a zettel identification and
+const maxZid = 99999999999999
+
+// Parse interprets a string as a zettel identification and
 // returns its integer value.
-func ParseZettelID(s string) (ZettelID, error) {
+func Parse(s string) (Zid, error) {
 	if len(s) != 14 {
-		return InvalidZettelID, strconv.ErrSyntax
+		return Invalid, strconv.ErrSyntax
 	}
 	res, err := strconv.ParseUint(s, 10, 47)
 	if err != nil {
-		return InvalidZettelID, err
+		return Invalid, err
 	}
 	if res == 0 {
-		return InvalidZettelID, strconv.ErrRange
+		return Invalid, strconv.ErrRange
 	}
-	return ZettelID(res), nil
+	return Zid(res), nil
 }
 
 const digits = "0123456789"
 
 // Format converts the zettel identification to a string of 14 digits.
 // Only defined for valid ids.
-func (zid ZettelID) Format() string {
+func (zid Zid) Format() string {
 	return string(zid.FormatBytes())
 }
 
 // FormatBytes converts the zettel identification to a byte slice of 14 digits.
 // Only defined for valid ids.
-func (zid ZettelID) FormatBytes() []byte {
+func (zid Zid) FormatBytes() []byte {
 	result := make([]byte, 14)
 	for i := 13; i >= 0; i-- {
 		result[i] = digits[zid%10]
@@ -66,10 +82,10 @@ func (zid ZettelID) FormatBytes() []byte {
 }
 
 // IsValid determines if zettel id is a valid one, e.g. consists of max. 14 digits.
-func (zid ZettelID) IsValid() bool { return 0 < zid && zid <= maxZettelID }
+func (zid Zid) IsValid() bool { return 0 < zid && zid <= maxZid }
 
-// NewZettelID returns a new zettel id based on the current time.
-func NewZettelID(withSeconds bool) ZettelID {
+// New returns a new zettel id based on the current time.
+func New(withSeconds bool) Zid {
 	now := time.Now()
 	var s string
 	if withSeconds {
@@ -77,29 +93,9 @@ func NewZettelID(withSeconds bool) ZettelID {
 	} else {
 		s = now.Format("20060102150400")
 	}
-	res, err := ParseZettelID(s)
+	res, err := Parse(s)
 	if err != nil {
 		panic(err)
 	}
 	return res
 }
-
-// Some important ZettelIDs
-const (
-	ConfigurationID  = ZettelID(100)
-	BaseTemplateID   = ZettelID(10100)
-	LoginTemplateID  = ZettelID(10200)
-	ListTemplateID   = ZettelID(10300)
-	DetailTemplateID = ZettelID(10401)
-	InfoTemplateID   = ZettelID(10402)
-	FormTemplateID   = ZettelID(10403)
-	RenameTemplateID = ZettelID(10404)
-	DeleteTemplateID = ZettelID(10405)
-	RolesTemplateID  = ZettelID(10500)
-	TagsTemplateID   = ZettelID(10600)
-	BaseCSSID        = ZettelID(20001)
-
-	// Range 90000...99999 is reserved for zettel templates
-	TemplateNewZettelID = ZettelID(91001)
-	TemplateNewUserID   = ZettelID(96001)
-)

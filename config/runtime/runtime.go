@@ -30,7 +30,7 @@ func SetupConfiguration(place place.Place) {
 		panic("configStock already set")
 	}
 	configStock = stock.NewStock(place)
-	if err := configStock.Subscribe(id.ConfigurationID); err != nil {
+	if err := configStock.Subscribe(id.ConfigurationZid); err != nil {
 		panic(err)
 	}
 }
@@ -40,7 +40,7 @@ func getConfigurationMeta() *meta.Meta {
 	if configStock == nil {
 		panic("configStock not set")
 	}
-	return configStock.GetMeta(id.ConfigurationID)
+	return configStock.GetMeta(id.ConfigurationZid)
 }
 
 // GetDefaultTitle returns the current value of the "default-title" key.
@@ -135,15 +135,15 @@ func GetSiteName() string {
 }
 
 // GetStart returns the value of the "start" key.
-func GetStart() id.ZettelID {
+func GetStart() id.Zid {
 	if config := getConfigurationMeta(); config != nil {
 		if start, ok := config.Get(meta.KeyStart); ok {
-			if startID, err := id.ParseZettelID(start); err == nil {
+			if startID, err := id.Parse(start); err == nil {
 				return startID
 			}
 		}
 	}
-	return id.InvalidZettelID
+	return id.Invalid
 }
 
 // GetDefaultVisibility returns the default value for zettel visibility.

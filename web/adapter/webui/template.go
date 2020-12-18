@@ -36,18 +36,18 @@ import (
 
 type templatePlace interface {
 	CanCreateZettel(ctx context.Context) bool
-	GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error)
-	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
+	GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, error)
+	GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error)
 	CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool
-	CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool
-	CanRenameZettel(ctx context.Context, zid id.ZettelID) bool
+	CanDeleteZettel(ctx context.Context, zid id.Zid) bool
+	CanRenameZettel(ctx context.Context, zid id.Zid) bool
 }
 
 // TemplateEngine is the way to render HTML templates.
 type TemplateEngine struct {
 	place         templatePlace
-	templateCache map[id.ZettelID]*template.Template
+	templateCache map[id.Zid]*template.Template
 	mxCache       sync.RWMutex
 	policy        policy.Policy
 
@@ -69,7 +69,7 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 		policy: pol,
 
 		stylesheetURL: adapter.NewURLBuilder('z').SetZid(
-			id.BaseCSSID).AppendQuery("_format", "raw").AppendQuery(
+			id.BaseCSSZid).AppendQuery("_format", "raw").AppendQuery(
 			"_part", "content").String(),
 		homeURL:       adapter.NewURLBuilder('/').String(),
 		listZettelURL: adapter.NewURLBuilder('h').String(),
@@ -80,29 +80,29 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 		reloadURL:     adapter.NewURLBuilder('c').AppendQuery("_format", "html").String(),
 		searchURL:     adapter.NewURLBuilder('s').String(),
 	}
-	te.observe(true, id.InvalidZettelID)
+	te.observe(true, id.Invalid)
 	p.RegisterChangeObserver(te.observe)
 	return te
 }
 
-func (te *TemplateEngine) observe(all bool, zid id.ZettelID) {
+func (te *TemplateEngine) observe(all bool, zid id.Zid) {
 	te.mxCache.Lock()
-	if all || zid == id.BaseTemplateID {
+	if all || zid == id.BaseTemplateZid {
 		te.templateCache = make(
-			map[id.ZettelID]*template.Template, len(te.templateCache))
+			map[id.Zid]*template.Template, len(te.templateCache))
 	} else {
 		delete(te.templateCache, zid)
 	}
 	te.mxCache.Unlock()
 }
 
-func (te *TemplateEngine) cacheSetTemplate(zid id.ZettelID, t *template.Template) {
+func (te *TemplateEngine) cacheSetTemplate(zid id.Zid, t *template.Template) {
 	te.mxCache.Lock()
 	te.templateCache[zid] = t
 	te.mxCache.Unlock()
 }
 
-func (te *TemplateEngine) cacheGetTemplate(zid id.ZettelID) (*template.Template, bool) {
+func (te *TemplateEngine) cacheGetTemplate(zid id.Zid) (*template.Template, bool) {
 	te.mxCache.RLock()
 	t, ok := te.templateCache[zid]
 	te.mxCache.RUnlock()
@@ -110,7 +110,7 @@ func (te *TemplateEngine) cacheGetTemplate(zid id.ZettelID) (*template.Template,
 }
 
 func (te *TemplateEngine) canCreate(ctx context.Context, user *meta.Meta) bool {
-	m := meta.NewMeta(id.InvalidZettelID)
+	m := meta.NewMeta(id.Invalid)
 	return te.policy.CanCreate(user, m) && te.place.CanCreateZettel(ctx)
 }
 
@@ -131,13 +131,13 @@ func (te *TemplateEngine) canDelete(
 }
 
 func (te *TemplateEngine) getTemplate(
-	ctx context.Context, templateID id.ZettelID) (*template.Template, error) {
+	ctx context.Context, templateID id.Zid) (*template.Template, error) {
 	if t, ok := te.cacheGetTemplate(templateID); ok {
 		return t, nil
 	}
-	baseTemplate, ok := te.cacheGetTemplate(id.BaseTemplateID)
+	baseTemplate, ok := te.cacheGetTemplate(id.BaseTemplateZid)
 	if !ok {
-		baseTemplateZettel, err := te.place.GetZettel(ctx, id.BaseTemplateID)
+		baseTemplateZettel, err := te.place.GetZettel(ctx, id.BaseTemplateZid)
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +146,7 @@ func (te *TemplateEngine) getTemplate(
 		if err != nil {
 			return nil, err
 		}
-		te.cacheSetTemplate(id.BaseTemplateID, baseTemplate)
+		te.cacheSetTemplate(id.BaseTemplateZid, baseTemplate)
 	}
 	baseTemplate, err := baseTemplate.Clone()
 	if err != nil {
@@ -286,7 +286,7 @@ func (te *TemplateEngine) fetchNewTemplates(
 func (te *TemplateEngine) renderTemplate(
 	ctx context.Context,
 	w http.ResponseWriter,
-	templateID id.ZettelID,
+	templateID id.Zid,
 	data interface{}) {
 
 	t, err := te.getTemplate(ctx, templateID)

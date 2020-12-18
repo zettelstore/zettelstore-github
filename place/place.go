@@ -28,7 +28,7 @@ import (
 // If the first parameter, a bool, is true, then all zettel are possibly
 // changed. If it has the value false, the given ZettelID will identify the
 // changed zettel.
-type ObserverFunc func(bool, id.ZettelID)
+type ObserverFunc func(bool, id.Zid)
 
 // Place is implemented by all Zettel places.
 type Place interface {
@@ -55,13 +55,13 @@ type Place interface {
 
 	// CreateZettel creates a new zettel.
 	// Returns the new zettel id (and an error indication).
-	CreateZettel(ctx context.Context, zettel domain.Zettel) (id.ZettelID, error)
+	CreateZettel(ctx context.Context, zettel domain.Zettel) (id.Zid, error)
 
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, error)
 
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
+	GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 
 	// SelectMeta returns all zettel meta data that match the selection criteria.
 	// TODO: more docs
@@ -74,16 +74,16 @@ type Place interface {
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
 
 	// CanDeleteZettel returns true, if place could possibly delete the given zettel.
-	CanDeleteZettel(ctx context.Context, zid id.ZettelID) bool
+	CanDeleteZettel(ctx context.Context, zid id.Zid) bool
 
 	// DeleteZettel removes the zettel from the place.
-	DeleteZettel(ctx context.Context, zid id.ZettelID) error
+	DeleteZettel(ctx context.Context, zid id.Zid) error
 
 	// CanRenameZettel returns true, if place could possibly rename the given zettel.
-	CanRenameZettel(ctx context.Context, zid id.ZettelID) bool
+	CanRenameZettel(ctx context.Context, zid id.Zid) bool
 
 	// RenameZettel changes the current Zid to a new Zid.
-	RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error
+	RenameZettel(ctx context.Context, curZid, newZid id.Zid) error
 
 	// Reload clears all caches, reloads all internal data to reflect changes
 	// that were possibly undetected.
@@ -94,11 +94,11 @@ type Place interface {
 type ErrNotAllowed struct {
 	Op   string
 	User *meta.Meta
-	Zid  id.ZettelID
+	Zid  id.Zid
 }
 
 // NewErrNotAllowed creates an new authorization error.
-func NewErrNotAllowed(op string, user *meta.Meta, zid id.ZettelID) error {
+func NewErrNotAllowed(op string, user *meta.Meta, zid id.Zid) error {
 	return &ErrNotAllowed{
 		Op:   op,
 		User: user,
@@ -144,12 +144,12 @@ var ErrStopped = errors.New("Place is stopped")
 var ErrReadOnly = errors.New("Read-only place")
 
 // ErrUnknownID is returned if the zettel id is unknown to the place.
-type ErrUnknownID struct{ Zid id.ZettelID }
+type ErrUnknownID struct{ Zid id.Zid }
 
 func (err *ErrUnknownID) Error() string { return "Unknown Zettel id: " + err.Zid.Format() }
 
 // ErrInvalidID is returned if the zettel id is not appropriate for the place operation.
-type ErrInvalidID struct{ Zid id.ZettelID }
+type ErrInvalidID struct{ Zid id.Zid }
 
 func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid.Format() }
 

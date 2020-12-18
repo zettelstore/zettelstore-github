@@ -54,7 +54,7 @@ func MakeLinkAdapter(
 		if origRef == nil || origRef.State != ast.RefStateZettel {
 			return origLink
 		}
-		zid, err := id.ParseZettelID(origRef.URL.Path)
+		zid, err := id.Parse(origRef.URL.Path)
 		if err != nil {
 			panic(err)
 		}
@@ -97,7 +97,7 @@ func MakeImageAdapter() func(*ast.ImageNode) ast.InlineNode {
 			return origImage
 		}
 		newImage := *origImage
-		zid, err := id.ParseZettelID(newImage.Ref.Value)
+		zid, err := id.Parse(newImage.Ref.Value)
 		if err != nil {
 			panic(err)
 		}

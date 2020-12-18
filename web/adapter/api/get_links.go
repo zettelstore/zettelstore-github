@@ -43,7 +43,7 @@ type jsonGetLinks struct {
 // MakeGetLinksHandler creates a new API handler to return links to other material.
 func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return

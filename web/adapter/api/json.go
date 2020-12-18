@@ -148,7 +148,7 @@ var (
 	djsonFooter        = []byte("}")
 )
 
-func writeDJSONHeader(w http.ResponseWriter, zid id.ZettelID) error {
+func writeDJSONHeader(w http.ResponseWriter, zid id.Zid) error {
 	_, err := w.Write(djsonHeader1)
 	if err == nil {
 		_, err = w.Write(zid.FormatBytes())

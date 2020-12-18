@@ -55,7 +55,7 @@ func (ub *URLBuilder) Clone() *URLBuilder {
 }
 
 // SetZid sets the zettel identifier.
-func (ub *URLBuilder) SetZid(zid id.ZettelID) *URLBuilder {
+func (ub *URLBuilder) SetZid(zid id.Zid) *URLBuilder {
 	if len(ub.path) > 0 {
 		panic("Cannot add Zid")
 	}

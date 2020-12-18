@@ -21,10 +21,10 @@ import (
 // RenameZettelPort is the interface used by this use case.
 type RenameZettelPort interface {
 	// GetMeta retrieves just the meta data of a specific zettel.
-	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
+	GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 
 	// Rename changes the current id to a new id.
-	RenameZettel(ctx context.Context, curZid, newZid id.ZettelID) error
+	RenameZettel(ctx context.Context, curZid, newZid id.Zid) error
 }
 
 // RenameZettel is the data for this use case.
@@ -33,7 +33,7 @@ type RenameZettel struct {
 }
 
 // ErrZidInUse is returned if the zettel id is not appropriate for the place operation.
-type ErrZidInUse struct{ Zid id.ZettelID }
+type ErrZidInUse struct{ Zid id.Zid }
 
 func (err *ErrZidInUse) Error() string {
 	return "Zettel id already in use: " + err.Zid.Format()
@@ -45,7 +45,7 @@ func NewRenameZettel(port RenameZettelPort) RenameZettel {
 }
 
 // Run executes the use case.
-func (uc RenameZettel) Run(ctx context.Context, curZid, newZid id.ZettelID) error {
+func (uc RenameZettel) Run(ctx context.Context, curZid, newZid id.Zid) error {
 	if _, err := uc.port.GetMeta(ctx, curZid); err != nil {
 		return err
 	}

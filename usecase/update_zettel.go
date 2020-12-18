@@ -22,7 +22,7 @@ import (
 // UpdateZettelPort is the interface used by this use case.
 type UpdateZettelPort interface {
 	// GetZettel retrieves a specific zettel.
-	GetZettel(ctx context.Context, zid id.ZettelID) (domain.Zettel, error)
+	GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, error)
 
 	// UpdateZettel updates an existing zettel.
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
@@ -50,7 +50,7 @@ func (uc UpdateZettel) Run(
 		return nil
 	}
 	m.YamlSep = oldZettel.Meta.YamlSep
-	if m.Zid == id.ConfigurationID {
+	if m.Zid == id.ConfigurationZid {
 		m.Set(meta.KeySyntax, "meta")
 	}
 	if !hasContent {

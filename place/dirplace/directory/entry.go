@@ -31,7 +31,7 @@ const (
 
 // Entry stores everything for a directory entry.
 type Entry struct {
-	Zid         id.ZettelID
+	Zid         id.Zid
 	MetaSpec    MetaSpec // location of meta information
 	MetaPath    string   // file path of meta information
 	ContentPath string   // file path of zettel content

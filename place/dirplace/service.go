@@ -220,7 +220,7 @@ func readFileContent(path string) (string, error) {
 	return string(data), nil
 }
 
-func parseMetaFile(zid id.ZettelID, path string) (*meta.Meta, error) {
+func parseMetaFile(zid id.Zid, path string) (*meta.Meta, error) {
 	src, err := readFileContent(path)
 	if err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func parseMetaFile(zid id.ZettelID, path string) (*meta.Meta, error) {
 	return meta.NewMetaFromInput(zid, inp), nil
 }
 
-func parseMetaContentFile(zid id.ZettelID, path string) (*meta.Meta, string, error) {
+func parseMetaContentFile(zid id.Zid, path string) (*meta.Meta, string, error) {
 	src, err := readFileContent(path)
 	if err != nil {
 		return nil, "", err

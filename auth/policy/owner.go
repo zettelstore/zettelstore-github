@@ -19,7 +19,7 @@ import (
 
 type ownerPolicy struct {
 	expertMode    func() bool
-	isOwner       func(id.ZettelID) bool
+	isOwner       func(id.Zid) bool
 	getVisibility func(*meta.Meta) meta.Visibility
 	pre           Policy
 }

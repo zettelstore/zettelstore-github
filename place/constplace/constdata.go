@@ -22,8 +22,8 @@ const (
 	roleConfiguration = "configuration"
 )
 
-var constZettelMap = map[id.ZettelID]constZettel{
-	id.ConfigurationID: constZettel{
+var constZettelMap = map[id.Zid]constZettel{
+	id.ConfigurationZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Zettelstore Runtime Configuration",
 			meta.KeyRole:       roleConfiguration,
@@ -33,7 +33,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 		"Zettelstore Runtime Configuration",
 	},
 
-	id.BaseTemplateID: constZettel{
+	id.BaseTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Base HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -108,7 +108,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 		),
 	},
 
-	id.LoginTemplateID: constZettel{
+	id.LoginTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Login Form HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -139,7 +139,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{end}}`,
 		)},
 
-	id.ListTemplateID: constZettel{
+	id.ListTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "List Meta HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -165,7 +165,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{- end}}
 {{end}}`)},
 
-	id.DetailTemplateID: constZettel{
+	id.DetailTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Detail HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -195,7 +195,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 </article>
 {{- end}}`)},
 
-	id.InfoTemplateID: constZettel{
+	id.InfoTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Info HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -256,7 +256,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{- end}}`),
 	},
 
-	id.FormTemplateID: constZettel{
+	id.FormTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Form HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -307,7 +307,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	id.RenameTemplateID: constZettel{
+	id.RenameTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Rename Form HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -337,7 +337,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	id.DeleteTemplateID: constZettel{
+	id.DeleteTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Delete HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -362,7 +362,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	id.RolesTemplateID: constZettel{
+	id.RolesTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "List Roles HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -377,7 +377,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	id.TagsTemplateID: constZettel{
+	id.TagsTemplateZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "List Tags HTML Template",
 			meta.KeyRole:       roleConfiguration,
@@ -393,7 +393,7 @@ var constZettelMap = map[id.ZettelID]constZettel{
 {{end}}`,
 	},
 
-	id.BaseCSSID: constZettel{
+	id.BaseCSSZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "Base CSS",
 			meta.KeyRole:       roleConfiguration,
@@ -671,7 +671,7 @@ footer {
 `,
 	},
 
-	id.TemplateNewZettelID: constZettel{
+	id.TemplateNewZettelZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "New Zettel",
 			meta.KeyRole:       meta.ValueRoleNewTemplate,
@@ -682,7 +682,7 @@ footer {
 		"",
 	},
 
-	id.TemplateNewUserID: constZettel{
+	id.TemplateNewUserZid: constZettel{
 		constHeader{
 			meta.KeyTitle:      "New User",
 			meta.KeyRole:       meta.ValueRoleNewTemplate,

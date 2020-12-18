@@ -35,7 +35,7 @@ func MakeGetLoginHandler(te *TemplateEngine) http.HandlerFunc {
 
 func renderLoginForm(
 	ctx context.Context, w http.ResponseWriter, te *TemplateEngine, retry bool) {
-	te.renderTemplate(ctx, w, id.LoginTemplateID, struct {
+	te.renderTemplate(ctx, w, id.LoginTemplateZid, struct {
 		baseData
 		Retry bool
 	}{

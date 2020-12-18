@@ -42,7 +42,7 @@ func newPolicy(
 	withAuth func() bool,
 	isReadOnlyMode bool,
 	expertMode func() bool,
-	isOwner func(id.ZettelID) bool,
+	isOwner func(id.Zid) bool,
 	getVisibility func(*meta.Meta) meta.Visibility,
 ) Policy {
 	var pol Policy

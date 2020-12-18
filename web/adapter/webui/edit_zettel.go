@@ -28,7 +28,7 @@ import (
 func MakeEditGetZettelHandler(
 	te *TemplateEngine, getZettel usecase.GetZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -52,7 +52,7 @@ func MakeEditGetZettelHandler(
 
 		user := session.GetUser(ctx)
 		m := zettel.Meta
-		te.renderTemplate(ctx, w, id.FormTemplateID, formZettelData{
+		te.renderTemplate(ctx, w, id.FormTemplateZid, formZettelData{
 			baseData:      te.makeBaseData(ctx, runtime.GetLang(m), "Edit Zettel", user),
 			MetaTitle:     m.GetDefault(meta.KeyTitle, ""),
 			MetaRole:      m.GetDefault(meta.KeyRole, ""),
@@ -69,7 +69,7 @@ func MakeEditGetZettelHandler(
 // an existing zettel.
 func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		zid, err := id.ParseZettelID(r.URL.Path[1:])
+		zid, err := id.Parse(r.URL.Path[1:])
 		if err != nil {
 			http.NotFound(w, r)
 			return

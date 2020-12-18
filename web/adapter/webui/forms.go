@@ -34,7 +34,7 @@ type formZettelData struct {
 	Content       string
 }
 
-func parseZettelForm(r *http.Request, zid id.ZettelID) (domain.Zettel, bool, error) {
+func parseZettelForm(r *http.Request, zid id.Zid) (domain.Zettel, bool, error) {
 	err := r.ParseForm()
 	if err != nil {
 		return domain.Zettel{}, false, err

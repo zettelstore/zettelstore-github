@@ -24,7 +24,7 @@ import (
 
 // AuthenticatePort is the interface used by this use case.
 type AuthenticatePort interface {
-	GetMeta(ctx context.Context, zid id.ZettelID) (*meta.Meta, error)
+	GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error)
 }
 
@@ -77,8 +77,5 @@ func (uc Authenticate) Run(
 // wait for same time as if password was checked, to avoid timing hints.
 func wait() {
 	cred.CompareHashAndCredential(
-		"$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze",
-		id.InvalidZettelID,
-		"",
-		"")
+		"$2a$10$WHcSO3G9afJ3zlOYQR1suuf83bCXED2jmzjti/MH4YH4l2mivDuze", id.Invalid, "", "")
 }

@@ -23,7 +23,7 @@ import (
 // CreateZettelPort is the interface used by this use case.
 type CreateZettelPort interface {
 	// CreateZettel creates a new zettel.
-	CreateZettel(ctx context.Context, zettel domain.Zettel) (id.ZettelID, error)
+	CreateZettel(ctx context.Context, zettel domain.Zettel) (id.Zid, error)
 }
 
 // CreateZettel is the data for this use case.
@@ -37,8 +37,7 @@ func NewCreateZettel(port CreateZettelPort) CreateZettel {
 }
 
 // Run executes the use case.
-func (uc CreateZettel) Run(
-	ctx context.Context, zettel domain.Zettel) (id.ZettelID, error) {
+func (uc CreateZettel) Run(ctx context.Context, zettel domain.Zettel) (id.Zid, error) {
 	m := zettel.Meta
 	if m.Zid.IsValid() {
 		return m.Zid, nil // TODO: new error: already exists

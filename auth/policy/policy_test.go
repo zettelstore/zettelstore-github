@@ -56,11 +56,11 @@ func TestPolicies(t *testing.T) {
 	}
 }
 
-func withAuth() bool               { return true }
-func withoutAuth() bool            { return false }
-func expertMode() bool             { return true }
-func noExpertMode() bool           { return false }
-func isOwner(zid id.ZettelID) bool { return zid == ownerZid }
+func withAuth() bool          { return true }
+func withoutAuth() bool       { return false }
+func expertMode() bool        { return true }
+func noExpertMode() bool      { return false }
+func isOwner(zid id.Zid) bool { return zid == ownerZid }
 func getVisibility(m *meta.Meta) meta.Visibility {
 	if vis, ok := m.Get(meta.KeyVisibility); ok {
 		switch vis {
@@ -467,12 +467,12 @@ func testDelete(t *testing.T, pol Policy, withAuth bool, readonly bool, isExpert
 }
 
 const (
-	readerZid = id.ZettelID(1013)
-	writerZid = id.ZettelID(1015)
-	ownerZid  = id.ZettelID(1017)
-	zettelZid = id.ZettelID(1021)
-	visZid    = id.ZettelID(1023)
-	userZid   = id.ZettelID(1025)
+	readerZid = id.Zid(1013)
+	writerZid = id.Zid(1015)
+	ownerZid  = id.Zid(1017)
+	zettelZid = id.Zid(1021)
+	visZid    = id.Zid(1023)
+	userZid   = id.Zid(1025)
 )
 
 func newAnon() *meta.Meta { return nil }
