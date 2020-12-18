@@ -25,7 +25,7 @@ func genRuntimeM(zid id.Zid) *meta.Meta {
 	if myPlace.startConfig == nil {
 		return nil
 	}
-	m := meta.NewMeta(zid)
+	m := meta.New(zid)
 	m.Set(meta.KeyTitle, "Zettelstore Runtime Values")
 	m.Set(meta.KeyRole, "configuration")
 	m.Set(meta.KeySyntax, "zmk")

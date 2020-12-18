@@ -20,7 +20,7 @@ import (
 )
 
 func getVersionMeta(zid id.Zid, title string) *meta.Meta {
-	m := meta.NewMeta(zid)
+	m := meta.New(zid)
 	m.Set(meta.KeyTitle, title)
 	m.Set(meta.KeyRole, "configuration")
 	m.Set(meta.KeySyntax, "zmk")

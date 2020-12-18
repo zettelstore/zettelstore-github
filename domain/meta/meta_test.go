@@ -22,7 +22,7 @@ import (
 const testID = id.Zid(98765432101234)
 
 func newMeta(title string, tags []string, syntax string) *Meta {
-	m := NewMeta(testID)
+	m := New(testID)
 	if title != "" {
 		m.Set(KeyTitle, title)
 	}
@@ -72,7 +72,7 @@ func TestWriteMeta(t *testing.T) {
 }
 
 func TestTitleHeader(t *testing.T) {
-	m := NewMeta(testID)
+	m := New(testID)
 	if got, ok := m.Get(KeyTitle); ok || got != "" {
 		t.Errorf("Title is not empty, but %q", got)
 	}
@@ -91,7 +91,7 @@ func TestTitleHeader(t *testing.T) {
 		t.Errorf("Title is not %q, but %q", exp, got)
 	}
 
-	m = NewMeta(testID)
+	m = New(testID)
 	const at = "A Title"
 	addToMeta(m, KeyTitle, at)
 	addToMeta(m, KeyTitle, " ")
@@ -118,7 +118,7 @@ func checkSet(t *testing.T, exp []string, m *Meta, key string) {
 }
 
 func TestTagsHeader(t *testing.T) {
-	m := NewMeta(testID)
+	m := New(testID)
 	checkSet(t, []string{}, m, KeyTags)
 
 	addToMeta(m, KeyTags, "")
@@ -135,7 +135,7 @@ func TestTagsHeader(t *testing.T) {
 }
 
 func TestSyntax(t *testing.T) {
-	m := NewMeta(testID)
+	m := New(testID)
 	if got, ok := m.Get(KeySyntax); ok || got != "" {
 		t.Errorf("Syntax is not %q, but %q", "", got)
 	}
@@ -175,7 +175,7 @@ func checkHeader(t *testing.T, exp map[string]string, gotP []Pair) {
 }
 
 func TestDefaultHeader(t *testing.T) {
-	m := NewMeta(testID)
+	m := New(testID)
 	addToMeta(m, "h1", "d1")
 	addToMeta(m, "H2", "D2")
 	addToMeta(m, "H1", "D1.1")
@@ -194,7 +194,7 @@ func TestDefaultHeader(t *testing.T) {
 }
 
 func parseMetaStr(src string) *Meta {
-	return NewMetaFromInput(testID, input.NewInput(src))
+	return NewFromInput(testID, input.NewInput(src))
 }
 
 func TestEmpty(t *testing.T) {
@@ -231,7 +231,7 @@ func TestTitle(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	m := NewMeta(testID)
+	m := New(testID)
 	m.Set("key", "val")
 	if got, ok := m.Get("key"); !ok || got != "val" {
 		t.Errorf("Value != %q, got: %v/%q", "val", ok, got)
@@ -246,7 +246,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestNewMetaFromInput(t *testing.T) {
+func TestNewFromInput(t *testing.T) {
 	testcases := []struct {
 		input string
 		exp   []Pair
@@ -271,7 +271,7 @@ func TestNewMetaFromInput(t *testing.T) {
 
 	// Test, whether input position is correct.
 	inp := input.NewInput("---\na:b\n---\nX")
-	meta := NewMetaFromInput(testID, inp)
+	meta := NewFromInput(testID, inp)
 	exp := []Pair{{"a", "b"}}
 	if got := meta.Pairs(); !equalPairs(exp, got) {
 		t.Errorf("Expected=%v, got=%v", exp, got)

@@ -32,7 +32,7 @@ func init() {
 type constHeader map[string]string
 
 func makeMeta(zid id.Zid, h constHeader) *meta.Meta {
-	m := meta.NewMeta(zid)
+	m := meta.New(zid)
 	for k, v := range h {
 		m.Set(k, v)
 	}

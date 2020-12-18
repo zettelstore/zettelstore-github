@@ -31,8 +31,8 @@ type Meta struct {
 	YamlSep bool
 }
 
-// NewMeta creates a new chunk for storing meta-data
-func NewMeta(zid id.Zid) *Meta {
+// New creates a new chunk for storing meta-data
+func New(zid id.Zid) *Meta {
 	return &Meta{Zid: zid, pairs: make(map[string]string, 3)}
 }
 
@@ -382,13 +382,13 @@ func (m *Meta) Equal(o *Meta) bool {
 	return true
 }
 
-// NewMetaFromInput parses the meta data of a zettel.
-func NewMetaFromInput(zid id.Zid, inp *input.Input) *Meta {
+// NewFromInput parses the meta data of a zettel.
+func NewFromInput(zid id.Zid, inp *input.Input) *Meta {
 	if inp.Ch == '-' && inp.PeekN(0) == '-' && inp.PeekN(1) == '-' {
 		skipToEOL(inp)
 		inp.EatEOL()
 	}
-	meta := NewMeta(zid)
+	meta := New(zid)
 	for {
 		skipSpace(inp)
 		switch inp.Ch {

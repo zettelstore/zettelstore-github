@@ -226,7 +226,7 @@ func parseMetaFile(zid id.Zid, path string) (*meta.Meta, error) {
 		return nil, err
 	}
 	inp := input.NewInput(src)
-	return meta.NewMetaFromInput(zid, inp), nil
+	return meta.NewFromInput(zid, inp), nil
 }
 
 func parseMetaContentFile(zid id.Zid, path string) (*meta.Meta, string, error) {
@@ -235,7 +235,7 @@ func parseMetaContentFile(zid id.Zid, path string) (*meta.Meta, string, error) {
 		return nil, "", err
 	}
 	inp := input.NewInput(src)
-	meta := meta.NewMetaFromInput(zid, inp)
+	meta := meta.NewFromInput(zid, inp)
 	return meta, src[inp.Pos:], nil
 }
 

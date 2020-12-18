@@ -22,7 +22,7 @@ func genConfigM(zid id.Zid) *meta.Meta {
 	if myPlace.startConfig == nil {
 		return nil
 	}
-	m := meta.NewMeta(zid)
+	m := meta.New(zid)
 	m.Set(meta.KeyTitle, "Zettelstore Startup Configuration")
 	m.Set(meta.KeyRole, "configuration")
 	m.Set(meta.KeySyntax, "zmk")

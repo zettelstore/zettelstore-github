@@ -110,7 +110,7 @@ func (te *TemplateEngine) cacheGetTemplate(zid id.Zid) (*template.Template, bool
 }
 
 func (te *TemplateEngine) canCreate(ctx context.Context, user *meta.Meta) bool {
-	m := meta.NewMeta(id.Invalid)
+	m := meta.New(id.Invalid)
 	return te.policy.CanCreate(user, m) && te.place.CanCreateZettel(ctx)
 }
 

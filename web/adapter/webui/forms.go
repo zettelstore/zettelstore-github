@@ -42,9 +42,9 @@ func parseZettelForm(r *http.Request, zid id.Zid) (domain.Zettel, bool, error) {
 
 	var m *meta.Meta
 	if postMeta, ok := trimmedFormValue(r, "meta"); ok {
-		m = meta.NewMetaFromInput(zid, input.NewInput(postMeta))
+		m = meta.NewFromInput(zid, input.NewInput(postMeta))
 	} else {
-		m = meta.NewMeta(zid)
+		m = meta.New(zid)
 	}
 	if postTitle, ok := trimmedFormValue(r, "title"); ok {
 		m.Set(meta.KeyTitle, postTitle)
