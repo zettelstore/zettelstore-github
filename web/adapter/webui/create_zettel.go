@@ -48,6 +48,24 @@ func MakeGetCopyZettelHandler(
 	}
 }
 
+// MakeGetFolgeZettelHandler creates a new HTTP handler to display the
+// HTML edit view of a follow-up zettel.
+func MakeGetFolgeZettelHandler(
+	te *TemplateEngine,
+	getZettel usecase.GetZettel,
+	folgeZettel usecase.FolgeZettel,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if origZettel, ok := getOrigZettel(w, r, getZettel, "Folge"); ok {
+			renderZettelForm(
+				w,
+				r,
+				te,
+				folgeZettel.Run(origZettel), "Folge Zettel", template.HTML("Folge Zettel"))
+		}
+	}
+}
+
 // MakeGetNewZettelHandler creates a new HTTP handler to display the
 // HTML edit view of a zettel.
 func MakeGetNewZettelHandler(

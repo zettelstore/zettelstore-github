@@ -186,6 +186,7 @@ var constZettelMap = map[id.Zid]constZettel{
 (<a href="{{.RoleURL}}">{{.RoleText}}</a>)
 {{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
 {{if .CanCopy}}&#183; <a href="{{.CopyURL}}">Copy</a>{{end}}
+{{if .CanFolge}}&#183; <a href="{{.FolgeURL}}">Folge</a>{{end}}
 {{if .CanNew}}&#183; <a href="{{.NewURL}}">New</a>{{end}}
 {{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}"{{.ExtNewWindow}}>{{.ExtURL}}</a>{{end}}
 </div>
@@ -208,6 +209,7 @@ var constZettelMap = map[id.Zid]constZettel{
 <h1>Information for Zettel {{.Zid}}</h1>
 <a href="{{.WebURL}}">Web</a>
 {{ if .CanWrite}} &#183; <a href="{{.EditURL}}">Edit</a>{{ end}}
+{{ if .CanFolge}} &#183; <a href="{{.FolgeURL}}">Folge</a>{{ end}}
 {{ if .CanCopy}} &#183; <a href="{{.CopyURL}}">Copy</a>{{ end}}
 {{ if .CanNew}} &#183; <a href="{{.NewURL}}">New</a>{{ end}}
 {{ if .CanRename}}&#183; <a href="{{.RenameURL}}">Rename</a>{{end}}

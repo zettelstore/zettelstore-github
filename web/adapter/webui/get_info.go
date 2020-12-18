@@ -142,6 +142,8 @@ func MakeGetInfoHandler(
 			WebURL       string
 			CanWrite     bool
 			EditURL      string
+			CanFolge     bool
+			FolgeURL     string
 			CanCopy      bool
 			CopyURL      string
 			CanNew       bool
@@ -166,6 +168,8 @@ func MakeGetInfoHandler(
 			WebURL:   adapter.NewURLBuilder('h').SetZid(zid).String(),
 			CanWrite: te.canWrite(ctx, user, zn.Zettel),
 			EditURL:  adapter.NewURLBuilder('e').SetZid(zid).String(),
+			CanFolge: base.CanCreate && !zn.Zettel.Content.IsBinary(),
+			FolgeURL: adapter.NewURLBuilder('f').SetZid(zid).String(),
 			CanCopy:  canCopy,
 			CopyURL:  adapter.NewURLBuilder('c').SetZid(zid).String(),
 			CanNew: canCopy && zn.Zettel.Meta.GetDefault(meta.KeyRole, "") ==

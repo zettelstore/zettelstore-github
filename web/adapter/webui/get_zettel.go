@@ -114,6 +114,8 @@ func MakeGetHTMLZettelHandler(
 			CopyURL      string
 			CanNew       bool
 			NewURL       string
+			CanFolge     bool
+			FolgeURL     string
 			HasExtURL    bool
 			ExtURL       string
 			ExtNewWindow template.HTMLAttr
@@ -134,6 +136,8 @@ func MakeGetHTMLZettelHandler(
 			CopyURL:      adapter.NewURLBuilder('c').SetZid(zid).String(),
 			CanNew:       canCopy && roleText == meta.ValueRoleNewTemplate,
 			NewURL:       adapter.NewURLBuilder('n').SetZid(zid).String(),
+			CanFolge:     base.CanCreate && !zn.Zettel.Content.IsBinary(),
+			FolgeURL:     adapter.NewURLBuilder('f').SetZid(zid).String(),
 			ExtURL:       extURL,
 			HasExtURL:    hasExtURL,
 			ExtNewWindow: htmlAttrNewWindow(newWindow && hasExtURL),
