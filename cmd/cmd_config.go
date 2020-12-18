@@ -19,7 +19,7 @@ import (
 
 // ---------- Subcommand: config ---------------------------------------------
 
-func cmdConfig(string, *flag.FlagSet) (int, error) {
+func cmdConfig(*flag.FlagSet) (int, error) {
 	fmtVersion()
 	fmt.Println("Stores")
 	fmt.Printf("  Read-only mode    = %v\n", startup.IsReadOnlyMode())

@@ -26,9 +26,9 @@ type Command struct {
 }
 
 // CommandFunc is the function that executes the command.
-// It accepts the command name and the parsed command line parameters.
+// It accepts the parsed command line parameters.
 // It returns the exit code and an error.
-type CommandFunc func(string, *flag.FlagSet) (int, error)
+type CommandFunc func(*flag.FlagSet) (int, error)
 
 // GetFlags return the flag.FlagSet defined for the command.
 func (c *Command) GetFlags() *flag.FlagSet { return c.flags }

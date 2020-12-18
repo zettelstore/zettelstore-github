@@ -29,7 +29,7 @@ import (
 
 // ---------- Subcommand: run ------------------------------------------------
 
-func runFunc(string, *flag.FlagSet) (int, error) {
+func runFunc(*flag.FlagSet) (int, error) {
 
 	readonlyMode := startup.IsReadOnlyMode()
 	router := setupRouting(startup.Place(), readonlyMode)

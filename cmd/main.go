@@ -33,7 +33,7 @@ const (
 func init() {
 	RegisterCommand(Command{
 		Name: "help",
-		Func: func(string, *flag.FlagSet) (int, error) {
+		Func: func(*flag.FlagSet) (int, error) {
 			fmt.Println("Available commands:")
 			for _, name := range List() {
 				fmt.Printf("- %q\n", name)
@@ -43,7 +43,7 @@ func init() {
 	})
 	RegisterCommand(Command{
 		Name: "version",
-		Func: func(string, *flag.FlagSet) (int, error) {
+		Func: func(*flag.FlagSet) (int, error) {
 			fmtVersion()
 			return 0, nil
 		},
@@ -148,7 +148,7 @@ func executeCommand(name string, args ...string) {
 		runtime.SetupConfiguration(startup.Place())
 		progplace.Setup(cfg, startup.Place())
 	}
-	exitCode, err := command.Func(name, fs)
+	exitCode, err := command.Func(fs)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
 	}
