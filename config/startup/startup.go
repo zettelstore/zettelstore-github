@@ -14,6 +14,7 @@ package startup
 import (
 	"fmt"
 	"hash/fnv"
+	"io"
 	"net/url"
 	"strconv"
 	"time"
@@ -102,14 +103,14 @@ func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place) error 
 func calcSecret(cfg *meta.Meta) []byte {
 	h := fnv.New128()
 	if secret, ok := cfg.Get("secret"); ok {
-		h.Write([]byte(secret))
+		io.WriteString(h, secret)
 	}
-	h.Write([]byte(version.Prog))
-	h.Write([]byte(version.Build))
-	h.Write([]byte(version.Hostname))
-	h.Write([]byte(version.GoVersion))
-	h.Write([]byte(version.Os))
-	h.Write([]byte(version.Arch))
+	io.WriteString(h, version.Prog)
+	io.WriteString(h, version.Build)
+	io.WriteString(h, version.Hostname)
+	io.WriteString(h, version.GoVersion)
+	io.WriteString(h, version.Os)
+	io.WriteString(h, version.Arch)
 	return h.Sum(nil)
 }
 

@@ -157,12 +157,12 @@ func writeDJSONHeader(w http.ResponseWriter, zid id.Zid) error {
 		_, err = w.Write(djsonHeader2)
 	}
 	if err == nil {
-		_, err = w.Write([]byte(adapter.NewURLBuilder('z').SetZid(zid).String()))
+		_, err = io.WriteString(w, adapter.NewURLBuilder('z').SetZid(zid).String())
 	}
 	if err == nil {
 		_, err = w.Write(djsonHeader3)
 		if err == nil {
-			_, err = w.Write([]byte("djson"))
+			_, err = io.WriteString(w, "djson")
 		}
 	}
 	if err == nil {

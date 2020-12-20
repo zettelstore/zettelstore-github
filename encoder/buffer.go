@@ -36,9 +36,13 @@ func (w *BufWriter) Write(p []byte) (int, error) {
 		w.buf = append(w.buf, p...)
 		if len(w.buf) > 2048 {
 			w.flush()
+			if w.err != nil {
+				return 0, w.err
+			}
 		}
+		return len(p), nil
 	}
-	return len(p), nil
+	return 0, w.err
 }
 
 // WriteString writes the contents of s into the buffer.
@@ -49,7 +53,7 @@ func (w *BufWriter) WriteString(s string) {
 // WriteStrings writes the contents of sl into the buffer.
 func (w *BufWriter) WriteStrings(sl ...string) {
 	for _, s := range sl {
-		w.Write([]byte(s))
+		w.WriteString(s)
 	}
 }
 
