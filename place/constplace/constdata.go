@@ -34,7 +34,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.BaseTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Base HTML Template",
+			meta.KeyTitle:      "Zettelstore Base HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -109,7 +109,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.LoginTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Login Form HTML Template",
+			meta.KeyTitle:      "Zettelstore Login Form HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -140,7 +140,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.ListTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "List Meta HTML Template",
+			meta.KeyTitle:      "Zettelstore List Meta HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -166,7 +166,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.DetailTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Detail HTML Template",
+			meta.KeyTitle:      "Zettelstore Detail HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -197,7 +197,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.InfoTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Info HTML Template",
+			meta.KeyTitle:      "Zettelstore Info HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -259,7 +259,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.FormTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Form HTML Template",
+			meta.KeyTitle:      "Zettelstore Form HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -310,7 +310,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.RenameTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Rename Form HTML Template",
+			meta.KeyTitle:      "Zettelstore Rename Form HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -340,7 +340,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.DeleteTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Delete HTML Template",
+			meta.KeyTitle:      "Zettelstore Delete HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -365,7 +365,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.RolesTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "List Roles HTML Template",
+			meta.KeyTitle:      "Zettelstore List Roles HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -380,7 +380,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.TagsTemplateZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "List Tags HTML Template",
+			meta.KeyTitle:      "Zettelstore List Tags HTML Template",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
@@ -396,7 +396,7 @@ var constZettelMap = map[id.Zid]constZettel{
 
 	id.BaseCSSZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "Base CSS",
+			meta.KeyTitle:      "Zettelstore Base CSS",
 			meta.KeyRole:       meta.ValueRoleConfiguration,
 			meta.KeyVisibility: meta.ValueVisibilityPublic,
 			meta.KeySyntax:     "css",
