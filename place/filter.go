@@ -119,7 +119,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 		}
 	case meta.TypeCredential:
 		return matchNever
-	case meta.TypeID:
+	case meta.TypeID, meta.TypeDatetime: // ID and datetime use the same layout
 		return func(value string) bool {
 			for _, v := range values {
 				if !strings.HasPrefix(value, v) {

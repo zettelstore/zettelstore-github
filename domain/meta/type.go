@@ -11,12 +11,16 @@
 // Package meta provides the domain specific type 'meta'.
 package meta
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 // Supported key types.
 const (
 	TypeBool       = 'b'
 	TypeCredential = 'c'
+	TypeDatetime   = 'd'
 	TypeEmpty      = 'e'
 	TypeID         = 'i'
 	TypeNumber     = 'n'
@@ -53,6 +57,11 @@ func (m *Meta) SetList(key string, values []string) {
 	}
 }
 
+// SetNow stores the current timestamp under the given key.
+func (m *Meta) SetNow(key string) {
+	m.Set(key, time.Now().Format("20060102150405"))
+}
+
 // BoolValue returns the value interpreted as a bool.
 func BoolValue(value string) bool {
 	if len(value) > 0 {
@@ -70,6 +79,22 @@ func (m *Meta) GetBool(key string) bool {
 		return BoolValue(value)
 	}
 	return false
+}
+
+// TimeValue returns the time value of the given value.
+func TimeValue(value string) (time.Time, bool) {
+	if t, err := time.Parse("20060102150405", value); err == nil {
+		return t, true
+	}
+	return time.Time{}, false
+}
+
+// GetTime returns the time value of the given key.
+func (m *Meta) GetTime(key string) (time.Time, bool) {
+	if value, ok := m.Get(key); ok {
+		return TimeValue(value)
+	}
+	return time.Time{}, false
 }
 
 // ListFromValue transforms a string value into a list value.

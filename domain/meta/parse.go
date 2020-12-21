@@ -169,8 +169,12 @@ func addToMeta(m *Meta, key, val string) {
 	case TypeWordSet:
 		addSet(m, key, strings.ToLower(v), func(s string) bool { return true })
 	case TypeID:
-		if _, err := id.Parse(val); err == nil {
-			m.Set(key, val)
+		if _, err := id.Parse(v); err == nil {
+			m.Set(key, v)
+		}
+	case TypeDatetime:
+		if _, ok := TimeValue(v); ok {
+			m.Set(key, v)
 		}
 	case TypeEmpty:
 		fallthrough
