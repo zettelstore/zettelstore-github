@@ -24,13 +24,14 @@ import (
 // PlaceWithPolicy wraps the given place inside a policy place.
 func PlaceWithPolicy(
 	place place.Place,
+	simpleMode bool,
 	withAuth func() bool,
 	isReadOnlyMode bool,
 	expertMode func() bool,
 	isOwner func(id.Zid) bool,
 	getVisibility func(*meta.Meta) meta.Visibility,
 ) (place.Place, Policy) {
-	pol := newPolicy(withAuth, isReadOnlyMode, expertMode, isOwner, getVisibility)
+	pol := newPolicy(simpleMode, withAuth, isReadOnlyMode, expertMode, isOwner, getVisibility)
 	return wrapPolicyPlace(place, pol), pol
 }
 

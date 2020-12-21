@@ -18,6 +18,7 @@ import (
 )
 
 type ownerPolicy struct {
+	simpleMode    bool
 	expertMode    func() bool
 	isOwner       func(id.Zid) bool
 	getVisibility func(*meta.Meta) meta.Visibility
@@ -53,15 +54,15 @@ func (o *ownerPolicy) CanRead(user *meta.Meta, m *meta.Meta) bool {
 	// No need to call o.pre.CanRead(user, meta), because it will always return true.
 	// Both the default and the readonly policy allow to read a zettel.
 	vis := o.getVisibility(m)
-	if vis == meta.VisibilityExpert && !o.expertMode() {
-		return false
+	if res, ok := o.checkVisibility(user, vis); ok {
+		return res
 	}
 	return (user != nil && o.isOwner(user.Zid)) || o.userCanRead(user, m, vis)
 }
 
 func (o *ownerPolicy) userCanRead(user *meta.Meta, m *meta.Meta, vis meta.Visibility) bool {
 	switch vis {
-	case meta.VisibilityOwner, meta.VisibilityExpert:
+	case meta.VisibilityOwner, meta.VisibilitySimple, meta.VisibilityExpert:
 		return false
 	case meta.VisibilityPublic:
 		return true
@@ -88,8 +89,8 @@ func (o *ownerPolicy) CanWrite(user *meta.Meta, oldMeta, newMeta *meta.Meta) boo
 		return false
 	}
 	vis := o.getVisibility(oldMeta)
-	if vis == meta.VisibilityExpert && !o.expertMode() {
-		return false
+	if res, ok := o.checkVisibility(user, vis); ok {
+		return res
 	}
 	if o.isOwner(user.Zid) {
 		return true
@@ -117,8 +118,8 @@ func (o *ownerPolicy) CanRename(user *meta.Meta, m *meta.Meta) bool {
 	if user == nil || !o.pre.CanRename(user, m) {
 		return false
 	}
-	if o.getVisibility(m) == meta.VisibilityExpert && !o.expertMode() {
-		return false
+	if res, ok := o.checkVisibility(user, o.getVisibility(m)); ok {
+		return res
 	}
 	return o.isOwner(user.Zid)
 }
@@ -127,8 +128,18 @@ func (o *ownerPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
 	if user == nil || !o.pre.CanDelete(user, m) {
 		return false
 	}
-	if o.getVisibility(m) == meta.VisibilityExpert && !o.expertMode() {
-		return false
+	if res, ok := o.checkVisibility(user, o.getVisibility(m)); ok {
+		return res
 	}
 	return o.isOwner(user.Zid)
+}
+
+func (o *ownerPolicy) checkVisibility(user *meta.Meta, vis meta.Visibility) (bool, bool) {
+	switch vis {
+	case meta.VisibilitySimple:
+		return user != nil && o.isOwner(user.Zid) && (o.simpleMode || o.expertMode()), true
+	case meta.VisibilityExpert:
+		return user != nil && o.isOwner(user.Zid) && o.expertMode(), true
+	}
+	return false, false
 }

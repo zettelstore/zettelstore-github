@@ -106,6 +106,7 @@ const (
 	ValueVisibilityOwner   = "owner"
 	ValueVisibilityLogin   = "login"
 	ValueVisibilityPublic  = "public"
+	ValueVisibilitySimple  = "simple-expert"
 )
 
 // Meta contains all meta-data of a zettel.

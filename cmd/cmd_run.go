@@ -59,7 +59,7 @@ func startWebServer(asDefault bool) (int, error) {
 
 func setupRouting(up place.Place, readonlyMode bool) http.Handler {
 	pp, pol := policy.PlaceWithPolicy(
-		up, startup.WithAuth, readonlyMode, runtime.GetExpertMode,
+		up, startup.IsSimple(), startup.WithAuth, readonlyMode, runtime.GetExpertMode,
 		startup.IsOwner, runtime.GetVisibility)
 	te := webui.NewTemplateEngine(up, pol)
 

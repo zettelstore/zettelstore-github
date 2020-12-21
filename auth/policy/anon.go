@@ -16,6 +16,7 @@ import (
 )
 
 type anonPolicy struct {
+	simpleMode    bool
 	expertMode    func() bool
 	getVisibility func(*meta.Meta) meta.Visibility
 	pre           Policy
@@ -30,21 +31,27 @@ func (ap *anonPolicy) CanCreate(user *meta.Meta, newMeta *meta.Meta) bool {
 }
 
 func (ap *anonPolicy) CanRead(user *meta.Meta, m *meta.Meta) bool {
-	return ap.pre.CanRead(user, m) &&
-		(ap.getVisibility(m) != meta.VisibilityExpert || ap.expertMode())
+	return ap.pre.CanRead(user, m) && ap.checkVisibility(m)
 }
 
 func (ap *anonPolicy) CanWrite(user *meta.Meta, oldMeta, newMeta *meta.Meta) bool {
-	return ap.pre.CanWrite(user, oldMeta, newMeta) &&
-		(ap.getVisibility(oldMeta) != meta.VisibilityExpert || ap.expertMode())
+	return ap.pre.CanWrite(user, oldMeta, newMeta) && ap.checkVisibility(oldMeta)
 }
 
 func (ap *anonPolicy) CanRename(user *meta.Meta, m *meta.Meta) bool {
-	return ap.pre.CanRename(user, m) &&
-		(ap.getVisibility(m) != meta.VisibilityExpert || ap.expertMode())
+	return ap.pre.CanRename(user, m) && ap.checkVisibility(m)
 }
 
 func (ap *anonPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
-	return ap.pre.CanDelete(user, m) &&
-		(ap.getVisibility(m) != meta.VisibilityExpert || ap.expertMode())
+	return ap.pre.CanDelete(user, m) && ap.checkVisibility(m)
+}
+
+func (ap *anonPolicy) checkVisibility(m *meta.Meta) bool {
+	switch ap.getVisibility(m) {
+	case meta.VisibilitySimple:
+		return ap.simpleMode || ap.expertMode()
+	case meta.VisibilityExpert:
+		return ap.expertMode()
+	}
+	return true
 }

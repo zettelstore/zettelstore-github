@@ -21,6 +21,7 @@ const (
 	VisibilityPublic
 	VisibilityLogin
 	VisibilityOwner
+	VisibilitySimple
 	VisibilityExpert
 )
 
@@ -28,6 +29,7 @@ var visMap = map[string]Visibility{
 	ValueVisibilityPublic: VisibilityPublic,
 	ValueVisibilityLogin:  VisibilityLogin,
 	ValueVisibilityOwner:  VisibilityOwner,
+	ValueVisibilitySimple: VisibilitySimple,
 	ValueVisibilityExpert: VisibilityExpert,
 }
 

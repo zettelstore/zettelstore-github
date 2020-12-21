@@ -39,6 +39,7 @@ type Policy interface {
 
 // newPolicy creates a policy based on given constraints.
 func newPolicy(
+	simpleMode bool,
 	withAuth func() bool,
 	isReadOnlyMode bool,
 	expertMode func() bool,
@@ -53,6 +54,7 @@ func newPolicy(
 	}
 	if withAuth() {
 		pol = &ownerPolicy{
+			simpleMode:    simpleMode,
 			expertMode:    expertMode,
 			isOwner:       isOwner,
 			getVisibility: getVisibility,
@@ -60,6 +62,7 @@ func newPolicy(
 		}
 	} else {
 		pol = &anonPolicy{
+			simpleMode:    simpleMode,
 			expertMode:    expertMode,
 			getVisibility: getVisibility,
 			pre:           pol,
