@@ -91,6 +91,7 @@ func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place, simple
 		config.apiLifetime = getDuration(
 			cfg, StartupKeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
+	config.simple = simple && config.withAuth
 	if !withPlaces {
 		return nil
 	}
@@ -180,7 +181,8 @@ func getDuration(
 	return defDur
 }
 
-// IsSimple returns true if Zettelstore was not started with command "run".
+// IsSimple returns true if Zettelstore was not started with command "run"
+// and authentication is disabled.
 func IsSimple() bool { return config.simple }
 
 // IsVerbose returns whether the system should be more chatty about its operations.

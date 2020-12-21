@@ -205,7 +205,7 @@ func testRead(t *testing.T, pol Policy, simple bool, withAuth bool, readonly boo
 		{anonUser, simpleZettel, !withAuth && (simple || expert)},
 		{reader, simpleZettel, !withAuth && (simple || expert)},
 		{writer, simpleZettel, !withAuth && (simple || expert)},
-		{owner, simpleZettel, simple || expert},
+		{owner, simpleZettel, (!withAuth && simple) || expert},
 		// Other user zettel
 		{anonUser, userZettel, !withAuth},
 		{reader, userZettel, !withAuth},
@@ -301,7 +301,7 @@ func testWrite(t *testing.T, pol Policy, simple bool, withAuth bool, readonly bo
 		{anonUser, simpleZettel, expertZettel, !withAuth && !readonly && (simple || expert)},
 		{reader, simpleZettel, expertZettel, !withAuth && !readonly && (simple || expert)},
 		{writer, simpleZettel, expertZettel, !withAuth && !readonly && (simple || expert)},
-		{owner, simpleZettel, expertZettel, !readonly && (simple || expert)},
+		{owner, simpleZettel, expertZettel, !readonly && ((!withAuth && simple) || expert)},
 		// Other user zettel
 		{anonUser, userZettel, userZettel, !withAuth && !readonly},
 		{reader, userZettel, userZettel, !withAuth && !readonly},
@@ -387,7 +387,7 @@ func testRename(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 		{anonUser, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{reader, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{writer, simpleZettel, !withAuth && !readonly && (simple || expert)},
-		{owner, simpleZettel, !readonly && (simple || expert)},
+		{owner, simpleZettel, !readonly && ((!withAuth && simple) || expert)},
 		// No r/o zettel
 		{anonUser, roFalse, !withAuth && !readonly},
 		{reader, roFalse, !withAuth && !readonly},
@@ -462,7 +462,7 @@ func testDelete(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 		{anonUser, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{reader, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{writer, simpleZettel, !withAuth && !readonly && (simple || expert)},
-		{owner, simpleZettel, !readonly && (simple || expert)},
+		{owner, simpleZettel, !readonly && ((!withAuth && simple) || expert)},
 		// No r/o zettel
 		{anonUser, roFalse, !withAuth && !readonly},
 		{reader, roFalse, !withAuth && !readonly},

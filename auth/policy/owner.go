@@ -18,7 +18,6 @@ import (
 )
 
 type ownerPolicy struct {
-	simpleMode    bool
 	expertMode    func() bool
 	isOwner       func(id.Zid) bool
 	getVisibility func(*meta.Meta) meta.Visibility
@@ -136,9 +135,7 @@ func (o *ownerPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
 
 func (o *ownerPolicy) checkVisibility(user *meta.Meta, vis meta.Visibility) (bool, bool) {
 	switch vis {
-	case meta.VisibilitySimple:
-		return user != nil && o.isOwner(user.Zid) && (o.simpleMode || o.expertMode()), true
-	case meta.VisibilityExpert:
+	case meta.VisibilitySimple, meta.VisibilityExpert:
 		return user != nil && o.isOwner(user.Zid) && o.expertMode(), true
 	}
 	return false, false

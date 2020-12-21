@@ -54,7 +54,6 @@ func newPolicy(
 	}
 	if withAuth() {
 		pol = &ownerPolicy{
-			simpleMode:    simpleMode,
 			expertMode:    expertMode,
 			isOwner:       isOwner,
 			getVisibility: getVisibility,
