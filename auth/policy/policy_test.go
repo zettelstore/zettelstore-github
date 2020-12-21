@@ -21,29 +21,27 @@ import (
 
 func TestPolicies(t *testing.T) {
 	testScene := []struct {
-		name       string
-		simpleMode bool
-		readonly   bool
-		withAuth   bool
-		isExpert   bool
+		simple   bool
+		readonly bool
+		withAuth bool
+		expert   bool
 	}{
-		{"simple/read-only/no auth", true, true, false, false},
-		{"simple/read-only/no auth/expert", true, true, false, true},
-		{"simple/read-only/with auth", true, true, true, false},
-		{"simple/read-only/with auth/expert", true, true, true, true},
-		{"simple/read-write/no auth", true, false, false, false},
-		{"simple/read-write/no auth/expert", true, false, false, true},
-		{"simple/read-write/with auth", true, false, true, false},
-		{"simple/read-write/with auth/expert", true, false, true, true},
-
-		{"no simple/read-only/no auth", false, true, false, false},
-		{"no simple/read-only/no auth/expert", false, true, false, true},
-		{"no simple/read-only/with auth", false, true, true, false},
-		{"no simple/read-only/with auth/expert", false, true, true, true},
-		{"no simple/read-write/no auth", false, false, false, false},
-		{"no simple/read-write/no auth/expert", false, false, false, true},
-		{"no simple/read-write/with auth", false, false, true, false},
-		{"no simple/read-write/with auth/expert", false, false, true, true},
+		{true, true, true, true},
+		{true, true, true, false},
+		{true, true, false, true},
+		{true, true, false, false},
+		{true, false, true, true},
+		{true, false, true, false},
+		{true, false, false, true},
+		{true, false, false, false},
+		{false, true, true, true},
+		{false, true, true, false},
+		{false, true, false, true},
+		{false, true, false, false},
+		{false, false, true, true},
+		{false, false, true, false},
+		{false, false, false, true},
+		{false, false, false, false},
 	}
 	for _, ts := range testScene {
 		var authFunc func() bool
@@ -53,21 +51,21 @@ func TestPolicies(t *testing.T) {
 			authFunc = withoutAuth
 		}
 		var expertFunc func() bool
-		if ts.isExpert {
+		if ts.expert {
 			expertFunc = expertMode
 		} else {
 			expertFunc = noExpertMode
 		}
-		pol := newPolicy(ts.simpleMode, authFunc, ts.readonly, expertFunc, isOwner, getVisibility)
+		pol := newPolicy(ts.simple, authFunc, ts.readonly, expertFunc, isOwner, getVisibility)
 		name := fmt.Sprintf("simple=%v/readonly=%v/withauth=%v/expert=%v",
-			ts.simpleMode, ts.readonly, ts.withAuth, ts.isExpert)
+			ts.simple, ts.readonly, ts.withAuth, ts.expert)
 		t.Run(name, func(tt *testing.T) {
-			testReload(tt, pol, ts.simpleMode, ts.withAuth, ts.readonly, ts.isExpert)
-			testCreate(tt, pol, ts.simpleMode, ts.withAuth, ts.readonly, ts.isExpert)
-			testRead(tt, pol, ts.simpleMode, ts.withAuth, ts.readonly, ts.isExpert)
-			testWrite(tt, pol, ts.simpleMode, ts.withAuth, ts.readonly, ts.isExpert)
-			testRename(tt, pol, ts.simpleMode, ts.withAuth, ts.readonly, ts.isExpert)
-			testDelete(tt, pol, ts.simpleMode, ts.withAuth, ts.readonly, ts.isExpert)
+			testReload(tt, pol, ts.simple, ts.withAuth, ts.readonly, ts.expert)
+			testCreate(tt, pol, ts.simple, ts.withAuth, ts.readonly, ts.expert)
+			testRead(tt, pol, ts.simple, ts.withAuth, ts.readonly, ts.expert)
+			testWrite(tt, pol, ts.simple, ts.withAuth, ts.readonly, ts.expert)
+			testRename(tt, pol, ts.simple, ts.withAuth, ts.readonly, ts.expert)
+			testDelete(tt, pol, ts.simple, ts.withAuth, ts.readonly, ts.expert)
 		})
 	}
 }
