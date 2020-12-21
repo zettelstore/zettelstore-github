@@ -28,7 +28,7 @@ func cmdConfig(*flag.FlagSet) (int, error) {
 	fmt.Printf("  URL prefix        = %q\n", startup.URLPrefix())
 	if startup.WithAuth() {
 		fmt.Println("Auth")
-		fmt.Printf("  Owner             = %v\n", startup.Owner().Format())
+		fmt.Printf("  Owner             = %v\n", startup.Owner())
 		fmt.Printf("  Secure cookie     = %v\n", startup.SecureCookie())
 		fmt.Printf("  Persistent cookie = %v\n", startup.PersistentCookie())
 		htmlLifetime, apiLifetime := startup.TokenLifetime()

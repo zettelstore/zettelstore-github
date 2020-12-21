@@ -59,7 +59,7 @@ func (ub *URLBuilder) SetZid(zid id.Zid) *URLBuilder {
 	if len(ub.path) > 0 {
 		panic("Cannot add Zid")
 	}
-	ub.path = append(ub.path, zid.Format())
+	ub.path = append(ub.path, zid.String())
 	return ub
 }
 

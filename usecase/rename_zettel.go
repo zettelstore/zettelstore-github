@@ -36,7 +36,7 @@ type RenameZettel struct {
 type ErrZidInUse struct{ Zid id.Zid }
 
 func (err *ErrZidInUse) Error() string {
-	return "Zettel id already in use: " + err.Zid.Format()
+	return "Zettel id already in use: " + err.Zid.String()
 }
 
 // NewRenameZettel creates a new use case.

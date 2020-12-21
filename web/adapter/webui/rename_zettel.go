@@ -46,7 +46,7 @@ func MakeGetRenameZettelHandler(
 			http.Error(
 				w,
 				fmt.Sprintf(
-					"Rename zettel %q not possible in format %q", zid.Format(), format),
+					"Rename zettel %q not possible in format %q", zid.String(), format),
 				http.StatusBadRequest)
 			return
 		}
@@ -58,8 +58,8 @@ func MakeGetRenameZettelHandler(
 			MetaPairs []meta.Pair
 		}{
 			baseData: te.makeBaseData(
-				ctx, runtime.GetLang(m), "Rename Zettel "+zid.Format(), user),
-			Zid:       zid.Format(),
+				ctx, runtime.GetLang(m), "Rename Zettel "+zid.String(), user),
+			Zid:       zid.String(),
 			MetaPairs: m.Pairs(),
 		})
 	}
@@ -89,7 +89,7 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 		if err != nil {
 			http.Error(
 				w,
-				fmt.Sprintf("Invalid new zettel id %q", newZid.Format()),
+				fmt.Sprintf("Invalid new zettel id %q", newZid.String()),
 				http.StatusBadRequest)
 			return
 		}

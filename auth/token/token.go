@@ -64,7 +64,7 @@ func GetToken(ident *meta.Meta, d time.Duration, kind Kind) ([]byte, error) {
 			Issued:  jwt.NewNumericTime(now),
 		},
 		Set: map[string]interface{}{
-			"zid": ident.Zid.Format(),
+			"zid": ident.Zid.String(),
 			"_tk": int(kind),
 		},
 	}

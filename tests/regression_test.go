@@ -139,7 +139,7 @@ func TestContentRegression(t *testing.T) {
 			z := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
 				t.Run(fmt.Sprintf("%s::%d(%s)", place.Location(), meta.Zid, format), func(st *testing.T) {
-					resultName := filepath.Join(wd, "result", "content", placeName, z.Zid.Format()+"."+format)
+					resultName := filepath.Join(wd, "result", "content", placeName, z.Zid.String()+"."+format)
 					checkBlocksFile(st, resultName, z, format)
 				})
 			}
@@ -188,7 +188,7 @@ func TestMetaRegression(t *testing.T) {
 			z := parser.ParseZettel(zettel, "")
 			for _, format := range formats {
 				t.Run(fmt.Sprintf("%s::%d(%s)", place.Location(), meta.Zid, format), func(st *testing.T) {
-					resultName := filepath.Join(wd, "result", "meta", placeName, z.Zid.Format()+"."+format)
+					resultName := filepath.Join(wd, "result", "meta", placeName, z.Zid.String()+"."+format)
 					checkMetaFile(st, resultName, z, format)
 				})
 			}

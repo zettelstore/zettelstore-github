@@ -185,7 +185,7 @@ func (m *Meta) Freeze() {
 // whether there was a value stored or not.
 func (m *Meta) Get(key string) (string, bool) {
 	if key == KeyID {
-		return m.Zid.Format(), true
+		return m.Zid.String(), true
 	}
 	value, ok := m.pairs[key]
 	return strings.TrimSpace(value), ok

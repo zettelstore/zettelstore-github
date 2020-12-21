@@ -66,15 +66,15 @@ func Parse(s string) (Zid, error) {
 
 const digits = "0123456789"
 
-// Format converts the zettel identification to a string of 14 digits.
+// String converts the zettel identification to a string of 14 digits.
 // Only defined for valid ids.
-func (zid Zid) Format() string {
-	return string(zid.FormatBytes())
+func (zid Zid) String() string {
+	return string(zid.Bytes())
 }
 
-// FormatBytes converts the zettel identification to a byte slice of 14 digits.
+// Bytes converts the zettel identification to a byte slice of 14 digits.
 // Only defined for valid ids.
-func (zid Zid) FormatBytes() []byte {
+func (zid Zid) Bytes() []byte {
 	result := make([]byte, 14)
 	for i := 13; i >= 0; i-- {
 		result[i] = digits[zid%10]

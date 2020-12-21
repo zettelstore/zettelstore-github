@@ -45,7 +45,7 @@ func MakeEditGetZettelHandler(
 			http.Error(
 				w,
 				fmt.Sprintf(
-					"Edit zettel %q not possible in format %q", zid.Format(), format),
+					"Edit zettel %q not possible in format %q", zid.String(), format),
 				http.StatusBadRequest)
 			return
 		}

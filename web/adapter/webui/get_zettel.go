@@ -126,7 +126,7 @@ func MakeGetHTMLZettelHandler(
 			HTMLTitle:    template.HTML(htmlTitle),
 			CanWrite:     te.canWrite(ctx, user, zn.Zettel),
 			EditURL:      adapter.NewURLBuilder('e').SetZid(zid).String(),
-			Zid:          zid.Format(),
+			Zid:          zid.String(),
 			InfoURL:      adapter.NewURLBuilder('i').SetZid(zid).String(),
 			RoleText:     roleText,
 			RoleURL:      adapter.NewURLBuilder('h').AppendQuery("role", roleText).String(),

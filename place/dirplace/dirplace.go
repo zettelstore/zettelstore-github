@@ -366,7 +366,7 @@ func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 
 func (dp *dirPlace) updateEntryFromMeta(entry *directory.Entry, meta *meta.Meta) {
 	entry.MetaSpec, entry.ContentExt = calcSpecExt(meta)
-	basePath := filepath.Join(dp.dir, entry.Zid.Format())
+	basePath := filepath.Join(dp.dir, entry.Zid.String())
 	if entry.MetaSpec == directory.MetaSpecFile {
 		entry.MetaPath = basePath + ".meta"
 	}
@@ -507,8 +507,8 @@ func (dp *dirPlace) cleanupMeta(ctx context.Context, m *meta.Meta) {
 
 func renamePath(path string, curID, newID id.Zid) string {
 	dir, file := filepath.Split(path)
-	if cur := curID.Format(); strings.HasPrefix(file, cur) {
-		file = newID.Format() + file[len(cur):]
+	if cur := curID.String(); strings.HasPrefix(file, cur) {
+		file = newID.String() + file[len(cur):]
 		return filepath.Join(dir, file)
 	}
 	return path

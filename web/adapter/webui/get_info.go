@@ -164,7 +164,7 @@ func MakeGetInfoHandler(
 			Matrix       [][]matrixElement
 		}{
 			baseData: base,
-			Zid:      zid.Format(),
+			Zid:      zid.String(),
 			WebURL:   adapter.NewURLBuilder('h').SetZid(zid).String(),
 			CanWrite: te.canWrite(ctx, user, zn.Zettel),
 			EditURL:  adapter.NewURLBuilder('e').SetZid(zid).String(),

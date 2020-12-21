@@ -65,7 +65,7 @@ func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
 		}
 
 		outData := jsonGetLinks{
-			ID:  zid.Format(),
+			ID:  zid.String(),
 			URL: adapter.NewURLBuilder('z').SetZid(zid).String(),
 		}
 		if kind&kindLink != 0 {

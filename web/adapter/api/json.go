@@ -56,7 +56,7 @@ type jsonContent struct {
 func writeJSONZettel(w http.ResponseWriter, z *ast.ZettelNode, part string) error {
 	var outData interface{}
 	idData := jsonIDURL{
-		ID:  z.Zid.Format(),
+		ID:  z.Zid.String(),
 		URL: adapter.NewURLBuilder('z').SetZid(z.Zid).String(),
 	}
 
@@ -151,7 +151,7 @@ var (
 func writeDJSONHeader(w http.ResponseWriter, zid id.Zid) error {
 	_, err := w.Write(djsonHeader1)
 	if err == nil {
-		_, err = w.Write(zid.FormatBytes())
+		_, err = w.Write(zid.Bytes())
 	}
 	if err == nil {
 		_, err = w.Write(djsonHeader2)

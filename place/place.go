@@ -112,7 +112,7 @@ func (err *ErrNotAllowed) Error() string {
 			return fmt.Sprintf(
 				"Operation %q on zettel %v not allowed for not authorized user",
 				err.Op,
-				err.Zid.Format())
+				err.Zid.String())
 		}
 		return fmt.Sprintf("Operation %q not allowed for not authorized user", err.Op)
 	}
@@ -120,15 +120,15 @@ func (err *ErrNotAllowed) Error() string {
 		return fmt.Sprintf(
 			"Operation %q on zettel %v not allowed for user %v/%v",
 			err.Op,
-			err.Zid.Format(),
+			err.Zid.String(),
 			err.User.GetDefault(meta.KeyUserID, "?"),
-			err.User.Zid.Format())
+			err.User.Zid.String())
 	}
 	return fmt.Sprintf(
 		"Operation %q not allowed for user %v/%v",
 		err.Op,
 		err.User.GetDefault(meta.KeyUserID, "?"),
-		err.User.Zid.Format())
+		err.User.Zid.String())
 }
 
 // IsErrNotAllowed return true, if the error is of type ErrNotAllowed.
@@ -146,12 +146,12 @@ var ErrReadOnly = errors.New("Read-only place")
 // ErrUnknownID is returned if the zettel id is unknown to the place.
 type ErrUnknownID struct{ Zid id.Zid }
 
-func (err *ErrUnknownID) Error() string { return "Unknown Zettel id: " + err.Zid.Format() }
+func (err *ErrUnknownID) Error() string { return "Unknown Zettel id: " + err.Zid.String() }
 
 // ErrInvalidID is returned if the zettel id is not appropriate for the place operation.
 type ErrInvalidID struct{ Zid id.Zid }
 
-func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid.Format() }
+func (err *ErrInvalidID) Error() string { return "Invalid Zettel id: " + err.Zid.String() }
 
 // Filter specifies a mechanism for selecting zettel.
 type Filter struct {

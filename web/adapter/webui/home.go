@@ -36,7 +36,7 @@ func MakeGetRootHandler(
 		startID := runtime.GetStart()
 		if startID.IsValid() {
 			if _, err := s.GetMeta(r.Context(), startID); err == nil {
-				r.URL.Path = "/" + startID.Format()
+				r.URL.Path = "/" + startID.String()
 				startFound(w, r)
 				return
 			}

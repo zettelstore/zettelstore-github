@@ -130,7 +130,7 @@ func MakeGetZettelHandler(
 				http.Error(
 					w,
 					fmt.Sprintf(
-						"Zettel %q not available in format %q", zid.Format(), format),
+						"Zettel %q not available in format %q", zid.String(), format),
 					http.StatusBadRequest)
 				return
 			}

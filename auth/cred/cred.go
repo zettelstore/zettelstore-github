@@ -49,7 +49,7 @@ func CompareHashAndCredential(
 
 func createFullCredential(zid id.Zid, ident string, credential string) []byte {
 	var buf bytes.Buffer
-	buf.WriteString(zid.Format())
+	buf.WriteString(zid.String())
 	buf.WriteByte(' ')
 	buf.WriteString(ident)
 	buf.WriteByte(' ')

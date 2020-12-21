@@ -197,7 +197,7 @@ func createSearchAllFunc(values []string, negate bool) FilterFunc {
 		if !ok {
 			match = createMatchFunc(meta.KeyID, values)
 		}
-		return match(m.Zid.Format()) != negate
+		return match(m.Zid.String()) != negate
 	}
 }
 

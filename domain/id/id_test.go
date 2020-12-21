@@ -46,10 +46,10 @@ func TestIsValid(t *testing.T) {
 		if err != nil {
 			t.Errorf("i=%d: sid=%q is not valid, but should be. err=%v", i, sid, err)
 		}
-		s := zid.Format()
+		s := zid.String()
 		if s != sid {
 			t.Errorf(
-				"i=%d: zid=%v does not format to %q, but to %q", i, sid, zid.Format(), s)
+				"i=%d: zid=%v does not format to %q, but to %q", i, sid, zid, s)
 		}
 	}
 

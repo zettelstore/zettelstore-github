@@ -241,7 +241,7 @@ func parseMetaContentFile(zid id.Zid, path string) (*meta.Meta, string, error) {
 
 func cleanupMeta(m *meta.Meta, entry *directory.Entry) {
 	if title, ok := m.Get(meta.KeyTitle); !ok || title == "" {
-		m.Set(meta.KeyTitle, entry.Zid.Format())
+		m.Set(meta.KeyTitle, entry.Zid.String())
 	}
 
 	switch entry.MetaSpec {

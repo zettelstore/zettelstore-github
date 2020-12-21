@@ -60,7 +60,7 @@ func (e *Entry) calculateSyntax() string {
 // CalcDefaultMeta returns metadata with default values for the given entry.
 func (e *Entry) CalcDefaultMeta() *meta.Meta {
 	m := meta.New(e.Zid)
-	m.Set(meta.KeyTitle, e.Zid.Format())
+	m.Set(meta.KeyTitle, e.Zid.String())
 	m.Set(meta.KeySyntax, e.calculateSyntax())
 	return m
 }
