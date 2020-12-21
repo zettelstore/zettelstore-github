@@ -24,7 +24,7 @@ import (
 	"zettelstore.de/z/place"
 )
 
-var startupConfig struct {
+var config struct {
 	simple        bool // was started without run command
 	verbose       bool
 	readonlyMode  bool
@@ -57,47 +57,47 @@ const (
 
 // SetupStartup initializes the startup data.
 func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place, simple bool) error {
-	if startupConfig.urlPrefix != "" {
-		panic("startupConfig already set")
+	if config.urlPrefix != "" {
+		panic("startup.config already set")
 	}
-	startupConfig.simple = simple
-	startupConfig.verbose = cfg.GetBool(StartupKeyVerbose)
-	startupConfig.readonlyMode = cfg.GetBool(StartupKeyReadOnlyMode)
-	startupConfig.urlPrefix = cfg.GetDefault(StartupKeyURLPrefix, "/")
+	config.simple = simple
+	config.verbose = cfg.GetBool(StartupKeyVerbose)
+	config.readonlyMode = cfg.GetBool(StartupKeyReadOnlyMode)
+	config.urlPrefix = cfg.GetDefault(StartupKeyURLPrefix, "/")
 	if prefix, ok := cfg.Get(StartupKeyURLPrefix); ok &&
 		len(prefix) > 0 && prefix[0] == '/' && prefix[len(prefix)-1] == '/' {
-		startupConfig.urlPrefix = prefix
+		config.urlPrefix = prefix
 	} else {
-		startupConfig.urlPrefix = "/"
+		config.urlPrefix = "/"
 	}
 	if val, ok := cfg.Get(StartupKeyListenAddress); ok {
-		startupConfig.listenAddress = val // TODO: check for valid string
+		config.listenAddress = val // TODO: check for valid string
 	} else {
-		startupConfig.listenAddress = "127.0.0.1:23123"
+		config.listenAddress = "127.0.0.1:23123"
 	}
-	startupConfig.owner = id.Invalid
+	config.owner = id.Invalid
 	if owner, ok := cfg.Get(StartupKeyOwner); ok {
 		if zid, err := id.Parse(owner); err == nil {
-			startupConfig.owner = zid
-			startupConfig.withAuth = true
+			config.owner = zid
+			config.withAuth = true
 		}
 	}
-	if startupConfig.withAuth {
-		startupConfig.insecCookie = cfg.GetBool(StartupKeyInsecureCookie)
-		startupConfig.persistCookie = cfg.GetBool(StartupKeyPersistentCookie)
-		startupConfig.secret = calcSecret(cfg)
-		startupConfig.htmlLifetime = getDuration(
+	if config.withAuth {
+		config.insecCookie = cfg.GetBool(StartupKeyInsecureCookie)
+		config.persistCookie = cfg.GetBool(StartupKeyPersistentCookie)
+		config.secret = calcSecret(cfg)
+		config.htmlLifetime = getDuration(
 			cfg, StartupKeyTokenLifetimeHTML, 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
-		startupConfig.apiLifetime = getDuration(
+		config.apiLifetime = getDuration(
 			cfg, StartupKeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
 	if !withPlaces {
 		return nil
 	}
-	startupConfig.places = getPlaces(cfg)
-	place, err := connectPlaces(startupConfig.places, lastPlace)
+	config.places = getPlaces(cfg)
+	place, err := connectPlaces(config.places, lastPlace)
 	if err == nil {
-		startupConfig.place = place
+		config.place = place
 	}
 	return err
 }
@@ -181,49 +181,49 @@ func getDuration(
 }
 
 // IsSimple returns true if Zettelstore was not started with command "run".
-func IsSimple() bool { return startupConfig.simple }
+func IsSimple() bool { return config.simple }
 
 // IsVerbose returns whether the system should be more chatty about its operations.
-func IsVerbose() bool { return startupConfig.verbose }
+func IsVerbose() bool { return config.verbose }
 
 // IsReadOnlyMode returns whether the system is in read-only mode or not.
-func IsReadOnlyMode() bool { return startupConfig.readonlyMode }
+func IsReadOnlyMode() bool { return config.readonlyMode }
 
 // URLPrefix returns the configured prefix to be used when providing URL to
 // the service.
-func URLPrefix() string { return startupConfig.urlPrefix }
+func URLPrefix() string { return config.urlPrefix }
 
 // ListenAddress returns the string that specifies the the network card and the ip port
 // where the server listens for requests
-func ListenAddress() string { return startupConfig.listenAddress }
+func ListenAddress() string { return config.listenAddress }
 
 // SecureCookie returns whether the web app should set cookies to secure mode.
-func SecureCookie() bool { return !startupConfig.insecCookie }
+func SecureCookie() bool { return !config.insecCookie }
 
 // PersistentCookie returns whether the web app should set persistent cookies
 // (instead of temporary).
-func PersistentCookie() bool { return startupConfig.persistCookie }
+func PersistentCookie() bool { return config.persistCookie }
 
 // Owner returns the zid of the zettelkasten's owner.
 // If there is no owner defined, the value ZettelID(0) is returned.
-func Owner() id.Zid { return startupConfig.owner }
+func Owner() id.Zid { return config.owner }
 
 // IsOwner returns true, if the given user is the owner of the Zettelstore.
-func IsOwner(zid id.Zid) bool { return zid.IsValid() && zid == startupConfig.owner }
+func IsOwner(zid id.Zid) bool { return zid.IsValid() && zid == config.owner }
 
 // WithAuth returns true if user authentication is enabled.
-func WithAuth() bool { return startupConfig.withAuth }
+func WithAuth() bool { return config.withAuth }
 
 // Secret returns the interal application secret. It is typically used to
 // encrypt session values.
-func Secret() []byte { return startupConfig.secret }
+func Secret() []byte { return config.secret }
 
 // TokenLifetime return the token lifetime for the web/HTML access and for the
 // API access. If lifetime for API access is equal to zero, no API access is
 // possible.
 func TokenLifetime() (htmlLifetime, apiLifetime time.Duration) {
-	return startupConfig.htmlLifetime, startupConfig.apiLifetime
+	return config.htmlLifetime, config.apiLifetime
 }
 
 // Place returns the linked list of places.
-func Place() place.Place { return startupConfig.place }
+func Place() place.Place { return config.place }
