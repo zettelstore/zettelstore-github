@@ -43,6 +43,7 @@ const (
 	KeyListPageSize      = "list-page-size"
 	KeyNewRole           = "new-role"
 	KeyMarkerExternal    = "marker-external"
+	KeyModified          = "modified"
 	KeyPrecursor         = "precursor"
 	KeyReadOnly          = "read-only"
 	KeySiteName          = "site-name"
@@ -79,6 +80,7 @@ var keyTypeMap = map[string]byte{
 	KeyListPageSize:      TypeNumber,
 	KeyNewRole:           TypeWord,
 	KeyMarkerExternal:    TypeEmpty,
+	KeyModified:          TypeDatetime,
 	KeyPrecursor:         TypeID,
 	KeyReadOnly:          TypeWord,
 	KeySiteName:          TypeString,
