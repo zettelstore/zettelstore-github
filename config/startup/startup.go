@@ -91,7 +91,7 @@ func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place, simple
 		config.apiLifetime = getDuration(
 			cfg, StartupKeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
-	config.simple = simple && config.withAuth
+	config.simple = simple && !config.withAuth
 	if !withPlaces {
 		return nil
 	}
@@ -199,8 +199,11 @@ func URLPrefix() string { return config.urlPrefix }
 // where the server listens for requests
 func ListenAddress() string { return config.listenAddress }
 
+// WithAuth returns true if user authentication is enabled.
+func WithAuth() bool { return config.withAuth }
+
 // SecureCookie returns whether the web app should set cookies to secure mode.
-func SecureCookie() bool { return !config.insecCookie }
+func SecureCookie() bool { return config.withAuth && !config.insecCookie }
 
 // PersistentCookie returns whether the web app should set persistent cookies
 // (instead of temporary).
@@ -212,9 +215,6 @@ func Owner() id.Zid { return config.owner }
 
 // IsOwner returns true, if the given user is the owner of the Zettelstore.
 func IsOwner(zid id.Zid) bool { return zid.IsValid() && zid == config.owner }
-
-// WithAuth returns true if user authentication is enabled.
-func WithAuth() bool { return config.withAuth }
 
 // Secret returns the interal application secret. It is typically used to
 // encrypt session values.

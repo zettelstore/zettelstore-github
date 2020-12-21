@@ -24,7 +24,7 @@ func getVersionMeta(zid id.Zid, title string) *meta.Meta {
 	m.Set(meta.KeyTitle, title)
 	m.Set(meta.KeyRole, meta.ValueRoleConfiguration)
 	m.Set(meta.KeySyntax, meta.ValueSyntaxZmk)
-	m.Set(meta.KeyVisibility, meta.ValueVisibilityExpert)
+	m.Set(meta.KeyVisibility, meta.ValueVisibilitySimple)
 	m.Set(meta.KeyReadOnly, meta.ValueTrue)
 	return m
 }
