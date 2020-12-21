@@ -29,14 +29,14 @@ func (o *ownerPolicy) CanReload(user *meta.Meta) bool {
 	// Both the default and the readonly policy allow to reload a place.
 
 	// Only the owner is allowed to reload a place
-	return user != nil && o.isOwner(user.Zid)
+	return o.userIsOwner(user)
 }
 
 func (o *ownerPolicy) CanCreate(user *meta.Meta, newMeta *meta.Meta) bool {
 	if user == nil || !o.pre.CanCreate(user, newMeta) {
 		return false
 	}
-	return o.isOwner(user.Zid) || o.userCanCreate(user, newMeta)
+	return o.userIsOwner(user) || o.userCanCreate(user, newMeta)
 }
 
 func (o *ownerPolicy) userCanCreate(user *meta.Meta, newMeta *meta.Meta) bool {
@@ -56,7 +56,7 @@ func (o *ownerPolicy) CanRead(user *meta.Meta, m *meta.Meta) bool {
 	if res, ok := o.checkVisibility(user, vis); ok {
 		return res
 	}
-	return (user != nil && o.isOwner(user.Zid)) || o.userCanRead(user, m, vis)
+	return o.userIsOwner(user) || o.userCanRead(user, m, vis)
 }
 
 func (o *ownerPolicy) userCanRead(user *meta.Meta, m *meta.Meta, vis meta.Visibility) bool {
@@ -91,7 +91,7 @@ func (o *ownerPolicy) CanWrite(user *meta.Meta, oldMeta, newMeta *meta.Meta) boo
 	if res, ok := o.checkVisibility(user, vis); ok {
 		return res
 	}
-	if o.isOwner(user.Zid) {
+	if o.userIsOwner(user) {
 		return true
 	}
 	if !o.userCanRead(user, oldMeta, vis) {
@@ -120,7 +120,7 @@ func (o *ownerPolicy) CanRename(user *meta.Meta, m *meta.Meta) bool {
 	if res, ok := o.checkVisibility(user, o.getVisibility(m)); ok {
 		return res
 	}
-	return o.isOwner(user.Zid)
+	return o.userIsOwner(user)
 }
 
 func (o *ownerPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
@@ -130,13 +130,26 @@ func (o *ownerPolicy) CanDelete(user *meta.Meta, m *meta.Meta) bool {
 	if res, ok := o.checkVisibility(user, o.getVisibility(m)); ok {
 		return res
 	}
-	return o.isOwner(user.Zid)
+	return o.userIsOwner(user)
 }
 
 func (o *ownerPolicy) checkVisibility(user *meta.Meta, vis meta.Visibility) (bool, bool) {
 	switch vis {
 	case meta.VisibilitySimple, meta.VisibilityExpert:
-		return user != nil && o.isOwner(user.Zid) && o.expertMode(), true
+		return o.userIsOwner(user) && o.expertMode(), true
 	}
 	return false, false
+}
+
+func (o *ownerPolicy) userIsOwner(user *meta.Meta) bool {
+	if user == nil {
+		return false
+	}
+	if o.isOwner(user.Zid) {
+		return true
+	}
+	if val, ok := user.Get(meta.KeyUserRole); ok && val == meta.ValueUserRoleOwner {
+		return true
+	}
+	return false
 }

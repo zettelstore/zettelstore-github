@@ -118,6 +118,7 @@ func testCreate(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 	reader := newReader()
 	writer := newWriter()
 	owner := newOwner()
+	owner2 := newOwner2()
 	zettel := newZettel()
 	userZettel := newUserZettel()
 	testCases := []struct {
@@ -130,16 +131,19 @@ func testCreate(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 		{reader, nil, false},
 		{writer, nil, false},
 		{owner, nil, false},
+		{owner2, nil, false},
 		// Ordinary zettel
 		{anonUser, zettel, !withAuth && !readonly},
 		{reader, zettel, !withAuth && !readonly},
 		{writer, zettel, !readonly},
 		{owner, zettel, !readonly},
+		{owner2, zettel, !readonly},
 		// User zettel
 		{anonUser, userZettel, !withAuth && !readonly},
 		{reader, userZettel, !withAuth && !readonly},
 		{writer, userZettel, !withAuth && !readonly},
 		{owner, userZettel, !readonly},
+		{owner2, userZettel, !readonly},
 	}
 	for _, tc := range testCases {
 		t.Run("Create", func(tt *testing.T) {
@@ -157,6 +161,7 @@ func testRead(t *testing.T, pol Policy, simple bool, withAuth bool, readonly boo
 	reader := newReader()
 	writer := newWriter()
 	owner := newOwner()
+	owner2 := newOwner2()
 	zettel := newZettel()
 	publicZettel := newPublicZettel()
 	loginZettel := newLoginZettel()
@@ -174,45 +179,56 @@ func testRead(t *testing.T, pol Policy, simple bool, withAuth bool, readonly boo
 		{reader, nil, false},
 		{writer, nil, false},
 		{owner, nil, false},
+		{owner2, nil, false},
 		// Ordinary zettel
 		{anonUser, zettel, !withAuth},
 		{reader, zettel, true},
 		{writer, zettel, true},
 		{owner, zettel, true},
+		{owner2, zettel, true},
 		// Public zettel
 		{anonUser, publicZettel, true},
 		{reader, publicZettel, true},
 		{writer, publicZettel, true},
 		{owner, publicZettel, true},
+		{owner2, publicZettel, true},
 		// Login zettel
 		{anonUser, loginZettel, !withAuth},
 		{reader, loginZettel, true},
 		{writer, loginZettel, true},
 		{owner, loginZettel, true},
+		{owner2, loginZettel, true},
 		// Owner zettel
 		{anonUser, ownerZettel, !withAuth},
 		{reader, ownerZettel, !withAuth},
 		{writer, ownerZettel, !withAuth},
 		{owner, ownerZettel, true},
+		{owner2, ownerZettel, true},
 		// Expert zettel
 		{anonUser, expertZettel, !withAuth && expert},
 		{reader, expertZettel, !withAuth && expert},
 		{writer, expertZettel, !withAuth && expert},
 		{owner, expertZettel, expert},
+		{owner2, expertZettel, expert},
 		// Simple expert zettel
 		{anonUser, simpleZettel, !withAuth && (simple || expert)},
 		{reader, simpleZettel, !withAuth && (simple || expert)},
 		{writer, simpleZettel, !withAuth && (simple || expert)},
 		{owner, simpleZettel, (!withAuth && simple) || expert},
+		{owner2, simpleZettel, (!withAuth && simple) || expert},
 		// Other user zettel
 		{anonUser, userZettel, !withAuth},
 		{reader, userZettel, !withAuth},
 		{writer, userZettel, !withAuth},
 		{owner, userZettel, true},
+		{owner2, userZettel, true},
 		// Own user zettel
 		{reader, reader, true},
 		{writer, writer, true},
 		{owner, owner, true},
+		{owner, owner2, true},
+		{owner2, owner, true},
+		{owner2, owner2, true},
 	}
 	for _, tc := range testCases {
 		t.Run("Read", func(tt *testing.T) {
@@ -230,6 +246,7 @@ func testWrite(t *testing.T, pol Policy, simple bool, withAuth bool, readonly bo
 	reader := newReader()
 	writer := newWriter()
 	owner := newOwner()
+	owner2 := newOwner2()
 	zettel := newZettel()
 	publicZettel := newPublicZettel()
 	loginZettel := newLoginZettel()
@@ -255,60 +272,72 @@ func testWrite(t *testing.T, pol Policy, simple bool, withAuth bool, readonly bo
 		{reader, nil, nil, false},
 		{writer, nil, nil, false},
 		{owner, nil, nil, false},
+		{owner2, nil, nil, false},
 		// No old meta
 		{anonUser, nil, zettel, false},
 		{reader, nil, zettel, false},
 		{writer, nil, zettel, false},
 		{owner, nil, zettel, false},
+		{owner2, nil, zettel, false},
 		// No new meta
 		{anonUser, zettel, nil, false},
 		{reader, zettel, nil, false},
 		{writer, zettel, nil, false},
 		{owner, zettel, nil, false},
+		{owner2, zettel, nil, false},
 		// Old an new zettel have different zettel identifier
 		{anonUser, zettel, publicZettel, false},
 		{reader, zettel, publicZettel, false},
 		{writer, zettel, publicZettel, false},
 		{owner, zettel, publicZettel, false},
+		{owner2, zettel, publicZettel, false},
 		// Overwrite a normal zettel
 		{anonUser, zettel, zettel, !withAuth && !readonly},
 		{reader, zettel, zettel, !withAuth && !readonly},
 		{writer, zettel, zettel, !readonly},
 		{owner, zettel, zettel, !readonly},
+		{owner2, zettel, zettel, !readonly},
 		// Public zettel
 		{anonUser, publicZettel, publicZettel, !withAuth && !readonly},
 		{reader, publicZettel, publicZettel, !withAuth && !readonly},
 		{writer, publicZettel, publicZettel, !readonly},
 		{owner, publicZettel, publicZettel, !readonly},
+		{owner2, publicZettel, publicZettel, !readonly},
 		// Login zettel
 		{anonUser, loginZettel, loginZettel, !withAuth && !readonly},
 		{reader, loginZettel, loginZettel, !withAuth && !readonly},
 		{writer, loginZettel, loginZettel, !readonly},
 		{owner, loginZettel, loginZettel, !readonly},
+		{owner2, loginZettel, loginZettel, !readonly},
 		// Owner zettel
 		{anonUser, ownerZettel, ownerZettel, !withAuth && !readonly},
 		{reader, ownerZettel, ownerZettel, !withAuth && !readonly},
 		{writer, ownerZettel, ownerZettel, !withAuth && !readonly},
 		{owner, ownerZettel, ownerZettel, !readonly},
+		{owner2, ownerZettel, ownerZettel, !readonly},
 		// Expert zettel
 		{anonUser, expertZettel, expertZettel, !withAuth && !readonly && expert},
 		{reader, expertZettel, expertZettel, !withAuth && !readonly && expert},
 		{writer, expertZettel, expertZettel, !withAuth && !readonly && expert},
 		{owner, expertZettel, expertZettel, !readonly && expert},
+		{owner2, expertZettel, expertZettel, !readonly && expert},
 		// Simple expert zettel
 		{anonUser, simpleZettel, expertZettel, !withAuth && !readonly && (simple || expert)},
 		{reader, simpleZettel, expertZettel, !withAuth && !readonly && (simple || expert)},
 		{writer, simpleZettel, expertZettel, !withAuth && !readonly && (simple || expert)},
 		{owner, simpleZettel, expertZettel, !readonly && ((!withAuth && simple) || expert)},
+		{owner2, simpleZettel, expertZettel, !readonly && ((!withAuth && simple) || expert)},
 		// Other user zettel
 		{anonUser, userZettel, userZettel, !withAuth && !readonly},
 		{reader, userZettel, userZettel, !withAuth && !readonly},
 		{writer, userZettel, userZettel, !withAuth && !readonly},
 		{owner, userZettel, userZettel, !readonly},
+		{owner2, userZettel, userZettel, !readonly},
 		// Own user zettel
 		{reader, reader, reader, !readonly},
 		{writer, writer, writer, !readonly},
 		{owner, owner, owner, !readonly},
+		{owner2, owner2, owner2, !readonly},
 		// Writer cannot change importand metadata of its own user zettel
 		{writer, writer, writerNew, !withAuth && !readonly},
 		// No r/o zettel
@@ -316,26 +345,31 @@ func testWrite(t *testing.T, pol Policy, simple bool, withAuth bool, readonly bo
 		{reader, roFalse, roFalse, !withAuth && !readonly},
 		{writer, roFalse, roFalse, !readonly},
 		{owner, roFalse, roFalse, !readonly},
+		{owner2, roFalse, roFalse, !readonly},
 		// Reader r/o zettel
 		{anonUser, roReader, roReader, false},
 		{reader, roReader, roReader, false},
 		{writer, roReader, roReader, !readonly},
 		{owner, roReader, roReader, !readonly},
+		{owner2, roReader, roReader, !readonly},
 		// Writer r/o zettel
 		{anonUser, roWriter, roWriter, false},
 		{reader, roWriter, roWriter, false},
 		{writer, roWriter, roWriter, false},
 		{owner, roWriter, roWriter, !readonly},
+		{owner2, roWriter, roWriter, !readonly},
 		// Owner r/o zettel
 		{anonUser, roOwner, roOwner, false},
 		{reader, roOwner, roOwner, false},
 		{writer, roOwner, roOwner, false},
 		{owner, roOwner, roOwner, false},
+		{owner2, roOwner, roOwner, false},
 		// r/o = true zettel
 		{anonUser, roTrue, roTrue, false},
 		{reader, roTrue, roTrue, false},
 		{writer, roTrue, roTrue, false},
 		{owner, roTrue, roTrue, false},
+		{owner2, roTrue, roTrue, false},
 	}
 	for _, tc := range testCases {
 		t.Run("Write", func(tt *testing.T) {
@@ -353,6 +387,7 @@ func testRename(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 	reader := newReader()
 	writer := newWriter()
 	owner := newOwner()
+	owner2 := newOwner2()
 	zettel := newZettel()
 	expertZettel := newExpertZettel()
 	simpleZettel := newSimpleZettel()
@@ -371,46 +406,55 @@ func testRename(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 		{reader, nil, false},
 		{writer, nil, false},
 		{owner, nil, false},
+		{owner2, nil, false},
 		// Any zettel
 		{anonUser, zettel, !withAuth && !readonly},
 		{reader, zettel, !withAuth && !readonly},
 		{writer, zettel, !withAuth && !readonly},
 		{owner, zettel, !readonly},
+		{owner2, zettel, !readonly},
 		// Expert zettel
 		{anonUser, expertZettel, !withAuth && !readonly && expert},
 		{reader, expertZettel, !withAuth && !readonly && expert},
 		{writer, expertZettel, !withAuth && !readonly && expert},
 		{owner, expertZettel, !readonly && expert},
+		{owner2, expertZettel, !readonly && expert},
 		// Simple expert zettel
 		{anonUser, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{reader, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{writer, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{owner, simpleZettel, !readonly && ((!withAuth && simple) || expert)},
+		{owner2, simpleZettel, !readonly && ((!withAuth && simple) || expert)},
 		// No r/o zettel
 		{anonUser, roFalse, !withAuth && !readonly},
 		{reader, roFalse, !withAuth && !readonly},
 		{writer, roFalse, !withAuth && !readonly},
 		{owner, roFalse, !readonly},
+		{owner2, roFalse, !readonly},
 		// Reader r/o zettel
 		{anonUser, roReader, false},
 		{reader, roReader, false},
 		{writer, roReader, !withAuth && !readonly},
 		{owner, roReader, !readonly},
+		{owner2, roReader, !readonly},
 		// Writer r/o zettel
 		{anonUser, roWriter, false},
 		{reader, roWriter, false},
 		{writer, roWriter, false},
 		{owner, roWriter, !readonly},
+		{owner2, roWriter, !readonly},
 		// Owner r/o zettel
 		{anonUser, roOwner, false},
 		{reader, roOwner, false},
 		{writer, roOwner, false},
 		{owner, roOwner, false},
+		{owner2, roOwner, false},
 		// r/o = true zettel
 		{anonUser, roTrue, false},
 		{reader, roTrue, false},
 		{writer, roTrue, false},
 		{owner, roTrue, false},
+		{owner2, roTrue, false},
 	}
 	for _, tc := range testCases {
 		t.Run("Rename", func(tt *testing.T) {
@@ -428,6 +472,7 @@ func testDelete(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 	reader := newReader()
 	writer := newWriter()
 	owner := newOwner()
+	owner2 := newOwner2()
 	zettel := newZettel()
 	expertZettel := newExpertZettel()
 	simpleZettel := newSimpleZettel()
@@ -446,46 +491,55 @@ func testDelete(t *testing.T, pol Policy, simple bool, withAuth bool, readonly b
 		{reader, nil, false},
 		{writer, nil, false},
 		{owner, nil, false},
+		{owner2, nil, false},
 		// Any zettel
 		{anonUser, zettel, !withAuth && !readonly},
 		{reader, zettel, !withAuth && !readonly},
 		{writer, zettel, !withAuth && !readonly},
 		{owner, zettel, !readonly},
+		{owner2, zettel, !readonly},
 		// Expert zettel
 		{anonUser, expertZettel, !withAuth && !readonly && expert},
 		{reader, expertZettel, !withAuth && !readonly && expert},
 		{writer, expertZettel, !withAuth && !readonly && expert},
 		{owner, expertZettel, !readonly && expert},
+		{owner2, expertZettel, !readonly && expert},
 		// Simple expert zettel
 		{anonUser, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{reader, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{writer, simpleZettel, !withAuth && !readonly && (simple || expert)},
 		{owner, simpleZettel, !readonly && ((!withAuth && simple) || expert)},
+		{owner2, simpleZettel, !readonly && ((!withAuth && simple) || expert)},
 		// No r/o zettel
 		{anonUser, roFalse, !withAuth && !readonly},
 		{reader, roFalse, !withAuth && !readonly},
 		{writer, roFalse, !withAuth && !readonly},
 		{owner, roFalse, !readonly},
+		{owner2, roFalse, !readonly},
 		// Reader r/o zettel
 		{anonUser, roReader, false},
 		{reader, roReader, false},
 		{writer, roReader, !withAuth && !readonly},
 		{owner, roReader, !readonly},
+		{owner2, roReader, !readonly},
 		// Writer r/o zettel
 		{anonUser, roWriter, false},
 		{reader, roWriter, false},
 		{writer, roWriter, false},
 		{owner, roWriter, !readonly},
+		{owner2, roWriter, !readonly},
 		// Owner r/o zettel
 		{anonUser, roOwner, false},
 		{reader, roOwner, false},
 		{writer, roOwner, false},
 		{owner, roOwner, false},
+		{owner2, roOwner, false},
 		// r/o = true zettel
 		{anonUser, roTrue, false},
 		{reader, roTrue, false},
 		{writer, roTrue, false},
 		{owner, roTrue, false},
+		{owner2, roTrue, false},
 	}
 	for _, tc := range testCases {
 		t.Run("Delete", func(tt *testing.T) {
@@ -501,6 +555,7 @@ const (
 	readerZid = id.Zid(1013)
 	writerZid = id.Zid(1015)
 	ownerZid  = id.Zid(1017)
+	owner2Zid = id.Zid(1019)
 	zettelZid = id.Zid(1021)
 	visZid    = id.Zid(1023)
 	userZid   = id.Zid(1025)
@@ -524,6 +579,13 @@ func newWriter() *meta.Meta {
 func newOwner() *meta.Meta {
 	user := meta.New(ownerZid)
 	user.Set(meta.KeyTitle, "Owner")
+	user.Set(meta.KeyRole, meta.ValueRoleUser)
+	user.Set(meta.KeyUserRole, meta.ValueUserRoleOwner)
+	return user
+}
+func newOwner2() *meta.Meta {
+	user := meta.New(owner2Zid)
+	user.Set(meta.KeyTitle, "Owner 2")
 	user.Set(meta.KeyRole, meta.ValueRoleUser)
 	user.Set(meta.KeyUserRole, meta.ValueUserRoleOwner)
 	return user
