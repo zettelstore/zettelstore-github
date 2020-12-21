@@ -687,10 +687,10 @@ footer {
 		constHeader{
 			meta.KeyTitle:      "New User",
 			meta.KeyRole:       meta.ValueRoleNewTemplate,
-			meta.KeyNewRole:    "user",
+			meta.KeyNewRole:    meta.ValueRoleUser,
 			meta.KeyCredential: "",
 			meta.KeyUserID:     "",
-			meta.KeyUserRole:   "reader",
+			meta.KeyUserRole:   meta.ValueUserRoleReader,
 			meta.KeyVisibility: meta.ValueVisibilityLogin,
 			meta.KeySyntax:     meta.ValueSyntaxMeta,
 		},

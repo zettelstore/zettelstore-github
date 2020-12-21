@@ -513,21 +513,21 @@ func newReader() *meta.Meta {
 	user := meta.New(readerZid)
 	user.Set(meta.KeyTitle, "Reader")
 	user.Set(meta.KeyRole, meta.ValueRoleUser)
-	user.Set(meta.KeyUserRole, "reader")
+	user.Set(meta.KeyUserRole, meta.ValueUserRoleReader)
 	return user
 }
 func newWriter() *meta.Meta {
 	user := meta.New(writerZid)
 	user.Set(meta.KeyTitle, "Writer")
 	user.Set(meta.KeyRole, meta.ValueRoleUser)
-	user.Set(meta.KeyUserRole, "writer")
+	user.Set(meta.KeyUserRole, meta.ValueUserRoleWriter)
 	return user
 }
 func newOwner() *meta.Meta {
 	user := meta.New(ownerZid)
 	user.Set(meta.KeyTitle, "Owner")
 	user.Set(meta.KeyRole, meta.ValueRoleUser)
-	user.Set(meta.KeyUserRole, "owner")
+	user.Set(meta.KeyUserRole, meta.ValueUserRoleOwner)
 	return user
 }
 func newZettel() *meta.Meta {
@@ -580,19 +580,19 @@ func newRoTrueZettel() *meta.Meta {
 func newRoReaderZettel() *meta.Meta {
 	m := meta.New(zettelZid)
 	m.Set(meta.KeyTitle, "Reader r/o Zettel")
-	m.Set(meta.KeyReadOnly, "reader")
+	m.Set(meta.KeyReadOnly, meta.ValueUserRoleReader)
 	return m
 }
 func newRoWriterZettel() *meta.Meta {
 	m := meta.New(zettelZid)
 	m.Set(meta.KeyTitle, "Writer r/o Zettel")
-	m.Set(meta.KeyReadOnly, "writer")
+	m.Set(meta.KeyReadOnly, meta.ValueUserRoleWriter)
 	return m
 }
 func newRoOwnerZettel() *meta.Meta {
 	m := meta.New(zettelZid)
 	m.Set(meta.KeyTitle, "Owner r/o Zettel")
-	m.Set(meta.KeyReadOnly, "owner")
+	m.Set(meta.KeyReadOnly, meta.ValueUserRoleOwner)
 	return m
 }
 func newUserZettel() *meta.Meta {

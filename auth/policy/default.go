@@ -53,19 +53,16 @@ func (d *defaultPolicy) canChange(user *meta.Meta, m *meta.Meta) bool {
 
 		// No authentication: check for owner-like restriction, because the user
 		// acts as an owner
-		if metaRo == "owner" || meta.BoolValue(metaRo) {
-			return false
-		}
-		return true
+		return metaRo != meta.ValueUserRoleOwner && !meta.BoolValue(metaRo)
 	}
 
 	userRole := runtime.GetUserRole(user)
 	switch metaRo {
-	case "reader":
+	case meta.ValueUserRoleReader:
 		return userRole > meta.UserRoleReader
-	case "writer":
+	case meta.ValueUserRoleWriter:
 		return userRole > meta.UserRoleWriter
-	case "owner":
+	case meta.ValueUserRoleOwner:
 		return userRole > meta.UserRoleOwner
 	}
 	return !meta.BoolValue(metaRo)

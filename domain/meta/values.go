@@ -54,9 +54,9 @@ const (
 )
 
 var urMap = map[string]UserRole{
-	"reader": UserRoleReader,
-	"writer": UserRoleWriter,
-	"owner":  UserRoleOwner,
+	ValueUserRoleReader: UserRoleReader,
+	ValueUserRoleWriter: UserRoleWriter,
+	ValueUserRoleOwner:  UserRoleOwner,
 }
 
 // GetUserRole role returns the user role of the given string.
