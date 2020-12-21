@@ -14,6 +14,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"strings"
 
 	"zettelstore.de/z/auth/policy"
 	"zettelstore.de/z/config/runtime"
@@ -29,8 +30,9 @@ import (
 
 // ---------- Subcommand: run ------------------------------------------------
 
-func runFunc(*flag.FlagSet) (int, error) {
+func runFunc(*flag.FlagSet) (int, error) { return startWebServer(false) }
 
+func startWebServer(asDefault bool) (int, error) {
 	readonlyMode := startup.IsReadOnlyMode()
 	router := setupRouting(startup.Place(), readonlyMode)
 
@@ -41,6 +43,15 @@ func runFunc(*flag.FlagSet) (int, error) {
 	log.Printf("Zettel location [%v]", fullLocation(startup.Place()))
 	if readonlyMode {
 		log.Println("Read-only mode")
+	}
+	if asDefault {
+		if idx := strings.LastIndexByte(listenAddr, ':'); idx >= 0 {
+			log.Println()
+			log.Println("--------------------------")
+			log.Printf("Open your browser and enter the following URL:")
+			log.Println()
+			log.Printf("    http://localhost%v", listenAddr[idx:])
+		}
 	}
 	log.Fatal(http.ListenAndServe(listenAddr, router))
 	return 0, nil

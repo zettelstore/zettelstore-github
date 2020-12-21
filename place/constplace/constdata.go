@@ -676,7 +676,7 @@ footer {
 		constHeader{
 			meta.KeyTitle:      "New Zettel",
 			meta.KeyRole:       meta.ValueRoleNewTemplate,
-			meta.KeyNewRole:    "zettel",
+			meta.KeyNewRole:    meta.ValueRoleZettel,
 			meta.KeyVisibility: meta.ValueVisibilityLogin,
 			meta.KeySyntax:     meta.ValueSyntaxZmk,
 		},

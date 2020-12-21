@@ -97,6 +97,7 @@ const (
 	ValueRoleConfiguration = "configuration"
 	ValueRoleUser          = "user"
 	ValueRoleNewTemplate   = "new-template"
+	ValueRoleZettel        = "zettel"
 	ValueSyntaxMeta        = "meta"
 	ValueSyntaxZmk         = "zmk"
 	ValueTrue              = "true"

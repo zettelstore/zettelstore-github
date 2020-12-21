@@ -74,7 +74,7 @@ func GetDefaultRole() string {
 			}
 		}
 	}
-	return "zettel"
+	return meta.ValueRoleZettel
 }
 
 // GetDefaultLang returns the current value of the "default-lang" key.

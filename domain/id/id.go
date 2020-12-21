@@ -42,6 +42,8 @@ const (
 	// Range 90000...99999 is reserved for zettel templates
 	TemplateNewZettelZid = Zid(91001)
 	TemplateNewUserZid   = Zid(96001)
+
+	WelcomeZid = Zid(19700101000000)
 )
 
 const maxZid = 99999999999999

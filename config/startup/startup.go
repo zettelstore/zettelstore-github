@@ -25,6 +25,7 @@ import (
 )
 
 var startupConfig struct {
+	simple        bool // was started without run command
 	verbose       bool
 	readonlyMode  bool
 	urlPrefix     string
@@ -55,10 +56,11 @@ const (
 )
 
 // SetupStartup initializes the startup data.
-func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place) error {
+func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place, simple bool) error {
 	if startupConfig.urlPrefix != "" {
 		panic("startupConfig already set")
 	}
+	startupConfig.simple = simple
 	startupConfig.verbose = cfg.GetBool(StartupKeyVerbose)
 	startupConfig.readonlyMode = cfg.GetBool(StartupKeyReadOnlyMode)
 	startupConfig.urlPrefix = cfg.GetDefault(StartupKeyURLPrefix, "/")
@@ -177,6 +179,9 @@ func getDuration(
 	}
 	return defDur
 }
+
+// IsSimple returns true if Zettelstore was not started with command "run".
+func IsSimple() bool { return startupConfig.simple }
 
 // IsVerbose returns whether the system should be more chatty about its operations.
 func IsVerbose() bool { return startupConfig.verbose }

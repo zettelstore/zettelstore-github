@@ -121,6 +121,23 @@ func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 	return cfg
 }
 
+func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
+	err := startup.SetupStartup(cfg, withPlaces, progplace.Get(), simple)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Unable to connect to specified places")
+		return err
+	}
+	if withPlaces {
+		if err := startup.Place().Start(context.Background()); err != nil {
+			fmt.Fprintln(os.Stderr, "Unable to start zettel place")
+			return err
+		}
+		runtime.SetupConfiguration(startup.Place())
+		progplace.Setup(cfg, startup.Place())
+	}
+	return nil
+}
+
 func executeCommand(name string, args ...string) {
 	command, ok := Get(name)
 	if !ok {
@@ -133,21 +150,11 @@ func executeCommand(name string, args ...string) {
 		os.Exit(1)
 	}
 	cfg := getConfig(fs)
-	err := startup.SetupStartup(cfg, command.Places, progplace.Get())
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to connect to specified places")
+	if err := setupOperations(cfg, command.Places, false); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
 		os.Exit(2)
 	}
-	if command.Places {
-		if err := startup.Place().Start(context.Background()); err != nil {
-			fmt.Fprintln(os.Stderr, "Unable to start zettel place")
-			fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
-			os.Exit(2)
-		}
-		runtime.SetupConfiguration(startup.Place())
-		progplace.Setup(cfg, startup.Place())
-	}
+
 	exitCode, err := command.Func(fs)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
@@ -159,12 +166,7 @@ func executeCommand(name string, args ...string) {
 func Main(progName, buildVersion string) {
 	startup.SetupVersion(progName, buildVersion)
 	if len(os.Args) <= 1 {
-		dir := "./zettel"
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to create zettel directory %q (%s)\n", dir, err)
-			return
-		}
-		executeCommand("run", "-d", dir)
+		runSimple()
 	} else {
 		executeCommand(os.Args[1], os.Args[2:]...)
 	}
