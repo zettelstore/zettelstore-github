@@ -36,6 +36,14 @@ type fileCmd interface {
 //
 // Retrieves the meta data from a zettel.
 
+func getMeta(dp *dirPlace, entry *directory.Entry, zid id.Zid) (*meta.Meta, error) {
+	rc := make(chan resGetMetaContent)
+	dp.getFileChan(zid) <- &fileGetMetaContent{entry, rc}
+	res := <-rc
+	close(rc)
+	return res.meta, res.err
+}
+
 type fileGetMeta struct {
 	entry *directory.Entry
 	rc    chan<- resGetMeta
@@ -65,6 +73,14 @@ func (cmd *fileGetMeta) run() {
 // COMMAND: getMetaContent ----------------------------------------
 //
 // Retrieves the meta data and the content of a zettel.
+
+func getMetaContent(dp *dirPlace, entry *directory.Entry, zid id.Zid) (*meta.Meta, string, error) {
+	rc := make(chan resGetMetaContent)
+	dp.getFileChan(zid) <- &fileGetMetaContent{entry, rc}
+	res := <-rc
+	close(rc)
+	return res.meta, res.content, res.err
+}
 
 type fileGetMetaContent struct {
 	entry *directory.Entry
@@ -101,6 +117,14 @@ func (cmd *fileGetMetaContent) run() {
 //
 // Writes a new or exsting zettel.
 
+func setZettel(dp *dirPlace, entry *directory.Entry, zettel domain.Zettel) error {
+	rc := make(chan resSetZettel)
+	dp.getFileChan(zettel.Meta.Zid) <- &fileSetZettel{entry, zettel, rc}
+	err := <-rc
+	close(rc)
+	return err
+}
+
 type fileSetZettel struct {
 	entry  *directory.Entry
 	zettel domain.Zettel
@@ -116,24 +140,30 @@ func (cmd *fileSetZettel) run() {
 	case directory.MetaSpecFile:
 		f, err = openFileWrite(cmd.entry.MetaPath)
 		if err == nil {
-			_, err = cmd.zettel.Meta.Write(f)
-			if err1 := f.Close(); err == nil {
-				err = err1
-			}
-
+			err = writeFileZid(f, cmd.zettel.Meta.Zid)
 			if err == nil {
-				err = writeFileContent(cmd.entry.ContentPath, cmd.zettel.Content.AsString())
+				_, err = cmd.zettel.Meta.Write(f)
+				if err1 := f.Close(); err == nil {
+					err = err1
+				}
+
+				if err == nil {
+					err = writeFileContent(cmd.entry.ContentPath, cmd.zettel.Content.AsString())
+				}
 			}
 		}
 
 	case directory.MetaSpecHeader:
 		f, err = openFileWrite(cmd.entry.ContentPath)
 		if err == nil {
-			_, err = cmd.zettel.Meta.WriteAsHeader(f)
+			err = writeFileZid(f, cmd.zettel.Meta.Zid)
 			if err == nil {
-				_, err = f.WriteString(cmd.zettel.Content.AsString())
-				if err1 := f.Close(); err == nil {
-					err = err1
+				_, err = cmd.zettel.Meta.WriteAsHeader(f)
+				if err == nil {
+					_, err = f.WriteString(cmd.zettel.Content.AsString())
+					if err1 := f.Close(); err == nil {
+						err = err1
+					}
 				}
 			}
 		}
@@ -150,39 +180,17 @@ func (cmd *fileSetZettel) run() {
 	cmd.rc <- err
 }
 
-// COMMAND: renameZettel ----------------------------------------
-//
-// Gives an existing zettel a new id.
-
-type fileRenameZettel struct {
-	curEntry *directory.Entry
-	newEntry *directory.Entry
-	rc       chan<- resRenameZettel
-}
-
-type resRenameZettel = error
-
-func (cmd *fileRenameZettel) run() {
-	var err error
-
-	switch cmd.curEntry.MetaSpec {
-	case directory.MetaSpecFile:
-		err1 := os.Rename(cmd.curEntry.MetaPath, cmd.newEntry.MetaPath)
-		err = os.Rename(cmd.curEntry.ContentPath, cmd.newEntry.ContentPath)
-		if err == nil {
-			err = err1
-		}
-	case directory.MetaSpecHeader, directory.MetaSpecNone:
-		err = os.Rename(cmd.curEntry.ContentPath, cmd.newEntry.ContentPath)
-	case directory.MetaSpecUnknown:
-		panic("TODO: ???")
-	}
-	cmd.rc <- err
-}
-
 // COMMAND: deleteZettel ----------------------------------------
 //
 // Deletes an existing zettel.
+
+func deleteZettel(dp *dirPlace, entry *directory.Entry, zid id.Zid) error {
+	rc := make(chan resDeleteZettel)
+	dp.getFileChan(zid) <- &fileDeleteZettel{entry, rc}
+	err := <-rc
+	close(rc)
+	return err
+}
 
 type fileDeleteZettel struct {
 	entry *directory.Entry
@@ -263,6 +271,17 @@ func cleanupMeta(m *meta.Meta, entry *directory.Entry) {
 
 func openFileWrite(path string) (*os.File, error) {
 	return os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+}
+
+func writeFileZid(f *os.File, zid id.Zid) error {
+	_, err := f.WriteString("id: ")
+	if err == nil {
+		_, err = f.Write(zid.Bytes())
+		if err == nil {
+			_, err = f.WriteString("\n")
+		}
+	}
+	return err
 }
 
 func writeFileContent(path string, content string) error {

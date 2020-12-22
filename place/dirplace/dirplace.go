@@ -210,10 +210,7 @@ func (dp *dirPlace) CreateZettel(
 	meta.Zid = entry.Zid
 	dp.updateEntryFromMeta(&entry, meta)
 
-	rc := make(chan resSetZettel)
-	dp.getFileChan(meta.Zid) <- &fileSetZettel{&entry, zettel, rc}
-	err := <-rc
-	close(rc)
+	err := setZettel(dp, &entry, zettel)
 	if err == nil {
 		dp.dirSrv.UpdateEntry(&entry)
 
@@ -237,17 +234,13 @@ func (dp *dirPlace) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, e
 		return domain.Zettel{}, &place.ErrUnknownID{Zid: zid}
 	}
 
-	rc := make(chan resGetMetaContent)
-	dp.getFileChan(zid) <- &fileGetMetaContent{&entry, rc}
-	res := <-rc
-	close(rc)
-
-	if res.err != nil {
-		return domain.Zettel{}, res.err
+	m, c, err := getMetaContent(dp, &entry, zid)
+	if err != nil {
+		return domain.Zettel{}, err
 	}
-	dp.cleanupMeta(ctx, res.meta)
-	zettel := domain.Zettel{Meta: res.meta, Content: domain.NewContent(res.content)}
-	dp.cacheSetMeta(res.meta)
+	dp.cleanupMeta(ctx, m)
+	zettel := domain.Zettel{Meta: m, Content: domain.NewContent(c)}
+	dp.cacheSetMeta(m)
 	return zettel, nil
 }
 
@@ -268,17 +261,13 @@ func (dp *dirPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 		return nil, &place.ErrUnknownID{Zid: zid}
 	}
 
-	rc := make(chan resGetMeta)
-	dp.getFileChan(zid) <- &fileGetMeta{&entry, rc}
-	res := <-rc
-	close(rc)
-
-	if res.err != nil {
-		return nil, res.err
+	m, err := getMeta(dp, &entry, zid)
+	if err != nil {
+		return nil, err
 	}
-	dp.cleanupMeta(ctx, res.meta)
-	dp.cacheSetMeta(res.meta)
-	return res.meta, nil
+	dp.cleanupMeta(ctx, m)
+	dp.cacheSetMeta(m)
+	return m, nil
 }
 
 // SelectMeta returns all zettel meta data that match the selection
@@ -291,21 +280,15 @@ func (dp *dirPlace) SelectMeta(
 
 	hasMatch := place.CreateFilterFunc(f)
 	entries := dp.dirSrv.GetEntries()
-	rc := make(chan resGetMeta)
 	res = make([]*meta.Meta, 0, len(entries))
 	for _, entry := range entries {
 		m, ok := dp.cacheGetMeta(entry.Zid)
 		if !ok {
-			dp.getFileChan(entry.Zid) <- &fileGetMeta{&entry, rc}
-
-			// Response processing could be done by separate goroutine, so that
-			// requests can be executed concurrently.
-			res := <-rc
-
-			if res.err != nil {
+			// TODO: execute requests in parallel
+			m, err = getMeta(dp, &entry, entry.Zid)
+			if err != nil {
 				continue
 			}
-			m = res.meta
 			dp.cleanupMeta(ctx, m)
 			dp.cacheSetMeta(m)
 		}
@@ -314,7 +297,6 @@ func (dp *dirPlace) SelectMeta(
 			res = append(res, m)
 		}
 	}
-	close(rc)
 	if err != nil {
 		return nil, err
 	}
@@ -356,12 +338,7 @@ func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 		}
 	}
 	dp.notifyChanged(false, meta.Zid)
-
-	rc := make(chan resSetZettel)
-	dp.getFileChan(meta.Zid) <- &fileSetZettel{&entry, zettel, rc}
-	err := <-rc
-	close(rc)
-	return err
+	return setZettel(dp, &entry, zettel)
 }
 
 func (dp *dirPlace) updateEntryFromMeta(entry *directory.Entry, meta *meta.Meta) {
@@ -424,6 +401,11 @@ func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) err
 		return &place.ErrInvalidID{Zid: newZid}
 	}
 
+	oldMeta, oldContent, err := getMetaContent(dp, &curEntry, curZid)
+	if err != nil {
+		return err
+	}
+
 	newEntry := directory.Entry{
 		Zid:         newZid,
 		MetaSpec:    curEntry.MetaSpec,
@@ -431,15 +413,20 @@ func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) err
 		ContentPath: renamePath(curEntry.ContentPath, curZid, newZid),
 		ContentExt:  curEntry.ContentExt,
 	}
+
 	dp.notifyChanged(false, curZid)
 	if err := dp.dirSrv.RenameEntry(&curEntry, &newEntry); err != nil {
 		return err
 	}
-
-	rc := make(chan resRenameZettel)
-	dp.getFileChan(newZid) <- &fileRenameZettel{&curEntry, &newEntry, rc}
-	err := <-rc
-	close(rc)
+	oldMeta.Zid = newZid
+	newZettel := domain.Zettel{Meta: oldMeta, Content: domain.NewContent(oldContent)}
+	err = setZettel(dp, &newEntry, newZettel)
+	if err != nil {
+		// "Rollback" rename. No error checking...
+		dp.dirSrv.RenameEntry(&newEntry, &curEntry)
+		return err
+	}
+	err = deleteZettel(dp, &curEntry, curZid)
 	return err
 }
 
@@ -466,10 +453,7 @@ func (dp *dirPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 		return nil
 	}
 	dp.dirSrv.DeleteEntry(zid)
-	rc := make(chan resDeleteZettel)
-	dp.getFileChan(zid) <- &fileDeleteZettel{&entry, rc}
-	err := <-rc
-	close(rc)
+	err := deleteZettel(dp, &entry, zid)
 	dp.notifyChanged(false, zid)
 	return err
 }
