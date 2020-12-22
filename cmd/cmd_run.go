@@ -14,7 +14,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"strings"
 
 	"zettelstore.de/z/auth/policy"
 	"zettelstore.de/z/config/runtime"
@@ -25,18 +24,24 @@ import (
 	"zettelstore.de/z/web/adapter/api"
 	"zettelstore.de/z/web/adapter/webui"
 	"zettelstore.de/z/web/router"
+	"zettelstore.de/z/web/server"
 	"zettelstore.de/z/web/session"
 )
 
 // ---------- Subcommand: run ------------------------------------------------
 
-func runFunc(*flag.FlagSet) (int, error) { return startWebServer(false) }
-
-func startWebServer(asDefault bool) (int, error) {
-	readonlyMode := startup.IsReadOnlyMode()
-	router := setupRouting(startup.Place(), readonlyMode)
-
+func runFunc(*flag.FlagSet) (int, error) {
 	listenAddr := startup.ListenAddress()
+	readonlyMode := startup.IsReadOnlyMode()
+	logBeforeRun(listenAddr, readonlyMode)
+	handler := setupRouting(startup.Place(), readonlyMode)
+	if err := server.Start(listenAddr, handler); err != nil {
+		return 1, err
+	}
+	return 0, nil
+}
+
+func logBeforeRun(listenAddr string, readonlyMode bool) {
 	v := startup.GetVersion()
 	log.Printf("%v %v (%v@%v/%v)", v.Prog, v.Build, v.GoVersion, v.Os, v.Arch)
 	log.Printf("Listening on %v", listenAddr)
@@ -44,17 +49,16 @@ func startWebServer(asDefault bool) (int, error) {
 	if readonlyMode {
 		log.Println("Read-only mode")
 	}
-	if asDefault {
-		if idx := strings.LastIndexByte(listenAddr, ':'); idx >= 0 {
-			log.Println()
-			log.Println("--------------------------")
-			log.Printf("Open your browser and enter the following URL:")
-			log.Println()
-			log.Printf("    http://localhost%v", listenAddr[idx:])
+}
+
+func fullLocation(p place.Place) string {
+	if n := p.Next(); n != nil {
+		if rest := fullLocation(n); len(rest) > 0 {
+			return p.Location() + ", " + fullLocation(n)
 		}
+		return p.Location()
 	}
-	log.Fatal(http.ListenAndServe(listenAddr, router))
-	return 0, nil
+	return p.Location()
 }
 
 func setupRouting(up place.Place, readonlyMode bool) http.Handler {
@@ -130,14 +134,4 @@ func setupRouting(up place.Place, readonlyMode bool) http.Handler {
 	router.AddZettelRoute('z', http.MethodGet, api.MakeGetZettelHandler(
 		ucParseZettel, ucGetMeta))
 	return session.NewHandler(router, usecase.NewGetUserByZid(up))
-}
-
-func fullLocation(p place.Place) string {
-	if n := p.Next(); n != nil {
-		if rest := fullLocation(n); len(rest) > 0 {
-			return p.Location() + ", " + fullLocation(n)
-		}
-		return p.Location()
-	}
-	return p.Location()
 }

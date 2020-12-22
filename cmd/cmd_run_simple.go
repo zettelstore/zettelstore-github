@@ -14,10 +14,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/web/server"
 
 	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain/id"
@@ -46,7 +49,23 @@ func runSimple() {
 			updateWelcomeZettel(p)
 		}
 	}
-	startWebServer(true)
+
+	listenAddr := startup.ListenAddress()
+	readonlyMode := startup.IsReadOnlyMode()
+	logBeforeRun(listenAddr, readonlyMode)
+	if idx := strings.LastIndexByte(listenAddr, ':'); idx >= 0 {
+		log.Println()
+		log.Println("--------------------------")
+		log.Printf("Open your browser and enter the following URL:")
+		log.Println()
+		log.Printf("    http://localhost%v", listenAddr[idx:])
+	}
+	handler := setupRouting(startup.Place(), readonlyMode)
+
+	if err := server.Start(listenAddr, handler); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 	os.Exit(0)
 }
 
