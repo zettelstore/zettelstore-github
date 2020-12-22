@@ -31,10 +31,7 @@ func MakeGetDeleteZettelHandler(
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(
-				w,
-				fmt.Sprintf("Delete zettel not possible in format %q", format),
-				http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Delete zettel not possible in format %q", format))
 			return
 		}
 

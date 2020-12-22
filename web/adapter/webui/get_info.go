@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -60,10 +59,7 @@ func MakeGetInfoHandler(
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		if format := adapter.GetFormat(r, q, "html"); format != "html" {
-			http.Error(
-				w,
-				fmt.Sprintf("Zettel info not available in format %q", format),
-				http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Zettel info not available in format %q", format))
 			return
 		}
 
@@ -104,8 +100,7 @@ func MakeGetInfoHandler(
 
 		textTitle, err := adapter.FormatInlines(zn.Title, "text", nil, langOption)
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
+			adapter.InternalServerError(w, "Format Text inlines for info", err)
 			return
 		}
 

@@ -29,7 +29,7 @@ func MakePostLoginHandler(apiHandler, htmlHandler http.HandlerFunc) http.Handler
 		case "html":
 			htmlHandler(w, r)
 		default:
-			http.Error(w, fmt.Sprintf("Authentication not available in format %q", format), http.StatusBadRequest)
+			BadRequest(w, fmt.Sprintf("Authentication not available in format %q", format))
 		}
 	}
 }

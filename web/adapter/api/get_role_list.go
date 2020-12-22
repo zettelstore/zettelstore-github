@@ -37,7 +37,7 @@ func MakeListRoleHandler(listRole usecase.ListRole) http.HandlerFunc {
 			w.Header().Set("Content-Type", format2ContentType(format))
 			renderListRoleJSON(w, roleList)
 		default:
-			http.Error(w, fmt.Sprintf("Role list not available in format %q", format), http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Role list not available in format %q", format))
 		}
 
 	}

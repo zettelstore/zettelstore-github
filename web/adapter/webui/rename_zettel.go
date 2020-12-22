@@ -43,11 +43,7 @@ func MakeGetRenameZettelHandler(
 		}
 
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(
-				w,
-				fmt.Sprintf(
-					"Rename zettel %q not possible in format %q", zid.String(), format),
-				http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Rename zettel %q not possible in format %q", zid.String(), format))
 			return
 		}
 
@@ -74,23 +70,17 @@ func MakePostRenameZettelHandler(renameZettel usecase.RenameZettel) http.Handler
 			return
 		}
 		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Unable to read rename zettel form", http.StatusBadRequest)
+			adapter.BadRequest(w, "Unable to read rename zettel form")
 			return
 		}
 		if formCurZid, err := id.Parse(
 			r.PostFormValue("curzid")); err != nil || formCurZid != curZid {
-			http.Error(
-				w,
-				"Invalid value for current zettel id in form",
-				http.StatusBadRequest)
+			adapter.BadRequest(w, "Invalid value for current zettel id in form")
 			return
 		}
 		newZid, err := id.Parse(strings.TrimSpace(r.PostFormValue("newzid")))
 		if err != nil {
-			http.Error(
-				w,
-				fmt.Sprintf("Invalid new zettel id %q", newZid.String()),
-				http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Invalid new zettel id %q", newZid.String()))
 			return
 		}
 

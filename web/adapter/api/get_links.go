@@ -60,7 +60,7 @@ func MakeGetLinksHandler(parseZettel usecase.ParseZettel) http.HandlerFunc {
 		kind := getKindFromValue(q.Get("kind"))
 		matter := getMatterFromValue(q.Get("matter"))
 		if !validKindMatter(kind, matter) {
-			http.Error(w, "Invalid kind/matter", http.StatusBadRequest)
+			adapter.BadRequest(w, "Invalid kind/matter")
 			return
 		}
 

@@ -13,9 +13,7 @@ package webui
 
 import (
 	"context"
-	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"sync"
 
@@ -292,11 +290,7 @@ func (te *TemplateEngine) renderTemplate(
 
 	t, err := te.getTemplate(ctx, templateID)
 	if err != nil {
-		http.Error(
-			w,
-			fmt.Sprintf("Unable to get template: %v", err),
-			http.StatusInternalServerError)
-		log.Println(err)
+		adapter.InternalServerError(w, "Unable to get template", err)
 		return
 	}
 	if user := session.GetUser(ctx); user != nil {
@@ -309,10 +303,6 @@ func (te *TemplateEngine) renderTemplate(
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = t.Execute(w, data)
 	if err != nil {
-		http.Error(
-			w,
-			fmt.Sprintf("Unable to execute template: %v", err),
-			http.StatusInternalServerError)
-		log.Println(err)
+		adapter.InternalServerError(w, "Unable to execute template", err)
 	}
 }

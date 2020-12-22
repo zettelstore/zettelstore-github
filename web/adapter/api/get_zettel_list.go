@@ -13,7 +13,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
@@ -48,16 +47,9 @@ func MakeListMetaHandler(
 		case "json", "djson":
 			renderListMetaXJSON(r.Context(), w, metaList, format, part, getMeta, parseZettel)
 		case "native", "raw", "text", "zmk":
-			http.Error(
-				w,
-				fmt.Sprintf("Zettel list in format %q not yet implemented", format),
-				http.StatusNotImplemented)
-			log.Println(format)
+			adapter.NotImplemented(w, fmt.Sprintf("Zettel list in format %q not yet implemented", format))
 		default:
-			http.Error(
-				w,
-				fmt.Sprintf("Zettel list not available in format %q", format),
-				http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Zettel list not available in format %q", format))
 		}
 	}
 }
@@ -70,8 +62,7 @@ func renderListMetaHTML(w http.ResponseWriter, metaList []*meta.Meta) {
 		title := m.GetDefault(meta.KeyTitle, "")
 		htmlTitle, err := adapter.FormatInlines(parser.ParseTitle(title), "html")
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
+			adapter.InternalServerError(w, "Format HTML inlines", err)
 			return
 		}
 		buf.WriteStrings(

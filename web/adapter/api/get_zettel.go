@@ -13,7 +13,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
@@ -49,10 +48,7 @@ func MakeGetZettelHandler(
 			switch part {
 			case "zettel", "meta", "content", "id":
 			default:
-				http.Error(
-					w,
-					fmt.Sprintf("Unknown _part=%v parameter", part),
-					http.StatusBadRequest)
+				adapter.BadRequest(w, fmt.Sprintf("Unknown _part=%v parameter", part))
 				return
 			}
 			w.Header().Set("Content-Type", format2ContentType(format))
@@ -62,8 +58,7 @@ func MakeGetZettelHandler(
 				err = writeDJSONZettel(ctx, w, zn, part, getMeta)
 			}
 			if err != nil {
-				http.Error(w, "Internal error", http.StatusInternalServerError)
-				log.Println(err)
+				adapter.InternalServerError(w, "Write D/JSON", err)
 			}
 			return
 		}
@@ -121,21 +116,15 @@ func MakeGetZettelHandler(
 				&imageAdapter,
 			)
 		default:
-			http.Error(
-				w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Unknown _part=%v parameter", part))
 			return
 		}
 		if err != nil {
 			if err == adapter.ErrNoSuchFormat {
-				http.Error(
-					w,
-					fmt.Sprintf(
-						"Zettel %q not available in format %q", zid.String(), format),
-					http.StatusBadRequest)
+				adapter.BadRequest(w, fmt.Sprintf("Zettel %q not available in format %q", zid.String(), format))
 				return
 			}
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
+			adapter.InternalServerError(w, "Get zettel", err)
 		}
 	}
 }

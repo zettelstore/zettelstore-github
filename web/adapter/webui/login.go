@@ -66,7 +66,7 @@ func authenticateViaHTML(
 ) {
 	ident, cred, ok := adapter.GetCredentialsViaForm(r)
 	if !ok {
-		http.Error(w, "Unable to read login form", http.StatusBadRequest)
+		adapter.BadRequest(w, "Unable to read login form")
 		return
 	}
 	ctx := r.Context()
@@ -88,10 +88,7 @@ func authenticateViaHTML(
 func MakeGetLogoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(
-				w,
-				fmt.Sprintf("Logout not possible in format %q", format),
-				http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Logout not possible in format %q", format))
 			return
 		}
 

@@ -14,7 +14,6 @@ package webui
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
@@ -81,14 +80,12 @@ func MakeGetNewZettelHandler(
 			langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(m)}
 			textTitle, err := adapter.FormatInlines(title, "text", &langOption)
 			if err != nil {
-				http.Error(w, "Internal error", http.StatusInternalServerError)
-				log.Println(err)
+				adapter.InternalServerError(w, "Format Text inlines for WebUI", err)
 				return
 			}
 			htmlTitle, err := adapter.FormatInlines(title, "html", &langOption)
 			if err != nil {
-				http.Error(w, "Internal error", http.StatusInternalServerError)
-				log.Println(err)
+				adapter.InternalServerError(w, "Format HTML inlines for WebUI", err)
 				return
 			}
 			renderZettelForm(
@@ -104,10 +101,7 @@ func getOrigZettel(
 	op string,
 ) (domain.Zettel, bool) {
 	if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-		http.Error(
-			w,
-			fmt.Sprintf("%v zettel not possible in format %q", op, format),
-			http.StatusBadRequest)
+		adapter.BadRequest(w, fmt.Sprintf("%v zettel not possible in format %q", op, format))
 		return domain.Zettel{}, false
 	}
 	zid, err := id.Parse(r.URL.Path[1:])
@@ -153,11 +147,11 @@ func MakePostCreateZettelHandler(createZettel usecase.CreateZettel) http.Handler
 	return func(w http.ResponseWriter, r *http.Request) {
 		zettel, hasContent, err := parseZettelForm(r, id.Invalid)
 		if err != nil {
-			http.Error(w, "Unable to read form data", http.StatusBadRequest)
+			adapter.BadRequest(w, "Unable to read form data")
 			return
 		}
 		if !hasContent {
-			http.Error(w, "Content is missing", http.StatusBadRequest)
+			adapter.BadRequest(w, "Content is missing")
 			return
 		}
 

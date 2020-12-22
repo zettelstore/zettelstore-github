@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"zettelstore.de/z/ast"
@@ -221,7 +220,7 @@ func renderListMetaXJSON(
 	case "meta", "id":
 		readZettel = false
 	default:
-		http.Error(w, fmt.Sprintf("Unknown _part=%v parameter", part), http.StatusBadRequest)
+		adapter.BadRequest(w, fmt.Sprintf("Unknown _part=%v parameter", part))
 		return
 	}
 	isJSON := setJSON[format]
@@ -264,8 +263,7 @@ func renderListMetaXJSON(
 		_, err = w.Write(jsonListFooter)
 	}
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		log.Println(err)
+		adapter.InternalServerError(w, "Get list", err)
 	}
 }
 

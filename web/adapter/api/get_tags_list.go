@@ -40,7 +40,7 @@ func MakeListTagsHandler(listTags usecase.ListTags) http.HandlerFunc {
 			w.Header().Set("Content-Type", format2ContentType(format))
 			renderListTagsJSON(w, tagData)
 		default:
-			http.Error(w, fmt.Sprintf("Tags list not available in format %q", format), http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Tags list not available in format %q", format))
 		}
 	}
 }

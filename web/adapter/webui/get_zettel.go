@@ -13,7 +13,6 @@ package webui
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"strings"
 
@@ -56,21 +55,18 @@ func MakeGetHTMLZettelHandler(
 			},
 		)
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
+			adapter.InternalServerError(w, "Format meta", err)
 			return
 		}
 		langOption := encoder.StringOption{Key: "lang", Value: runtime.GetLang(zn.InhMeta)}
 		htmlTitle, err := adapter.FormatInlines(zn.Title, "html", &langOption)
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
+			adapter.InternalServerError(w, "Format HTML inlines", err)
 			return
 		}
 		textTitle, err := adapter.FormatInlines(zn.Title, "text", &langOption)
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
+			adapter.InternalServerError(w, "Format text inlines", err)
 			return
 		}
 		newWindow := true
@@ -88,8 +84,7 @@ func MakeGetHTMLZettelHandler(
 			&encoder.AdaptImageOption{Adapter: adapter.MakeImageAdapter()},
 		)
 		if err != nil {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			log.Println(err)
+			adapter.InternalServerError(w, "Format blocks", err)
 			return
 		}
 		user := session.GetUser(ctx)

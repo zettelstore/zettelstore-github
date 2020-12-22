@@ -42,11 +42,7 @@ func MakeEditGetZettelHandler(
 		}
 
 		if format := adapter.GetFormat(r, r.URL.Query(), "html"); format != "html" {
-			http.Error(
-				w,
-				fmt.Sprintf(
-					"Edit zettel %q not possible in format %q", zid.String(), format),
-				http.StatusBadRequest)
+			adapter.BadRequest(w, fmt.Sprintf("Edit zettel %q not possible in format %q", zid.String(), format))
 			return
 		}
 
@@ -76,7 +72,7 @@ func MakeEditSetZettelHandler(updateZettel usecase.UpdateZettel) http.HandlerFun
 		}
 		zettel, hasContent, err := parseZettelForm(r, zid)
 		if err != nil {
-			http.Error(w, "Unable to read zettel form", http.StatusBadRequest)
+			adapter.BadRequest(w, "Unable to read zettel form")
 			return
 		}
 

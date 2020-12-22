@@ -92,7 +92,7 @@ func MakeRenewAuthHandler() http.HandlerFunc {
 		ctx := r.Context()
 		auth := session.GetAuthData(ctx)
 		if auth == nil || auth.Token == nil || auth.User == nil {
-			http.Error(w, "Not authenticated", http.StatusBadRequest)
+			adapter.BadRequest(w, "Not authenticated")
 			return
 		}
 		totalLifetime := auth.Expires.Sub(auth.Issued)

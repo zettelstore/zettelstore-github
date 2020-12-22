@@ -14,7 +14,6 @@ package webui
 import (
 	"context"
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -258,8 +257,7 @@ func renderWebUIMetaList(
 	user := session.GetUser(ctx)
 	metas, err := buildHTMLMetaList(metaList)
 	if err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
-		log.Println(err)
+		adapter.InternalServerError(w, "Build HTML meta list", err)
 		return
 	}
 	te.renderTemplate(ctx, w, id.ListTemplateZid, struct {
