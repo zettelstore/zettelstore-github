@@ -152,7 +152,8 @@ func (pp *progPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 }
 
 func (pp *progPlace) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
-	return false
+	_, ok := pp.zettel[zid]
+	return !ok
 }
 
 // Rename changes the current id to a new id.
