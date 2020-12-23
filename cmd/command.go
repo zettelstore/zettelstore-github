@@ -20,6 +20,7 @@ type Command struct {
 	Name   string              // command name as it appears on the command line
 	Func   CommandFunc         // function that executes a command
 	Places bool                // if true then places will be set up
+	Simple bool                // Should start in simple mode
 	Flags  func(*flag.FlagSet) // function to set up flag.FlagSet
 	flags  *flag.FlagSet       // flags that belong to the command
 

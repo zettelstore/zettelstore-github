@@ -55,6 +55,13 @@ func init() {
 		Flags:  flgRun,
 	})
 	RegisterCommand(Command{
+		Name:   "run-simple",
+		Func:   runSimpleFunc,
+		Places: true,
+		Simple: true,
+		Flags:  flgSimpleRun,
+	})
+	RegisterCommand(Command{
 		Name:  "config",
 		Func:  cmdConfig,
 		Flags: flgRun,
@@ -77,14 +84,6 @@ func fmtVersion() {
 	fmt.Printf("%v (%v/%v) running on %v (%v/%v)\n",
 		version.Prog, version.Build, version.GoVersion,
 		version.Hostname, version.Os, version.Arch)
-}
-
-func flgRun(fs *flag.FlagSet) {
-	fs.String("c", defConfigfile, "configuration file")
-	fs.Uint("p", 23123, "port number")
-	fs.String("d", "", "zettel directory")
-	fs.Bool("r", false, "system-wide read-only mode")
-	fs.Bool("v", false, "verbose mode")
 }
 
 func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
@@ -138,6 +137,16 @@ func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
 	return nil
 }
 
+func cleanupOperations(withPlaces bool) error {
+	if withPlaces {
+		if err := startup.Place().Stop(context.Background()); err != nil {
+			fmt.Fprintln(os.Stderr, "Unable to start zettel place")
+			return err
+		}
+	}
+	return nil
+}
+
 func executeCommand(name string, args ...string) {
 	command, ok := Get(name)
 	if !ok {
@@ -150,7 +159,7 @@ func executeCommand(name string, args ...string) {
 		os.Exit(1)
 	}
 	cfg := getConfig(fs)
-	if err := setupOperations(cfg, command.Places, false); err != nil {
+	if err := setupOperations(cfg, command.Places, command.Simple); err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
 		os.Exit(2)
 	}
@@ -159,7 +168,12 @@ func executeCommand(name string, args ...string) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
 	}
-	os.Exit(exitCode)
+	if err := cleanupOperations(command.Places); err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", name, err)
+	}
+	if exitCode != 0 {
+		os.Exit(exitCode)
+	}
 }
 
 // Main is the real entrypoint of the zettelstore.

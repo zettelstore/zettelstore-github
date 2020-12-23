@@ -30,6 +30,14 @@ import (
 
 // ---------- Subcommand: run ------------------------------------------------
 
+func flgRun(fs *flag.FlagSet) {
+	fs.String("c", defConfigfile, "configuration file")
+	fs.Uint("p", 23123, "port number")
+	fs.String("d", "", "zettel directory")
+	fs.Bool("r", false, "system-wide read-only mode")
+	fs.Bool("v", false, "verbose mode")
+}
+
 func runFunc(*flag.FlagSet) (int, error) {
 	listenAddr := startup.ListenAddress()
 	readonlyMode := startup.IsReadOnlyMode()

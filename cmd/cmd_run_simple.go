@@ -27,22 +27,11 @@ import (
 	"zettelstore.de/z/domain/meta"
 )
 
-// runSimple is called, when the user just starts the software via a double click
-// or via a simple call ``./zettelstore`` on the command line.
-func runSimple() {
-	dir := "./zettel"
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create zettel directory %q (%s)\n", dir, err)
-		os.Exit(1)
-	}
-	fs := flag.NewFlagSet("simple", flag.ExitOnError)
-	flgRun(fs)
-	fs.Parse([]string{"-d", dir})
-	cfg := getConfig(fs)
-	if err := setupOperations(cfg, true, true); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(2)
-	}
+func flgSimpleRun(fs *flag.FlagSet) {
+	fs.String("d", "", "zettel directory")
+}
+
+func runSimpleFunc(*flag.FlagSet) (int, error) {
 	p := startup.Place()
 	if _, err := p.GetMeta(context.Background(), id.WelcomeZid); err != nil {
 		if _, ok := err.(*place.ErrUnknownID); ok {
@@ -60,13 +49,23 @@ func runSimple() {
 		log.Println()
 		log.Printf("    http://localhost%v", listenAddr[idx:])
 	}
-	handler := setupRouting(startup.Place(), readonlyMode)
 
+	handler := setupRouting(startup.Place(), readonlyMode)
 	if err := server.Start(listenAddr, handler); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 1, err
+	}
+	return 0, nil
+}
+
+// runSimple is called, when the user just starts the software via a double click
+// or via a simple call ``./zettelstore`` on the command line.
+func runSimple() {
+	dir := "./zettel"
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create zettel directory %q (%s)\n", dir, err)
 		os.Exit(1)
 	}
-	os.Exit(0)
+	executeCommand("run-simple", "-d", dir)
 }
 
 func updateWelcomeZettel(p place.Place) {
