@@ -50,6 +50,9 @@ func KeyType(key string) byte {
 // SetList stores the given string list value under the given key.
 func (m *Meta) SetList(key string, values []string) {
 	if key != KeyID {
+		for i, val := range values {
+			values[i] = trimValue(val)
+		}
 		m.pairs[key] = strings.Join(values, " ")
 	}
 }

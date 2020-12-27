@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"zettelstore.de/z/domain/id"
+	"zettelstore.de/z/runes"
 )
 
 // Predefined keys.
@@ -168,8 +169,12 @@ func init() {
 // Set stores the given string value under the given key.
 func (m *Meta) Set(key, value string) {
 	if key != KeyID {
-		m.pairs[key] = value
+		m.pairs[key] = trimValue(value)
 	}
+}
+
+func trimValue(value string) string {
+	return strings.TrimFunc(value, runes.IsSpace)
 }
 
 // Get retrieves the string value of a given key. The bool value signals,
@@ -179,14 +184,14 @@ func (m *Meta) Get(key string) (string, bool) {
 		return m.Zid.String(), true
 	}
 	value, ok := m.pairs[key]
-	return strings.TrimSpace(value), ok
+	return value, ok
 }
 
 // GetDefault retrieves the string value of the given key. If no value was
 // stored, the given default value is returned.
 func (m *Meta) GetDefault(key string, def string) string {
 	if value, ok := m.Get(key); ok {
-		return strings.TrimSpace(value)
+		return value
 	}
 	return def
 }
@@ -209,7 +214,7 @@ func (m *Meta) doPairs(first bool) []Pair {
 	if first {
 		for _, key := range firstKeys {
 			if value, ok := m.pairs[key]; ok {
-				result = append(result, Pair{key, strings.TrimSpace(value)})
+				result = append(result, Pair{key, value})
 			}
 		}
 	}
@@ -223,7 +228,7 @@ func (m *Meta) doPairs(first bool) []Pair {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		result = append(result, Pair{k, strings.TrimSpace(m.pairs[k])})
+		result = append(result, Pair{k, m.pairs[k]})
 	}
 	return result
 }

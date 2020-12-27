@@ -146,7 +146,7 @@ func addData(m *Meta, k, v string) {
 }
 
 func addToMeta(m *Meta, key, val string) {
-	v := strings.TrimFunc(val, runes.IsSpace)
+	v := trimValue(val)
 	key = strings.ToLower(key)
 	if !KeyIsValid(key) {
 		return
