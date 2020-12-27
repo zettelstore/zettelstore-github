@@ -13,6 +13,7 @@ package server
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,6 +41,7 @@ func Start(addr string, handler http.Handler) error {
 		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 
+		log.Println("Stopping Zettelstore...")
 		if err := srv.Shutdown(ctx); err != nil {
 			waitError <- err
 			return
