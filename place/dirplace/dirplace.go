@@ -44,7 +44,6 @@ func init() {
 				getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
 			fSrvs: uint32(getQueryInt(u, "worker", 1, 17, 1499)),
 		}
-		dp.cacheChange(true, id.Invalid)
 		return &dp, nil
 	})
 }
@@ -92,8 +91,6 @@ type dirPlace struct {
 	fSrvs      uint32
 	fCmds      []chan fileCmd
 	mxCmds     sync.RWMutex
-	metaCache  map[id.Zid]*meta.Meta
-	mxCache    sync.RWMutex
 }
 
 func (dp *dirPlace) isStopped() bool {
@@ -134,7 +131,6 @@ func (dp *dirPlace) localStart(ctx context.Context) error {
 }
 
 func (dp *dirPlace) notifyChanged(all bool, zid id.Zid) {
-	dp.cacheChange(all, zid)
 	dp.mxObserver.RLock()
 	observers := dp.observers
 	dp.mxObserver.RUnlock()
@@ -213,9 +209,6 @@ func (dp *dirPlace) CreateZettel(
 	err := setZettel(dp, &entry, zettel)
 	if err == nil {
 		dp.dirSrv.UpdateEntry(&entry)
-
-		// Make meta available, because place may need some time to update directory.
-		dp.cacheSetMeta(zettel.Meta)
 	}
 	return meta.Zid, err
 }
@@ -240,7 +233,6 @@ func (dp *dirPlace) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, e
 	}
 	dp.cleanupMeta(ctx, m)
 	zettel := domain.Zettel{Meta: m, Content: domain.NewContent(c)}
-	dp.cacheSetMeta(m)
 	return zettel, nil
 }
 
@@ -248,10 +240,6 @@ func (dp *dirPlace) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, e
 func (dp *dirPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error) {
 	if dp.isStopped() {
 		return nil, place.ErrStopped
-	}
-	meta, ok := dp.cacheGetMeta(zid)
-	if ok {
-		return meta, nil
 	}
 	entry := dp.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
@@ -266,7 +254,6 @@ func (dp *dirPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 		return nil, err
 	}
 	dp.cleanupMeta(ctx, m)
-	dp.cacheSetMeta(m)
 	return m, nil
 }
 
@@ -282,16 +269,12 @@ func (dp *dirPlace) SelectMeta(
 	entries := dp.dirSrv.GetEntries()
 	res = make([]*meta.Meta, 0, len(entries))
 	for _, entry := range entries {
-		m, ok := dp.cacheGetMeta(entry.Zid)
-		if !ok {
-			// TODO: execute requests in parallel
-			m, err = getMeta(dp, &entry, entry.Zid)
-			if err != nil {
-				continue
-			}
-			dp.cleanupMeta(ctx, m)
-			dp.cacheSetMeta(m)
+		// TODO: execute requests in parallel
+		m, err := getMeta(dp, &entry, entry.Zid)
+		if err != nil {
+			continue
 		}
+		dp.cleanupMeta(ctx, m)
 
 		if hasMatch(m) {
 			res = append(res, m)
@@ -496,28 +479,4 @@ func renamePath(path string, curID, newID id.Zid) string {
 		return filepath.Join(dir, file)
 	}
 	return path
-}
-
-func (dp *dirPlace) cacheChange(all bool, zid id.Zid) {
-	dp.mxCache.Lock()
-	if all {
-		dp.metaCache = make(map[id.Zid]*meta.Meta, len(dp.metaCache))
-	} else {
-		delete(dp.metaCache, zid)
-	}
-	dp.mxCache.Unlock()
-}
-
-func (dp *dirPlace) cacheSetMeta(m *meta.Meta) {
-	dp.mxCache.Lock()
-	m.Freeze()
-	dp.metaCache[m.Zid] = m
-	dp.mxCache.Unlock()
-}
-
-func (dp *dirPlace) cacheGetMeta(zid id.Zid) (*meta.Meta, bool) {
-	dp.mxCache.RLock()
-	meta, ok := dp.metaCache[zid]
-	dp.mxCache.RUnlock()
-	return meta, ok
 }
