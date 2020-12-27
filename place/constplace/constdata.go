@@ -180,8 +180,8 @@ var constZettelMap = map[id.Zid]constZettel{
 <header>
 <h1>{{.HTMLTitle}}</h1>
 <div class="zs-meta">
-{{if .CanWrite}}<a href="{{.EditURL}}">Edit</a> &#183;
-{{.Zid}} &#183;{{end}}
+{{if .CanWrite}}<a href="{{.EditURL}}">Edit</a> &#183;{{end}}
+{{.Zid}} &#183;
 <a href="{{.InfoURL}}">Info</a> &#183;
 (<a href="{{.RoleURL}}">{{.RoleText}}</a>)
 {{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
