@@ -116,21 +116,19 @@ const (
 type Meta struct {
 	Zid     id.Zid
 	pairs   map[string]string
-	frozen  bool
 	YamlSep bool
 }
 
 // New creates a new chunk for storing meta-data
 func New(zid id.Zid) *Meta {
-	return &Meta{Zid: zid, pairs: make(map[string]string, 3)}
+	return &Meta{Zid: zid, pairs: make(map[string]string, 5)}
 }
 
-// Clone returns a new copy of the same meta data that is not frozen.
+// Clone returns a new copy of the metadata.
 func (m *Meta) Clone() *Meta {
 	return &Meta{
 		Zid:     m.Zid,
 		pairs:   m.Map(),
-		frozen:  false,
 		YamlSep: m.YamlSep,
 	}
 }
@@ -169,20 +167,9 @@ func init() {
 
 // Set stores the given string value under the given key.
 func (m *Meta) Set(key, value string) {
-	if m.frozen {
-		panic("frozen.Set")
-	}
 	if key != KeyID {
 		m.pairs[key] = value
 	}
-}
-
-// IsFrozen returns whether meta can be changed or not.
-func (m *Meta) IsFrozen() bool { return m.frozen }
-
-// Freeze defines frozen meta data, i.e. changing them will result in a panic.
-func (m *Meta) Freeze() {
-	m.frozen = true
 }
 
 // Get retrieves the string value of a given key. The bool value signals,
@@ -243,9 +230,6 @@ func (m *Meta) doPairs(first bool) []Pair {
 
 // Delete removes a key from the data.
 func (m *Meta) Delete(key string) {
-	if m.frozen {
-		panic("frozen.Delete")
-	}
 	if key != KeyID {
 		delete(m.pairs, key)
 	}

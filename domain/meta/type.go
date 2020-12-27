@@ -49,9 +49,6 @@ func KeyType(key string) byte {
 
 // SetList stores the given string list value under the given key.
 func (m *Meta) SetList(key string, values []string) {
-	if m.frozen {
-		panic("frozen.SetList")
-	}
 	if key != KeyID {
 		m.pairs[key] = strings.Join(values, " ")
 	}

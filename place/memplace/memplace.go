@@ -105,7 +105,6 @@ func (mp *memPlace) CreateZettel(
 
 	meta := zettel.Meta.Clone()
 	meta.Zid = mp.calcNewZid()
-	meta.Freeze()
 	zettel.Meta = meta
 	mp.zettel[meta.Zid] = zettel
 	mp.notifyChanged(false, meta.Zid)
@@ -200,7 +199,6 @@ func (mp *memPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	if !meta.Zid.IsValid() {
 		return &place.ErrInvalidID{Zid: meta.Zid}
 	}
-	meta.Freeze()
 	zettel.Meta = meta
 	mp.zettel[meta.Zid] = zettel
 	mp.notifyChanged(false, meta.Zid)
@@ -270,7 +268,6 @@ func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) err
 
 	meta := zettel.Meta.Clone()
 	meta.Zid = newZid
-	meta.Freeze()
 	zettel.Meta = meta
 	mp.zettel[newZid] = zettel
 	delete(mp.zettel, curZid)

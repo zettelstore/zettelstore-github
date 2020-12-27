@@ -38,9 +38,6 @@ func AddDefaultValues(m *meta.Meta) *meta.Meta {
 			}
 		}
 	}
-	if result != m && m.IsFrozen() {
-		result.Freeze()
-	}
 	return result
 }
 

@@ -36,7 +36,6 @@ func makeMeta(zid id.Zid, h constHeader) *meta.Meta {
 	for k, v := range h {
 		m.Set(k, v)
 	}
-	m.Freeze()
 	return m
 }
 
