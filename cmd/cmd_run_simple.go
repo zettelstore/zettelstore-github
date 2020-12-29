@@ -100,8 +100,8 @@ If you have encountered an error, please include the content of the following ze
 * [[Zettelstore Version|00000000000001]]
 * [[Zettelstore Operating System|00000000000003]]
 * [[Zettelstore Go Version|00000000000004]]
-* [[Zettelstore Startup Configuration|00000000000098]]
-* [[Zettelstore Startup Values|00000000000099]]
+* [[Zettelstore Startup Configuration|00000000000096]]
+* [[Zettelstore Startup Values|00000000000098]]
 * [[Zettelstore Runtime Configuration|00000000000100]]
 
 Additionally, you have to describe, what you have done before that error occurs
