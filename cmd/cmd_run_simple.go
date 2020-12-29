@@ -51,7 +51,8 @@ func runSimpleFunc(*flag.FlagSet) (int, error) {
 	}
 
 	handler := setupRouting(startup.Place(), readonlyMode)
-	if err := server.Start(listenAddr, handler); err != nil {
+	srv := server.New(listenAddr, handler)
+	if err := srv.Run(); err != nil {
 		return 1, err
 	}
 	return 0, nil

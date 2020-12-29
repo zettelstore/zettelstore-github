@@ -29,15 +29,43 @@ const (
 	idleTimeout     = 120 * time.Second
 )
 
-// Start a web server.
-func Start(addr string, handler http.Handler) error {
-	srv := newServer(addr, handler)
+// Server is a HTTP server.
+type Server struct {
+	*http.Server
+	waitShutdown chan struct{}
+}
+
+// New creates a new HTTP server object.
+func New(addr string, handler http.Handler) *Server {
+	if addr == "" {
+		addr = ":http"
+	}
+	srv := &Server{
+		Server: &http.Server{
+			Addr:    addr,
+			Handler: handler,
+
+			// See: https://blog.cloudflare.com/exposing-go-on-the-internet/
+			ReadTimeout:  readTimeout,
+			WriteTimeout: writeTimeout,
+			IdleTimeout:  idleTimeout,
+		},
+		waitShutdown: make(chan struct{}),
+	}
+	return srv
+}
+
+// Run starts the web server and wait for its completion.
+func (srv *Server) Run() error {
 	waitInterrupt := make(chan os.Signal)
 	waitError := make(chan error)
 	signal.Notify(waitInterrupt, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		<-waitInterrupt
+		select {
+		case <-waitInterrupt:
+		case <-srv.waitShutdown:
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
 
@@ -55,31 +83,7 @@ func Start(addr string, handler http.Handler) error {
 	return <-waitError
 }
 
-type server struct {
-	*http.Server
-}
-
-func newServer(addr string, handler http.Handler) *server {
-	if addr == "" {
-		addr = ":http"
-	}
-	srv := &server{
-		Server: &http.Server{
-			Addr:    addr,
-			Handler: handler,
-
-			// See: https://blog.cloudflare.com/exposing-go-on-the-internet/
-			ReadTimeout:  readTimeout,
-			WriteTimeout: writeTimeout,
-			IdleTimeout:  idleTimeout,
-		},
-	}
-	return srv
-}
-
-func (srv *server) Shutdown(ctx context.Context) error {
-	// TODO: prepare shutdown
-	err := srv.Server.Shutdown(ctx)
-	// TODO: after shutdown(err)
-	return err
+// Stop the web server.
+func (srv *Server) Stop() {
+	close(srv.waitShutdown)
 }
