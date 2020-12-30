@@ -53,6 +53,7 @@ func runFunc(*flag.FlagSet) (int, error) {
 func logBeforeRun(listenAddr string, readonlyMode bool) {
 	v := startup.GetVersion()
 	log.Printf("%v %v (%v@%v/%v)", v.Prog, v.Build, v.GoVersion, v.Os, v.Arch)
+	log.Println("Licensed under the latest version of the EUPL (European Union Public License)")
 	log.Printf("Listening on %v", listenAddr)
 	log.Printf("Zettel location [%v]", fullLocation(startup.Place()))
 	if readonlyMode {
