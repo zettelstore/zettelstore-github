@@ -102,7 +102,7 @@ func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 	fs.Visit(func(flg *flag.Flag) {
 		switch flg.Name {
 		case "p":
-			cfg.Set(startup.StartupKeyListenAddress, "127.0.0.1:"+flg.Value.String())
+			cfg.Set(startup.KeyListenAddress, "127.0.0.1:"+flg.Value.String())
 		case "d":
 			val := flg.Value.String()
 			if strings.HasPrefix(val, "/") {
@@ -110,11 +110,11 @@ func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 			} else {
 				val = "dir:" + val
 			}
-			cfg.Set(startup.StartupKeyPlaceOneURI, val)
+			cfg.Set(startup.KeyPlaceOneURI, val)
 		case "r":
-			cfg.Set(startup.StartupKeyReadOnlyMode, flg.Value.String())
+			cfg.Set(startup.KeyReadOnlyMode, flg.Value.String())
 		case "v":
-			cfg.Set(startup.StartupKeyVerbose, flg.Value.String())
+			cfg.Set(startup.KeyVerbose, flg.Value.String())
 		}
 	})
 	return cfg

@@ -43,16 +43,16 @@ var config struct {
 
 // Predefined keys for startup zettel
 const (
-	StartupKeyInsecureCookie    = "insecure-cookie"
-	StartupKeyListenAddress     = "listen-addr"
-	StartupKeyOwner             = "owner"
-	StartupKeyPersistentCookie  = "persistent-cookie"
-	StartupKeyPlaceOneURI       = "place-1-uri"
-	StartupKeyReadOnlyMode      = "read-only-mode"
-	StartupKeyTokenLifetimeHTML = "token-lifetime-html"
-	StartupKeyTokenLifetimeAPI  = "token-lifetime-api"
-	StartupKeyURLPrefix         = "url-prefix"
-	StartupKeyVerbose           = "verbose"
+	KeyInsecureCookie    = "insecure-cookie"
+	KeyListenAddress     = "listen-addr"
+	KeyOwner             = "owner"
+	KeyPersistentCookie  = "persistent-cookie"
+	KeyPlaceOneURI       = "place-1-uri"
+	KeyReadOnlyMode      = "read-only-mode"
+	KeyTokenLifetimeHTML = "token-lifetime-html"
+	KeyTokenLifetimeAPI  = "token-lifetime-api"
+	KeyURLPrefix         = "url-prefix"
+	KeyVerbose           = "verbose"
 )
 
 // SetupStartup initializes the startup data.
@@ -61,35 +61,35 @@ func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place, simple
 		panic("startup.config already set")
 	}
 	config.simple = simple
-	config.verbose = cfg.GetBool(StartupKeyVerbose)
-	config.readonlyMode = cfg.GetBool(StartupKeyReadOnlyMode)
-	config.urlPrefix = cfg.GetDefault(StartupKeyURLPrefix, "/")
-	if prefix, ok := cfg.Get(StartupKeyURLPrefix); ok &&
+	config.verbose = cfg.GetBool(KeyVerbose)
+	config.readonlyMode = cfg.GetBool(KeyReadOnlyMode)
+	config.urlPrefix = cfg.GetDefault(KeyURLPrefix, "/")
+	if prefix, ok := cfg.Get(KeyURLPrefix); ok &&
 		len(prefix) > 0 && prefix[0] == '/' && prefix[len(prefix)-1] == '/' {
 		config.urlPrefix = prefix
 	} else {
 		config.urlPrefix = "/"
 	}
-	if val, ok := cfg.Get(StartupKeyListenAddress); ok {
+	if val, ok := cfg.Get(KeyListenAddress); ok {
 		config.listenAddress = val // TODO: check for valid string
 	} else {
 		config.listenAddress = "127.0.0.1:23123"
 	}
 	config.owner = id.Invalid
-	if owner, ok := cfg.Get(StartupKeyOwner); ok {
+	if owner, ok := cfg.Get(KeyOwner); ok {
 		if zid, err := id.Parse(owner); err == nil {
 			config.owner = zid
 			config.withAuth = true
 		}
 	}
 	if config.withAuth {
-		config.insecCookie = cfg.GetBool(StartupKeyInsecureCookie)
-		config.persistCookie = cfg.GetBool(StartupKeyPersistentCookie)
+		config.insecCookie = cfg.GetBool(KeyInsecureCookie)
+		config.persistCookie = cfg.GetBool(KeyPersistentCookie)
 		config.secret = calcSecret(cfg)
 		config.htmlLifetime = getDuration(
-			cfg, StartupKeyTokenLifetimeHTML, 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
+			cfg, KeyTokenLifetimeHTML, 1*time.Hour, 1*time.Minute, 30*24*time.Hour)
 		config.apiLifetime = getDuration(
-			cfg, StartupKeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
+			cfg, KeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
 	config.simple = simple && !config.withAuth
 	if !withPlaces {
