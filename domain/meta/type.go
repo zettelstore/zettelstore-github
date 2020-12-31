@@ -42,11 +42,11 @@ var (
 	TypeID         = registerType("Identifier", false)
 	TypeNumber     = registerType("Number", false)
 	TypeString     = registerType("String", false)
-	TypeTagSet     = registerType("Set of tags", true)
+	TypeTagSet     = registerType("TagSet", true)
 	TypeURL        = registerType("URL", false)
 	TypeUnknown    = registerType("Unknown", false)
 	TypeWord       = registerType("Word", false)
-	TypeWordSet    = registerType("Set of words", true)
+	TypeWordSet    = registerType("WordSet", true)
 )
 
 // Type returns a type hint for the given key. If no type hint is specified,
