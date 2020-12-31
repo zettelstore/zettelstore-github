@@ -47,7 +47,7 @@ func (te *textEncoder) WriteZettel(
 // WriteMeta encodes meta data as text.
 func (te *textEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
 	b := encoder.NewBufWriter(w)
-	for _, pair := range m.Pairs() {
+	for _, pair := range m.Pairs(true) {
 		b.WriteString(pair.Value)
 		b.WriteByte('\n')
 	}

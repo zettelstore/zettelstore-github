@@ -568,7 +568,7 @@ func (v *detailVisitor) writeContentStart(code rune) {
 
 func (v *detailVisitor) writeMeta(m *meta.Meta, withTitle bool) {
 	first := withTitle
-	for _, p := range m.Pairs() {
+	for _, p := range m.Pairs(true) {
 		if p.Key == "title" && !withTitle {
 			continue
 		}

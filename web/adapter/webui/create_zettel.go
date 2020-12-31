@@ -135,7 +135,7 @@ func renderZettelForm(
 		MetaTags:      m.GetDefault(meta.KeyTags, ""),
 		MetaRole:      runtime.GetRole(m),
 		MetaSyntax:    runtime.GetSyntax(m),
-		MetaPairsRest: m.PairsRest(),
+		MetaPairsRest: m.PairsRest(false),
 		IsTextContent: !zettel.Content.IsBinary(),
 		Content:       zettel.Content.AsString(),
 	})

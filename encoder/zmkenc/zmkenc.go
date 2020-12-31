@@ -37,9 +37,9 @@ func (ze *zmkEncoder) WriteZettel(
 	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	v := newVisitor(w, ze)
 	if inhMeta {
-		zn.InhMeta.WriteAsHeader(&v.b)
+		zn.InhMeta.WriteAsHeader(&v.b, true)
 	} else {
-		zn.Zettel.Meta.WriteAsHeader(&v.b)
+		zn.Zettel.Meta.WriteAsHeader(&v.b, true)
 	}
 	v.acceptBlockSlice(zn.Ast)
 	length, err := v.b.Flush()
@@ -48,7 +48,7 @@ func (ze *zmkEncoder) WriteZettel(
 
 // WriteMeta encodes meta data as zmk.
 func (ze *zmkEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
-	return m.Write(w)
+	return m.Write(w, true)
 }
 
 func (ze *zmkEncoder) WriteContent(w io.Writer, zn *ast.ZettelNode) (int, error) {

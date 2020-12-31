@@ -29,7 +29,7 @@ func (uc NewZettel) Run(origZettel domain.Zettel) domain.Zettel {
 	m := origZettel.Meta.Clone()
 	if role, ok := m.Get(meta.KeyRole); ok && role == meta.ValueRoleNewTemplate {
 		const prefix = "new-"
-		for _, pair := range m.PairsRest() {
+		for _, pair := range m.PairsRest(false) {
 			if key := pair.Key; len(key) > len(prefix) && key[0:len(prefix)] == prefix {
 				m.Set(key[len(prefix):], pair.Value)
 				m.Delete(key)

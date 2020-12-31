@@ -31,7 +31,7 @@ func init() {
 
 func parseBlocks(inp *input.Input, m *meta.Meta, syntax string) ast.BlockSlice {
 	descrlist := &ast.DescriptionListNode{}
-	for _, p := range m.Pairs() {
+	for _, p := range m.Pairs(true) {
 		descrlist.Descriptions = append(
 			descrlist.Descriptions, getDescription(p.Key, p.Value))
 	}

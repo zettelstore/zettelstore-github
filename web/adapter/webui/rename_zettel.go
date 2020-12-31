@@ -56,7 +56,7 @@ func MakeGetRenameZettelHandler(
 			baseData: te.makeBaseData(
 				ctx, runtime.GetLang(m), "Rename Zettel "+zid.String(), user),
 			Zid:       zid.String(),
-			MetaPairs: m.Pairs(),
+			MetaPairs: m.Pairs(true),
 		})
 	}
 }

@@ -37,6 +37,13 @@ func registerKey(name string, t *DescriptionType, isComputed bool) string {
 	return name
 }
 
+func isComputed(name string) bool {
+	if kd, ok := registeredKeys[name]; ok {
+		return kd.IsComputed
+	}
+	return false
+}
+
 // GetSortedKeyDescriptions delivers all metadata key descriptions as a slice, sorted by name.
 func GetSortedKeyDescriptions() []*DescriptionKey {
 	names := make([]string, 0, len(registeredKeys))
@@ -194,17 +201,17 @@ func (m *Meta) GetDefault(key string, def string) string {
 // Pairs returns all key/values pairs stored, in a specific order. First come
 // the pairs with predefined keys: MetaTitleKey, MetaTagsKey, MetaSyntaxKey,
 // MetaContextKey. Then all other pairs are append to the list, ordered by key.
-func (m *Meta) Pairs() []Pair {
-	return m.doPairs(true)
+func (m *Meta) Pairs(allowComputed bool) []Pair {
+	return m.doPairs(true, allowComputed)
 }
 
 // PairsRest returns all key/values pairs stored, except the values with
 // predefined keys. The pairs are ordered by key.
-func (m *Meta) PairsRest() []Pair {
-	return m.doPairs(false)
+func (m *Meta) PairsRest(allowComputed bool) []Pair {
+	return m.doPairs(false, allowComputed)
 }
 
-func (m *Meta) doPairs(first bool) []Pair {
+func (m *Meta) doPairs(first bool, allowComputed bool) []Pair {
 	result := make([]Pair, 0, len(m.pairs))
 	if first {
 		for _, key := range firstKeys {
@@ -216,7 +223,7 @@ func (m *Meta) doPairs(first bool) []Pair {
 
 	keys := make([]string, 0, len(m.pairs)-len(result))
 	for k := range m.pairs {
-		if !firstKeySet[k] {
+		if !firstKeySet[k] && (allowComputed || !isComputed(k)) {
 			keys = append(keys, k)
 		}
 	}

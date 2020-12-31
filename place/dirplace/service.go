@@ -142,7 +142,7 @@ func (cmd *fileSetZettel) run() {
 		if err == nil {
 			err = writeFileZid(f, cmd.zettel.Meta.Zid)
 			if err == nil {
-				_, err = cmd.zettel.Meta.Write(f)
+				_, err = cmd.zettel.Meta.Write(f, true)
 				if err1 := f.Close(); err == nil {
 					err = err1
 				}
@@ -158,7 +158,7 @@ func (cmd *fileSetZettel) run() {
 		if err == nil {
 			err = writeFileZid(f, cmd.zettel.Meta.Zid)
 			if err == nil {
-				_, err = cmd.zettel.Meta.WriteAsHeader(f)
+				_, err = cmd.zettel.Meta.WriteAsHeader(f, true)
 				if err == nil {
 					_, err = f.WriteString(cmd.zettel.Content.AsString())
 					if err1 := f.Close(); err == nil {

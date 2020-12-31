@@ -58,7 +58,7 @@ func MakeGetDeleteZettelHandler(
 			baseData: te.makeBaseData(
 				ctx, runtime.GetLang(m), "Delete Zettel "+m.Zid.String(), user),
 			Zid:       zid.String(),
-			MetaPairs: m.Pairs(),
+			MetaPairs: m.Pairs(true),
 		})
 	}
 }

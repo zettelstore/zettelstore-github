@@ -37,7 +37,7 @@ func newMeta(title string, tags []string, syntax string) *meta.Meta {
 func assertWriteMeta(t *testing.T, m *meta.Meta, expected string) {
 	t.Helper()
 	sb := strings.Builder{}
-	m.Write(&sb)
+	m.Write(&sb, true)
 	if got := sb.String(); got != expected {
 		t.Errorf("\nExp: %q\ngot: %q", expected, got)
 	}

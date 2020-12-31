@@ -54,7 +54,7 @@ func MakeEditGetZettelHandler(
 			MetaRole:      m.GetDefault(meta.KeyRole, ""),
 			MetaTags:      m.GetDefault(meta.KeyTags, ""),
 			MetaSyntax:    m.GetDefault(meta.KeySyntax, ""),
-			MetaPairsRest: m.PairsRest(),
+			MetaPairsRest: m.PairsRest(false),
 			IsTextContent: !zettel.Content.IsBinary(),
 			Content:       zettel.Content.AsString(),
 		})

@@ -182,7 +182,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 func createSearchAllFunc(values []string, negate bool) FilterFunc {
 	matchFuncs := map[*meta.DescriptionType]matchFunc{}
 	return func(m *meta.Meta) bool {
-		for _, p := range m.Pairs() {
+		for _, p := range m.Pairs(true) {
 			keyType := meta.KeyType(p.Key)
 			match, ok := matchFuncs[keyType]
 			if !ok {

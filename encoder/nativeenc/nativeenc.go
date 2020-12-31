@@ -115,7 +115,7 @@ func (v *visitor) acceptMeta(m *meta.Meta, withTitle bool) {
 	v.writeMetaString(m, meta.KeyRole, "Role")
 	v.writeMetaList(m, meta.KeyTags, "Tags")
 	v.writeMetaString(m, meta.KeySyntax, "Syntax")
-	if pairs := m.PairsRest(); len(pairs) > 0 {
+	if pairs := m.PairsRest(true); len(pairs) > 0 {
 		v.b.WriteString("\n[Header")
 		first := true
 		v.level++

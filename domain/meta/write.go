@@ -17,9 +17,9 @@ import (
 )
 
 // Write writes a zettel meta to a writer.
-func (m *Meta) Write(w io.Writer) (int, error) {
+func (m *Meta) Write(w io.Writer, allowComputed bool) (int, error) {
 	var buf bytes.Buffer
-	for _, p := range m.Pairs() {
+	for _, p := range m.Pairs(allowComputed) {
 		buf.WriteString(p.Key)
 		buf.WriteString(": ")
 		buf.WriteString(p.Value)
@@ -34,7 +34,7 @@ var (
 )
 
 // WriteAsHeader writes the zettel meta to the writer, plus the separators
-func (m *Meta) WriteAsHeader(w io.Writer) (int, error) {
+func (m *Meta) WriteAsHeader(w io.Writer, allowComputed bool) (int, error) {
 	var lb, lc, la int
 	var err error
 
@@ -44,7 +44,7 @@ func (m *Meta) WriteAsHeader(w io.Writer) (int, error) {
 			return lb, err
 		}
 	}
-	lc, err = m.Write(w)
+	lc, err = m.Write(w, allowComputed)
 	if err != nil {
 		return lb + lc, err
 	}

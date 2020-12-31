@@ -105,7 +105,7 @@ func MakeGetInfoHandler(
 		}
 
 		user := session.GetUser(ctx)
-		pairs := zn.Zettel.Meta.Pairs()
+		pairs := zn.Zettel.Meta.Pairs(true)
 		metaData := make([]metaDataInfo, 0, len(pairs))
 		for _, p := range pairs {
 			metaData = append(

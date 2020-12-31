@@ -47,7 +47,7 @@ var mapMetaKey = map[string]string{
 }
 
 func (v *visitor) acceptMeta(m *meta.Meta, withTitle bool) {
-	for i, pair := range m.Pairs() {
+	for i, pair := range m.Pairs(true) {
 		if i == 0 { // "title" is number 0...
 			if withTitle && !v.enc.ignoreMeta[pair.Key] {
 				v.b.WriteStrings("<meta name=\"zs-", pair.Key, "\" content=\"")

@@ -35,7 +35,7 @@ func genConfigZettelM(zid id.Zid) *meta.Meta {
 
 func genConfigZettelC(m *meta.Meta) string {
 	var sb strings.Builder
-	for i, p := range myPlace.startConfig.Pairs() {
+	for i, p := range myPlace.startConfig.Pairs(false) {
 		if i > 0 {
 			sb.WriteByte('\n')
 		}

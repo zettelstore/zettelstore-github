@@ -35,9 +35,9 @@ func (re *rawEncoder) WriteZettel(
 	w io.Writer, zn *ast.ZettelNode, inhMeta bool) (int, error) {
 	b := encoder.NewBufWriter(w)
 	if inhMeta {
-		zn.InhMeta.Write(&b)
+		zn.InhMeta.Write(&b, true)
 	} else {
-		zn.Zettel.Meta.Write(&b)
+		zn.Zettel.Meta.Write(&b, true)
 	}
 	b.WriteByte('\n')
 	b.WriteString(zn.Zettel.Content.AsString())
@@ -48,7 +48,7 @@ func (re *rawEncoder) WriteZettel(
 // WriteMeta encodes meta data as HTML5.
 func (re *rawEncoder) WriteMeta(w io.Writer, m *meta.Meta) (int, error) {
 	b := encoder.NewBufWriter(w)
-	m.Write(&b)
+	m.Write(&b, true)
 	length, err := b.Flush()
 	return length, err
 }
