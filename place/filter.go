@@ -180,7 +180,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 }
 
 func createSearchAllFunc(values []string, negate bool) FilterFunc {
-	matchFuncs := map[*meta.TypeDescription]matchFunc{}
+	matchFuncs := map[*meta.DescriptionType]matchFunc{}
 	return func(m *meta.Meta) bool {
 		for _, p := range m.Pairs() {
 			keyType := meta.KeyType(p.Key)

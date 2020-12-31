@@ -20,78 +20,58 @@ import (
 	"zettelstore.de/z/runes"
 )
 
-// Predefined keys.
-const (
-	KeyID                = "id"
-	KeyTitle             = "title"
-	KeyRole              = "role"
-	KeyTags              = "tags"
-	KeySyntax            = "syntax"
-	KeyCopyright         = "copyright"
-	KeyCredential        = "credential"
-	KeyDefaultCopyright  = "default-copyright"
-	KeyDefaultLang       = "default-lang"
-	KeyDefaultLicense    = "default-license"
-	KeyDefaultRole       = "default-role"
-	KeyDefaultSyntax     = "default-syntax"
-	KeyDefaultTitle      = "default-title"
-	KeyDefaultVisibility = "default-visibility"
-	KeyDuplicates        = "duplicates"
-	KeyExpertMode        = "expert-mode"
-	KeyFooterHTML        = "footer-html"
-	KeyLang              = "lang"
-	KeyLicense           = "license"
-	KeyListPageSize      = "list-page-size"
-	KeyNewRole           = "new-role"
-	KeyMarkerExternal    = "marker-external"
-	KeyModified          = "modified"
-	KeyPrecursor         = "precursor"
-	KeyReadOnly          = "read-only"
-	KeySiteName          = "site-name"
-	KeyStart             = "start"
-	KeyURL               = "url"
-	KeyUserID            = "user-id"
-	KeyUserRole          = "user-role"
-	KeyVisibility        = "visibility"
-	KeyYAMLHeader        = "yaml-header"
-	KeyZettelFileSyntax  = "zettel-file-syntax"
-)
-
-var keyTypeMap = map[string]*TypeDescription{
-	KeyID:                TypeID,
-	KeyTitle:             TypeString,
-	KeyRole:              TypeWord,
-	KeyTags:              TypeTagSet,
-	KeySyntax:            TypeWord,
-	KeyCopyright:         TypeString,
-	KeyCredential:        TypeCredential,
-	KeyDefaultCopyright:  TypeString,
-	KeyDefaultLicense:    TypeEmpty,
-	KeyDefaultLang:       TypeWord,
-	KeyDefaultRole:       TypeWord,
-	KeyDefaultSyntax:     TypeWord,
-	KeyDefaultTitle:      TypeString,
-	KeyDefaultVisibility: TypeWord,
-	KeyDuplicates:        TypeBool,
-	KeyExpertMode:        TypeBool,
-	KeyFooterHTML:        TypeString,
-	KeyUserID:            TypeWord,
-	KeyLang:              TypeWord,
-	KeyLicense:           TypeEmpty,
-	KeyListPageSize:      TypeNumber,
-	KeyNewRole:           TypeWord,
-	KeyMarkerExternal:    TypeEmpty,
-	KeyModified:          TypeTimestamp,
-	KeyPrecursor:         TypeID,
-	KeyReadOnly:          TypeWord,
-	KeySiteName:          TypeString,
-	KeyStart:             TypeID,
-	KeyURL:               TypeURL,
-	KeyUserRole:          TypeWord,
-	KeyVisibility:        TypeWord,
-	KeyYAMLHeader:        TypeBool,
-	KeyZettelFileSyntax:  TypeWordSet,
+// DescriptionKey formally describes each supported metadata key.
+type DescriptionKey struct {
+	Name string
+	Type *DescriptionType
 }
+
+var registeredKeys = make(map[string]*DescriptionKey)
+
+func registerKey(name string, t *DescriptionType) string {
+	if _, ok := registeredKeys[name]; ok {
+		panic("Key '" + name + "' already defined")
+	}
+	registeredKeys[name] = &DescriptionKey{name, t}
+	return name
+}
+
+// Supported keys.
+var (
+	KeyID                = registerKey("id", TypeID)
+	KeyTitle             = registerKey("title", TypeString)
+	KeyRole              = registerKey("role", TypeWord)
+	KeyTags              = registerKey("tags", TypeTagSet)
+	KeySyntax            = registerKey("syntax", TypeWord)
+	KeyCopyright         = registerKey("copyright", TypeString)
+	KeyCredential        = registerKey("credential", TypeCredential)
+	KeyDefaultCopyright  = registerKey("default-copyright", TypeString)
+	KeyDefaultLang       = registerKey("default-lang", TypeWord)
+	KeyDefaultLicense    = registerKey("default-license", TypeEmpty)
+	KeyDefaultRole       = registerKey("default-role", TypeWord)
+	KeyDefaultSyntax     = registerKey("default-syntax", TypeWord)
+	KeyDefaultTitle      = registerKey("default-title", TypeString)
+	KeyDefaultVisibility = registerKey("default-visibility", TypeWord)
+	KeyDuplicates        = registerKey("duplicates", TypeBool)
+	KeyExpertMode        = registerKey("expert-mode", TypeBool)
+	KeyFooterHTML        = registerKey("footer-html", TypeString)
+	KeyLang              = registerKey("lang", TypeWord)
+	KeyLicense           = registerKey("license", TypeEmpty)
+	KeyListPageSize      = registerKey("list-page-size", TypeNumber)
+	KeyNewRole           = registerKey("new-role", TypeWord)
+	KeyMarkerExternal    = registerKey("marker-external", TypeEmpty)
+	KeyModified          = registerKey("modified", TypeTimestamp)
+	KeyPrecursor         = registerKey("precursor", TypeID)
+	KeyReadOnly          = registerKey("read-only", TypeWord)
+	KeySiteName          = registerKey("site-name", TypeString)
+	KeyStart             = registerKey("start", TypeID)
+	KeyURL               = registerKey("url", TypeURL)
+	KeyUserID            = registerKey("user-id", TypeWord)
+	KeyUserRole          = registerKey("user-role", TypeWord)
+	KeyVisibility        = registerKey("visibility", TypeWord)
+	KeyYAMLHeader        = registerKey("yaml-header", TypeBool)
+	KeyZettelFileSyntax  = registerKey("zettel-file-syntax", TypeWordSet)
+)
 
 // Important values for some keys.
 const (

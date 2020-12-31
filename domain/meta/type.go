@@ -16,49 +16,50 @@ import (
 	"time"
 )
 
-// TypeDescription is a description of a specific key type.
-type TypeDescription struct {
+// DescriptionType is a description of a specific key type.
+type DescriptionType struct {
 	Name  string
 	IsSet bool
 }
 
-var registeredTypes = make(map[string]*TypeDescription)
+var registeredTypes = make(map[string]*DescriptionType)
 
-func registerType(t *TypeDescription) *TypeDescription {
-	if _, ok := registeredTypes[t.Name]; ok {
-		panic("Type '" + t.Name + "' already registered")
+func registerType(name string, isSet bool) *DescriptionType {
+	if _, ok := registeredTypes[name]; ok {
+		panic("Type '" + name + "' already registered")
 	}
-	registeredTypes[t.Name] = t
+	t := &DescriptionType{name, isSet}
+	registeredTypes[name] = t
 	return t
 }
 
 // Supported key types.
 var (
-	TypeBool       = registerType(&TypeDescription{"Boolean", false})
-	TypeCredential = registerType(&TypeDescription{"Credential", false})
-	TypeTimestamp  = registerType(&TypeDescription{"Timestamp", false})
-	TypeEmpty      = registerType(&TypeDescription{"String (possibly empty)", false})
-	TypeID         = registerType(&TypeDescription{"Identifier", false})
-	TypeNumber     = registerType(&TypeDescription{"Number", false})
-	TypeString     = registerType(&TypeDescription{"non-empty String", false})
-	TypeTagSet     = registerType(&TypeDescription{"Set of tags", true})
-	TypeURL        = registerType(&TypeDescription{"URL", false})
-	TypeUnknown    = registerType(&TypeDescription{"Unknown", false})
-	TypeWord       = registerType(&TypeDescription{"Word", false})
-	TypeWordSet    = registerType(&TypeDescription{"Set of words", true})
+	TypeBool       = registerType("Boolean", false)
+	TypeCredential = registerType("Credential", false)
+	TypeTimestamp  = registerType("Timestamp", false)
+	TypeEmpty      = registerType("String (possibly empty)", false)
+	TypeID         = registerType("Identifier", false)
+	TypeNumber     = registerType("Number", false)
+	TypeString     = registerType("non-empty String", false)
+	TypeTagSet     = registerType("Set of tags", true)
+	TypeURL        = registerType("URL", false)
+	TypeUnknown    = registerType("Unknown", false)
+	TypeWord       = registerType("Word", false)
+	TypeWordSet    = registerType("Set of words", true)
 )
 
 // Type returns a type hint for the given key. If no type hint is specified,
 // TypeUnknown is returned.
-func (m *Meta) Type(key string) *TypeDescription {
+func (m *Meta) Type(key string) *DescriptionType {
 	return KeyType(key)
 }
 
 // KeyType returns a type hint for the given key. If no type hint is specified,
 // TypeUnknown is returned.
-func KeyType(key string) *TypeDescription {
-	if t, ok := keyTypeMap[key]; ok {
-		return t
+func KeyType(key string) *DescriptionType {
+	if k, ok := registeredKeys[key]; ok {
+		return k.Type
 	}
 	return TypeUnknown
 }
