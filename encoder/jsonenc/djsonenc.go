@@ -16,7 +16,6 @@ import (
 	"io"
 	"sort"
 	"strconv"
-	"unicode"
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/domain/meta"
@@ -581,7 +580,7 @@ func (v *detailVisitor) writeMeta(m *meta.Meta, withTitle bool) {
 		}
 		v.b.Write(Escape(p.Key))
 		v.b.WriteString("\":")
-		if unicode.IsUpper(rune(m.Type(p.Key))) {
+		if m.Type(p.Key).IsSet {
 			v.b.WriteByte('[')
 			for i, val := range meta.ListFromValue(p.Value) {
 				if i > 0 {

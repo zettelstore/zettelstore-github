@@ -57,7 +57,7 @@ const (
 	KeyZettelFileSyntax  = "zettel-file-syntax"
 )
 
-var keyTypeMap = map[string]byte{
+var keyTypeMap = map[string]*TypeDescription{
 	KeyID:                TypeID,
 	KeyTitle:             TypeString,
 	KeyRole:              TypeWord,
@@ -81,7 +81,7 @@ var keyTypeMap = map[string]byte{
 	KeyListPageSize:      TypeNumber,
 	KeyNewRole:           TypeWord,
 	KeyMarkerExternal:    TypeEmpty,
-	KeyModified:          TypeDatetime,
+	KeyModified:          TypeTimestamp,
 	KeyPrecursor:         TypeID,
 	KeyReadOnly:          TypeWord,
 	KeySiteName:          TypeString,

@@ -119,7 +119,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 		}
 	case meta.TypeCredential:
 		return matchNever
-	case meta.TypeID, meta.TypeDatetime: // ID and datetime use the same layout
+	case meta.TypeID, meta.TypeTimestamp: // ID and timestamp use the same layout
 		return func(value string) bool {
 			for _, v := range values {
 				if !strings.HasPrefix(value, v) {
@@ -180,7 +180,7 @@ func createMatchFunc(key string, values []string) matchFunc {
 }
 
 func createSearchAllFunc(values []string, negate bool) FilterFunc {
-	matchFuncs := map[byte]matchFunc{}
+	matchFuncs := map[*meta.TypeDescription]matchFunc{}
 	return func(m *meta.Meta) bool {
 		for _, p := range m.Pairs() {
 			keyType := meta.KeyType(p.Key)

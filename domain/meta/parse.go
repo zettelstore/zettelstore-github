@@ -172,7 +172,7 @@ func addToMeta(m *Meta, key, val string) {
 		if _, err := id.Parse(v); err == nil {
 			m.Set(key, v)
 		}
-	case TypeDatetime:
+	case TypeTimestamp:
 		if _, ok := TimeValue(v); ok {
 			m.Set(key, v)
 		}

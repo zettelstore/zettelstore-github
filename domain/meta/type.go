@@ -16,31 +16,47 @@ import (
 	"time"
 )
 
+// TypeDescription is a description of a specific key type.
+type TypeDescription struct {
+	Name  string
+	IsSet bool
+}
+
+var registeredTypes = make(map[string]*TypeDescription)
+
+func registerType(t *TypeDescription) *TypeDescription {
+	if _, ok := registeredTypes[t.Name]; ok {
+		panic("Type '" + t.Name + "' already registered")
+	}
+	registeredTypes[t.Name] = t
+	return t
+}
+
 // Supported key types.
-const (
-	TypeBool       = 'b'
-	TypeCredential = 'c'
-	TypeDatetime   = 'd'
-	TypeEmpty      = 'e'
-	TypeID         = 'i'
-	TypeNumber     = 'n'
-	TypeString     = 's'
-	TypeTagSet     = 'T'
-	TypeURL        = 'u'
-	TypeUnknown    = '\000'
-	TypeWord       = 'w'
-	TypeWordSet    = 'W'
+var (
+	TypeBool       = registerType(&TypeDescription{"Boolean", false})
+	TypeCredential = registerType(&TypeDescription{"Credential", false})
+	TypeTimestamp  = registerType(&TypeDescription{"Timestamp", false})
+	TypeEmpty      = registerType(&TypeDescription{"String (possibly empty)", false})
+	TypeID         = registerType(&TypeDescription{"Identifier", false})
+	TypeNumber     = registerType(&TypeDescription{"Number", false})
+	TypeString     = registerType(&TypeDescription{"non-empty String", false})
+	TypeTagSet     = registerType(&TypeDescription{"Set of tags", true})
+	TypeURL        = registerType(&TypeDescription{"URL", false})
+	TypeUnknown    = registerType(&TypeDescription{"Unknown", false})
+	TypeWord       = registerType(&TypeDescription{"Word", false})
+	TypeWordSet    = registerType(&TypeDescription{"Set of words", true})
 )
 
 // Type returns a type hint for the given key. If no type hint is specified,
 // TypeUnknown is returned.
-func (m *Meta) Type(key string) byte {
+func (m *Meta) Type(key string) *TypeDescription {
 	return KeyType(key)
 }
 
 // KeyType returns a type hint for the given key. If no type hint is specified,
 // TypeUnknown is returned.
-func KeyType(key string) byte {
+func KeyType(key string) *TypeDescription {
 	if t, ok := keyTypeMap[key]; ok {
 		return t
 	}
