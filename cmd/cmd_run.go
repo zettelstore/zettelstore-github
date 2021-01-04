@@ -36,14 +36,22 @@ func flgRun(fs *flag.FlagSet) {
 	fs.String("d", "", "zettel directory")
 	fs.Bool("r", false, "system-wide read-only mode")
 	fs.Bool("v", false, "verbose mode")
+	fs.Bool("debug", false, "debug mode")
 }
 
-func runFunc(*flag.FlagSet) (int, error) {
+func enableDebug(fs *flag.FlagSet, srv *server.Server) {
+	if dbg := fs.Lookup("debug"); dbg != nil && dbg.Value.String() == "true" {
+		srv.SetDebug()
+	}
+}
+
+func runFunc(fs *flag.FlagSet) (int, error) {
 	listenAddr := startup.ListenAddress()
 	readonlyMode := startup.IsReadOnlyMode()
 	logBeforeRun(listenAddr, readonlyMode)
 	handler := setupRouting(startup.Place(), readonlyMode)
 	srv := server.New(listenAddr, handler)
+	enableDebug(fs, srv)
 	if err := srv.Run(); err != nil {
 		return 1, err
 	}

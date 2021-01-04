@@ -55,6 +55,15 @@ func New(addr string, handler http.Handler) *Server {
 	return srv
 }
 
+// SetDebug enables debugging goroutines that are started by the server.
+// Basically, just the timeout values are reset. This method should be called
+// before running the server.
+func (srv *Server) SetDebug() {
+	srv.ReadTimeout = 0
+	srv.WriteTimeout = 0
+	srv.IdleTimeout = 0
+}
+
 // Run starts the web server and wait for its completion.
 func (srv *Server) Run() error {
 	waitInterrupt := make(chan os.Signal)
