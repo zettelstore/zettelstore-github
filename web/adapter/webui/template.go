@@ -12,8 +12,8 @@
 package webui
 
 import (
+	"bytes"
 	"context"
-	"html/template"
 	"net/http"
 	"sync"
 
@@ -28,6 +28,7 @@ import (
 	"zettelstore.de/z/input"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/template"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
 )
@@ -133,28 +134,11 @@ func (te *TemplateEngine) getTemplate(
 	if t, ok := te.cacheGetTemplate(templateID); ok {
 		return t, nil
 	}
-	baseTemplate, ok := te.cacheGetTemplate(id.BaseTemplateZid)
-	if !ok {
-		baseTemplateZettel, err := te.place.GetZettel(ctx, id.BaseTemplateZid)
-		if err != nil {
-			return nil, err
-		}
-		baseTemplate, err = template.New("base").Parse(
-			baseTemplateZettel.Content.AsString())
-		if err != nil {
-			return nil, err
-		}
-		te.cacheSetTemplate(id.BaseTemplateZid, baseTemplate)
-	}
-	baseTemplate, err := baseTemplate.Clone()
-	if err != nil {
-		return nil, err
-	}
 	realTemplateZettel, err := te.place.GetZettel(ctx, templateID)
 	if err != nil {
 		return nil, err
 	}
-	t, err := baseTemplate.Parse(realTemplateZettel.Content.AsString())
+	t, err := template.ParseString(realTemplateZettel.Content.AsString(), nil)
 	if err == nil {
 		te.cacheSetTemplate(templateID, t)
 	}
@@ -162,12 +146,13 @@ func (te *TemplateEngine) getTemplate(
 }
 
 type simpleLink struct {
-	Text template.HTML
+	Text string
 	URL  string
 }
 
 type baseData struct {
 	Lang           string
+	MetaHeader     string
 	StylesheetURL  string
 	Title          string
 	HomeURL        string
@@ -186,11 +171,12 @@ type baseData struct {
 	CanReload      bool
 	ReloadURL      string
 	SearchURL      string
-	FooterHTML     template.HTML
+	Content        string
+	FooterHTML     string
 }
 
 func (te *TemplateEngine) makeBaseData(
-	ctx context.Context, lang string, title string, user *meta.Meta) baseData {
+	ctx context.Context, lang string, title string, user *meta.Meta, data *baseData) {
 	var (
 		newZettelLinks []simpleLink
 		userZettelURL  string
@@ -208,32 +194,30 @@ func (te *TemplateEngine) makeBaseData(
 		userLogoutURL = adapter.NewURLBuilder('a').SetZid(user.Zid).String()
 	}
 
-	return baseData{
-		Lang:           lang,
-		StylesheetURL:  te.stylesheetURL,
-		Title:          title,
-		HomeURL:        te.homeURL,
-		ListZettelURL:  te.listZettelURL,
-		ListRolesURL:   te.listRolesURL,
-		ListTagsURL:    te.listTagsURL,
-		CanCreate:      canCreate,
-		NewZettelLinks: newZettelLinks,
-		WithAuth:       te.withAuth,
-		UserIsValid:    userIsValid,
-		UserZettelURL:  userZettelURL,
-		UserIdent:      userIdent,
-		UserLogoutURL:  userLogoutURL,
-		LoginURL:       te.loginURL,
-		CanReload:      te.policy.CanReload(user),
-		ReloadURL:      te.reloadURL,
-		SearchURL:      te.searchURL,
-		FooterHTML:     template.HTML(runtime.GetFooterHTML()),
-	}
+	data.Lang = lang
+	data.StylesheetURL = te.stylesheetURL
+	data.Title = title
+	data.HomeURL = te.homeURL
+	data.ListZettelURL = te.listZettelURL
+	data.ListRolesURL = te.listRolesURL
+	data.ListTagsURL = te.listTagsURL
+	data.CanCreate = canCreate
+	data.NewZettelLinks = newZettelLinks
+	data.WithAuth = te.withAuth
+	data.UserIsValid = userIsValid
+	data.UserZettelURL = userZettelURL
+	data.UserIdent = userIdent
+	data.UserLogoutURL = userLogoutURL
+	data.LoginURL = te.loginURL
+	data.CanReload = te.policy.CanReload(user)
+	data.ReloadURL = te.reloadURL
+	data.SearchURL = te.searchURL
+	data.FooterHTML = runtime.GetFooterHTML()
 }
 
 // htmlAttrNewWindow eturns HTML attribute string for opening a link in a new window.
 // If hasURL is false an empty string is returned.
-func htmlAttrNewWindow(hasURL bool) template.HTMLAttr {
+func htmlAttrNewWindow(hasURL bool) string {
 	if hasURL {
 		return " target=\"_blank\" ref=\"noopener noreferrer\""
 	}
@@ -274,7 +258,7 @@ func (te *TemplateEngine) fetchNewTemplates(
 				}
 			}
 			result = append(result, simpleLink{
-				Text: template.HTML(menuTitle),
+				Text: menuTitle,
 				URL:  adapter.NewURLBuilder('n').SetZid(m.Zid).String(),
 			})
 		}
@@ -286,8 +270,14 @@ func (te *TemplateEngine) renderTemplate(
 	ctx context.Context,
 	w http.ResponseWriter,
 	templateID id.Zid,
+	base *baseData,
 	data interface{}) {
 
+	bt, err := te.getTemplate(ctx, id.BaseTemplateZid)
+	if err != nil {
+		adapter.InternalServerError(w, "Unable to get base template", err)
+		return
+	}
 	t, err := te.getTemplate(ctx, templateID)
 	if err != nil {
 		adapter.InternalServerError(w, "Unable to get template", err)
@@ -300,9 +290,12 @@ func (te *TemplateEngine) renderTemplate(
 			session.SetToken(w, t, htmlLifetime)
 		}
 	}
+	var content bytes.Buffer
+	err = t.Render(&content, data)
+	base.Content = content.String()
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = t.Execute(w, data)
+	err = bt.Render(w, base)
 	if err != nil {
-		adapter.InternalServerError(w, "Unable to execute template", err)
+		adapter.InternalServerError(w, "Unable to render template", err)
 	}
 }

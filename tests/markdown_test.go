@@ -43,7 +43,6 @@ type markdownTestCase struct {
 // exceptions lists all CommonMark tests that should not be tested for identical HTML output
 var exceptions = []string{
 	" - foo\n   - bar\n\t - baz\n",                             // 9
-	"[foo]: /url\\bar\\*baz \"foo\\\"bar\\baz\"\n\n[foo]\n",    // 171
 	"- foo\n  - bar\n    - baz\n      - boo\n",                 // 264
 	"10) foo\n    - bar\n",                                     // 266
 	"- # Foo\n- Bar\n  ---\n  baz\n",                           // 270
@@ -102,25 +101,22 @@ func TestMarkdownSpec(t *testing.T) {
 		if _, found := excMap[tc.Markdown]; !found {
 			t.Run(fmt.Sprintf("Encode md html %v", testID), func(st *testing.T) {
 				htmlEncoder.WriteBlocks(&sb, ast)
-				switch tc.Example {
-				// Wrong encoding of references in htmlenc
-				//case 534, 522, 499, 494, 492, 346:
-				default:
-					mdHTML := tc.HTML
-					mdHTML = strings.ReplaceAll(mdHTML, "\"MAILTO:", "\"mailto:")
-					gotHTML := sb.String()
-					gotHTML = strings.ReplaceAll(gotHTML, " class=\"zs-external\"", "")
-					if strings.Count(gotHTML, "<h") > 0 {
-						gotHTML = reHeadingID.ReplaceAllString(gotHTML, "")
-					}
+				gotHTML := sb.String()
+				sb.Reset()
+
+				mdHTML := tc.HTML
+				mdHTML = strings.ReplaceAll(mdHTML, "\"MAILTO:", "\"mailto:")
+				gotHTML = strings.ReplaceAll(gotHTML, " class=\"zs-external\"", "")
+				gotHTML = strings.ReplaceAll(gotHTML, "%2A", "*") // url.QueryEscape
+				if strings.Count(gotHTML, "<h") > 0 {
+					gotHTML = reHeadingID.ReplaceAllString(gotHTML, "")
+				}
+				if gotHTML != mdHTML {
+					mdHTML := strings.ReplaceAll(mdHTML, "<li>\n", "<li>")
 					if gotHTML != mdHTML {
-						mdHTML := strings.ReplaceAll(mdHTML, "<li>\n", "<li>")
-						if gotHTML != mdHTML {
-							st.Errorf("\nCMD: %q\nExp: %q\nGot: %q", tc.Markdown, mdHTML, gotHTML)
-						}
+						st.Errorf("\nCMD: %q\nExp: %q\nGot: %q", tc.Markdown, mdHTML, gotHTML)
 					}
 				}
-				sb.Reset()
 			})
 		}
 		t.Run(fmt.Sprintf("Encode zmk %14d", testID), func(st *testing.T) {

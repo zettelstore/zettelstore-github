@@ -46,8 +46,8 @@ func (w *BufWriter) Write(p []byte) (int, error) {
 }
 
 // WriteString writes the contents of s into the buffer.
-func (w *BufWriter) WriteString(s string) {
-	w.Write([]byte(s))
+func (w *BufWriter) WriteString(s string) (int, error) {
+	return w.Write([]byte(s))
 }
 
 // WriteStrings writes the contents of sl into the buffer.

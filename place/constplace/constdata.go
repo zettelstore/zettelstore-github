@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	syntaxTemplate = "go-template-html"
+	syntaxTemplate = "mustache"
 )
 
 var constZettelMap = map[id.Zid]constZettel{
@@ -41,67 +41,68 @@ var constZettelMap = map[id.Zid]constZettel{
 		},
 		domain.NewContent(
 			`<!DOCTYPE html>
-<html{{if .Lang}} lang="{{.Lang}}"{{end}}>
+<html{{#Lang}} lang="{{Lang}}"{{/Lang}}>
 <head>
 <meta charset="utf-8">
 <meta name="referrer" content="same-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Zettelstore">
-{{- block "meta-header" .}}{{end}}
-<link rel="stylesheet" href="{{.StylesheetURL}}">
-{{- block "header" .}}{{end}}
-<title>{{.Title}}</title>
+{{{MetaHeader}}}
+<link rel="stylesheet" href="{{{StylesheetURL}}}">
+{{{Header}}}
+<title>{{Title}}</title>
 </head>
 <body>
 <nav class="zs-menu">
-<a href="{{.HomeURL}}">Home</a>
+<a href="{{{HomeURL}}}">Home</a>
 <div class="zs-dropdown">
 <button>Lists</button>
 <nav class="zs-dropdown-content">
-<a href="{{.ListZettelURL}}">List Zettel</a>
-<a href="{{.ListRolesURL}}">List Roles</a>
-<a href="{{.ListTagsURL}}">List Tags</a>
+<a href="{{{ListZettelURL}}}">List Zettel</a>
+<a href="{{{ListRolesURL}}}">List Roles</a>
+<a href="{{{ListTagsURL}}}">List Tags</a>
 </nav>
 </div>
-{{- if .CanCreate}}
+{{#CanCreate}}
 <div class="zs-dropdown">
 <button>New</button>
 <nav class="zs-dropdown-content">
-{{- range .NewZettelLinks}}
-<a href="{{.URL}}">{{.Text}}</a>
-{{- end}}
+{{#NewZettelLinks}}
+<a href="{{{URL}}}">{{Text}}</a>
+{{/NewZettelLinks}}
 </nav>
 </div>
-{{- end}}
-{{- if .WithAuth}}
+{{/CanCreate}}
+{{#WithAuth}}
 <div class="zs-dropdown">
 <button>User</button>
 <nav class="zs-dropdown-content">
-{{- if .UserIsValid}}
-<a href="{{.UserZettelURL}}">{{.UserIdent}}</a>
-<a href="{{.UserLogoutURL}}">Logout</a>
-{{- else}}
-<a href="{{.LoginURL}}">Login</a>
-{{- end}}
-{{- if .CanReload}}
-<a href="{{.ReloadURL}}">Reload</a>
-{{- end}}
+{{#UserIsValid}}
+<a href="{{{UserZettelURL}}}">{{UserIdent}}</a>
+<a href="{{{UserLogoutURL}}}">Logout</a>
+{{/UserIsValid}}
+{{^UserIsValid}}
+<a href="{{{LoginURL}}}">Login</a>
+{{/UserIsValid}}
+{{#CanReload}}
+<a href="{{{ReloadURL}}}">Reload</a>
+{{/CanReload}}
 </nav>
 </div>
-{{- end}}
-{{- block "menu" .}}{{end -}}
-<form action="{{.SearchURL}}">
+{{/WithAuth}}
+{{{Menu}}}
+<form action="{{{SearchURL}}}">
 <input type="text" placeholder="Search.." name="s">
 </form>
 </nav>
 <main class="content">
-{{- block "content" .}}TODO{{end}}
+{{{Content}}}
 </main>
-{{- if .FooterHTML}}
+{{#FooterHTML}}
 <footer>
-{{.FooterHTML}}
+{{{FooterHTML}}}
 </footer>
-{{- end}}
+{{/FooterHTML}}
 </body>
 </html>`,
 		),
@@ -115,14 +116,13 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
-			`{{define "content"}}
-<article>
+			`<article>
 <header>
-<h1>{{.Title}}</h1>
+<h1>{{Title}}</h1>
 </header>
-{{- if .Retry}}
+{{#Retry}}
 <div class="zs-indication zs-error">Wrong user name / password. Try again.</div>
-{{- end}}
+{{/Retry}}
 <form method="POST" action="?_format=html">
 <div>
 <label for="username">User name</label>
@@ -134,8 +134,7 @@ var constZettelMap = map[id.Zid]constZettel{
 </div>
 <input class="zs-button" type="submit" value="Login">
 </form>
-</article>
-{{end}}`,
+</article>`,
 		)},
 
 	id.ListTemplateZid: constZettel{
@@ -146,23 +145,21 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
-			`{{define "content"}}
-<h1>{{.Title}}</h1>
+			`<h1>{{Title}}</h1>
 <ul>
-{{range .Metas}}<li><a href="{{.URL}}">{{.Title}}</a></li>{{end}}
-</ul>
-{{- if .HasPrevNext}}
+{{#Metas}}<li><a href="{{{URL}}}">{{{Title}}}</a></li>
+{{/Metas}}</ul>
+{{#HasPrevNext}}
 <p>
-{{- if .HasPrev}}
-<a href="{{.PrevURL}}" rel="prev">Prev</a>
-{{- if .HasNext}},{{- end}}
-{{- end}}
-{{- if .HasNext}}
-<a href="{{.NextURL}}" rel="next">Next</a>
-{{- end}}
+{{#HasPrev}}
+<a href="{{{PrevURL}}}" rel="prev">Prev</a>
+{{#HasNext}},{{/HasNext}}
+{{/HasPrev}}
+{{#HasNext}}
+<a href="{{{NextURL}}}" rel="next">Next</a>
+{{/HasNext}}
 </p>
-{{- end}}
-{{end}}`)},
+{{/HasPrevNext}}`)},
 
 	id.DetailTemplateZid: constZettel{
 		constHeader{
@@ -172,28 +169,23 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
-			`{{define "meta-header"}}
-{{- .MetaHeader}}
-{{- end}}
-{{define "content"}}
-<article>
+			`<article>
 <header>
-<h1>{{.HTMLTitle}}</h1>
+<h1>{{{HTMLTitle}}}</h1>
 <div class="zs-meta">
-{{if .CanWrite}}<a href="{{.EditURL}}">Edit</a> &#183;{{end}}
-{{.Zid}} &#183;
-<a href="{{.InfoURL}}">Info</a> &#183;
-(<a href="{{.RoleURL}}">{{.RoleText}}</a>)
-{{- if .HasTags}}:{{range .Tags}} <a href="{{.URL}}">{{.Text}}</a>{{end}}{{end}}
-{{if .CanCopy}}&#183; <a href="{{.CopyURL}}">Copy</a>{{end}}
-{{if .CanFolge}}&#183; <a href="{{.FolgeURL}}">Folge</a>{{end}}
-{{if .CanNew}}&#183; <a href="{{.NewURL}}">New</a>{{end}}
-{{if .HasExtURL}}<br>URL: <a href="{{.ExtURL}}"{{.ExtNewWindow}}>{{.ExtURL}}</a>{{end}}
+{{#CanWrite}}<a href="{{{EditURL}}}">Edit</a> &#183;{{/CanWrite}}
+{{Zid}} &#183;
+<a href="{{{InfoURL}}}">Info</a> &#183;
+(<a href="{{{RoleURL}}}">{{RoleText}}</a>)
+{{#HasTags}}&#183; {{#Tags}} <a href="{{{URL}}}">{{Text}}</a>{{/Tags}}{{/HasTags}}
+{{#CanCopy}}&#183; <a href="{{{CopyURL}}}">Copy</a>{{/CanCopy}}
+{{#CanFolge}}&#183; <a href="{{{FolgeURL}}}">Folge</a>{{/CanFolge}}
+{{#CanNew}}&#183; <a href="{{{NewURL}}}">New</a>{{/CanNew}}
+{{#HasExtURL}}<br>URL: <a href="{{{ExtURL}}}"{{{ExtNewWindow}}}>{{ExtURL}}</a>{{/HasExtURL}}
 </div>
 </header>
-{{- .Content -}}
-</article>
-{{- end}}`)},
+{{{Content}}}
+</article>`)},
 
 	id.InfoTemplateZid: constZettel{
 		constHeader{
@@ -203,58 +195,56 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeySyntax:     syntaxTemplate,
 		},
 		domain.NewContent(
-			`{{define "content"}}
-<article>
+			`<article>
 <header>
-<h1>Information for Zettel {{.Zid}}</h1>
-<a href="{{.WebURL}}">Web</a>
-{{ if .CanWrite}} &#183; <a href="{{.EditURL}}">Edit</a>{{ end}}
-{{ if .CanFolge}} &#183; <a href="{{.FolgeURL}}">Folge</a>{{ end}}
-{{ if .CanCopy}} &#183; <a href="{{.CopyURL}}">Copy</a>{{ end}}
-{{ if .CanNew}} &#183; <a href="{{.NewURL}}">New</a>{{ end}}
-{{ if .CanRename}}&#183; <a href="{{.RenameURL}}">Rename</a>{{end}}
-{{ if .CanDelete}}&#183; <a href="{{.DeleteURL}}">Delete</a>{{end}}
+<h1>Information for Zettel {{Zid}}</h1>
+<a href="{{{WebURL}}}">Web</a>
+{{#CanWrite}} &#183; <a href="{{{EditURL}}}">Edit</a>{{/CanWrite}}
+{{#CanFolge}} &#183; <a href="{{{FolgeURL}}}">Folge</a>{{/CanFolge}}
+{{#CanCopy}} &#183; <a href="{{{CopyURL}}}">Copy</a>{{/CanCopy}}
+{{#CanNew}} &#183; <a href="{{{NewURL}}}">New</a>{{/CanNew}}
+{{#CanRename}}&#183; <a href="{{{RenameURL}}}">Rename</a>{{/CanRename}}
+{{#CanDelete}}&#183; <a href="{{{DeleteURL}}}">Delete</a>{{/CanDelete}}
 </header>
 <h2>Interpreted Meta Data</h2>
-<table>{{- range .MetaData}}<tr><td>{{.Key}}</td><td>{{.Value}}</td></tr>{{- end}}</table>
-{{- if .HasLinks}}
+<table>{{#MetaData}}<tr><td>{{Key}}</td><td>{{{Value}}}</td></tr>{{/MetaData}}</table>
+{{#HasLinks}}
 <h2>References</h2>
-{{- if .HasZetLinks}}
+{{#HasZetLinks}}
 <h3>Zettel</h3>
 <ul>
-{{- range .ZetLinks}}
-<li>{{if .HasURL}}<a href="{{.URL}}">{{.Title}}</a>{{else}}{{.Zid}}{{end}}</li>
-{{- end}}
+{{#ZetLinks}}
+<li>{{#HasURL}}<a href="{{{URL}}}">{{Title}}</a>{{/HasURL}}{{^HasURL}}{{Zid}}{{/HasURL}}</li>
+{{/ZetLinks}}
 </ul>
-{{- end}}
-{{- if .HasLocLinks}}
+{{/HasZetLinks}}
+{{#HasLocLinks}}
 <h3>Local</h3>
 <ul>
-{{- range .LocLinks}}
-<li><a href="{{.}}">{{.}}</a></li>
-{{- end}}
+{{#LocLinks}}
+<li><a href="{{{.}}}">{{.}}</a></li>
+{{/LocLinks}}
 </ul>
-{{- end}}
-{{- if .HasExtLinks}}
+{{/HasLocLinks}}
+{{#HasExtLinks}}
 <h3>External</h3>
 <ul>
-{{- range .ExtLinks}}
-<li><a href="{{.}}"{{$.ExtNewWindow}}>{{.}}</a></li>
-{{- end}}
+{{#ExtLinks}}
+<li><a href="{{{.}}}"{{{ExtNewWindow}}}>{{.}}</a></li>
+{{/ExtLinks}}
 </ul>
-{{- end}}
-{{- end}}
+{{/HasExtLinks}}
+{{/HasLinks}}
 <h2>Parts and format</h3>
 <table>
-{{- range .Matrix}}
+{{#Matrix}}
 <tr>
-{{- range .}}{{if .HasURL}}<td><a href="{{.URL}}">{{.Text}}</td>{{else}}<th>{{.Text}}</th>{{end}}
-{{end -}}
+{{#Elements}}{{#HasURL}}<td><a href="{{{URL}}}">{{Text}}</td>{{/HasURL}}{{^HasURL}}<th>{{Text}}</th>{{/HasURL}}
+{{/Elements}}
 </tr>
-{{- end}}
+{{/Matrix}}
 </table>
-</article>
-{{- end}}`),
+</article>`),
 	},
 
 	id.FormTemplateZid: constZettel{
@@ -264,48 +254,46 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
-		`{{define "content"}}
-<article>
+		`<article>
 <header>
-<h1>{{.Heading}}</h1>
+<h1>{{Heading}}</h1>
 </header>
 <form method="POST">
 <div>
 <label for="title">Title</label>
-<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{.MetaTitle}}" autofocus>
+<input class="zs-input" type="text" id="title" name="title" placeholder="Title.." value="{{MetaTitle}}" autofocus>
 </div>
 <div>
 <div>
 <label for="role">Role</label>
-<input class="zs-input" type="text" id="role" name="role" placeholder="role.." value="{{.MetaRole}}">
+<input class="zs-input" type="text" id="role" name="role" placeholder="role.." value="{{MetaRole}}">
 </div>
 <label for="tags">Tags</label>
-<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{.MetaTags}}">
+<input class="zs-input" type="text" id="tags" name="tags" placeholder="#tag" value="{{MetaTags}}">
 </div>
 <div>
 <label for="meta">Metadata</label>
 <textarea class="zs-input" id="meta" name="meta" rows="4" placeholder="metakey: metavalue">
-{{- range .MetaPairsRest}}
-{{.Key}}: {{.Value}}
-{{- end -}}
+{{#MetaPairsRest}}
+{{Key}}: {{Value}}
+{{/MetaPairsRest}}
 </textarea>
 </div>
 <div>
 <label for="syntax">Syntax</label>
-<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{.MetaSyntax}}">
+<input class="zs-input" type="text" id="syntax" name="syntax" placeholder="syntax.." value="{{MetaSyntax}}">
 </div>
 <div>
-{{- if .IsTextContent}}
+{{#IsTextContent}}
 <label for="content">Content</label>
 <textarea class="zs-input zs-content" id="meta" name="content" rows="20" placeholder="Your content..">
-{{- .Content -}}
+{{Content}}
 </textarea>
-{{- end}}
+{{/IsTextContent}}
 </div>
 <input class="zs-button" type="submit" value="Submit">
 </form>
-</article>
-{{end}}`,
+</article>`,
 	},
 
 	id.RenameTemplateZid: constZettel{
@@ -315,8 +303,7 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
-		`{{define "content"}}
-<article>
+		`<article>
 <header>
 <h1>Rename Zettel {{.Zid}}</h1>
 </header>
@@ -324,18 +311,17 @@ var constZettelMap = map[id.Zid]constZettel{
 <form method="POST">
 <div>
 <label for="newid">New zettel id</label>
-<input class="zs-input" type="text" id="newzid" name="newzid" placeholder="ZID.." value="{{.Zid}}" autofocus>
+<input class="zs-input" type="text" id="newzid" name="newzid" placeholder="ZID.." value="{{Zid}}" autofocus>
 </div>
-<input type="hidden" id="curzid" name="curzid" value="{{.Zid}}">
+<input type="hidden" id="curzid" name="curzid" value="{{Zid}}">
 <input class="zs-button" type="submit" value="Rename">
 </form>
 <dl>
-{{- range .MetaPairs}}
-<dt>{{.Key}}:</dt><dd>{{.Value}}</dd>
-{{- end -}}
+{{#MetaPairs}}
+<dt>{{Key}}:</dt><dd>{{Value}}</dd>
+{{/MetaPairs}}
 </dl>
-</article>
-{{end}}`,
+</article>`,
 	},
 
 	id.DeleteTemplateZid: constZettel{
@@ -345,16 +331,15 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
-		`{{define "content"}}
-<article>
+		`<article>
 <header>
-<h1>Delete Zettel {{.Zid}}</h1>
+<h1>Delete Zettel {{Zid}}</h1>
 </header>
 <p>Do you really want to delete this zettel?</p>
 <dl>
-{{- range .MetaPairs}}
-<dt>{{.Key}}:</dt><dd>{{.Value}}</dd>
-{{- end -}}
+{{#MetaPairs}}
+<dt>{{Key}}:</dt><dd>{{Value}}</dd>
+{{/MetaPairs}}
 </dl>
 <form method="POST">
 <input class="zs-button" type="submit" value="Delete">
@@ -370,12 +355,10 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
-		`{{define "content"}}
-<h1>Currently used roles</h1>
+		`<h1>Currently used roles</h1>
 <ul>
-{{range .Roles}}<li><a href="{{.URL}}">{{.Text}}</a></li>{{end}}
-</ul>
-{{end}}`,
+{{#Roles}}<li><a href="{{{URL}}}">{{Text}}</a></li>
+{{/Roles}}</ul>`,
 	},
 
 	id.TagsTemplateZid: constZettel{
@@ -385,13 +368,12 @@ var constZettelMap = map[id.Zid]constZettel{
 			meta.KeyVisibility: meta.ValueVisibilityExpert,
 			meta.KeySyntax:     syntaxTemplate,
 		},
-		`{{define "content"}}
-<h1>Currently used tags</h1>
+		`<h1>Currently used tags</h1>
 <div class="zs-meta">
-<a href="{{.ListTagsURL}}">All</a>{{range .MinCounts}}, <a href="{{.URL}}">{{.Count}}</a>{{end}}
+<a href="{{{#ListTagsURL}}}">All</a>{{#MinCounts}}, <a href="{{{URL}}}">{{Count}}</a>{{/MinCounts}}
 </div>
-{{range .Tags}} <a href="{{.URL}}" style="font-size:{{.Size}}%">{{.Name}}</a><sup>{{.Count}}</sup>{{end}}
-{{end}}`,
+{{#Tags}} <a href="{{{URL}}}" style="font-size:{{Size}}%">{{Name}}</a><sup>{{Count}}</sup>
+{{/Tags}}`,
 	},
 
 	id.BaseCSSZid: constZettel{

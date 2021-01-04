@@ -39,7 +39,7 @@ func init() {
 		ParseInlines: parseSVGInlines,
 	})
 	parser.Register(&parser.Info{
-		Name:         "go-template-html",
+		Name:         "mustache",
 		ParseBlocks:  parseBlocks,
 		ParseInlines: parseInlines,
 	})

@@ -13,7 +13,6 @@ package webui
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"zettelstore.de/z/config/runtime"
@@ -42,7 +41,7 @@ func MakeGetCopyZettelHandler(
 				w,
 				r,
 				te,
-				copyZettel.Run(origZettel), "Copy Zettel", template.HTML("Copy Zettel"))
+				copyZettel.Run(origZettel), "Copy Zettel", "Copy Zettel")
 		}
 	}
 }
@@ -60,7 +59,7 @@ func MakeGetFolgeZettelHandler(
 				w,
 				r,
 				te,
-				folgeZettel.Run(origZettel), "Folge Zettel", template.HTML("Folge Zettel"))
+				folgeZettel.Run(origZettel), "Folge Zettel", "Folgezettel")
 		}
 	}
 }
@@ -89,7 +88,7 @@ func MakeGetNewZettelHandler(
 				return
 			}
 			renderZettelForm(
-				w, r, te, newZettel.Run(origZettel), textTitle, template.HTML(htmlTitle))
+				w, r, te, newZettel.Run(origZettel), textTitle, htmlTitle)
 		}
 	}
 }
@@ -123,13 +122,14 @@ func renderZettelForm(
 	te *TemplateEngine,
 	zettel domain.Zettel,
 	title string,
-	heading template.HTML,
+	heading string,
 ) {
 	ctx := r.Context()
 	user := session.GetUser(ctx)
 	m := zettel.Meta
-	te.renderTemplate(r.Context(), w, id.FormTemplateZid, formZettelData{
-		baseData:      te.makeBaseData(ctx, runtime.GetLang(m), title, user),
+	var base baseData
+	te.makeBaseData(ctx, runtime.GetLang(m), title, user, &base)
+	te.renderTemplate(r.Context(), w, id.FormTemplateZid, &base, formZettelData{
 		Heading:       heading,
 		MetaTitle:     runtime.GetTitle(m),
 		MetaTags:      m.GetDefault(meta.KeyTags, ""),

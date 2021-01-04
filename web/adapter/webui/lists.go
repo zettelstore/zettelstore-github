@@ -13,7 +13,6 @@ package webui
 
 import (
 	"context"
-	"html/template"
 	"net/http"
 	"net/url"
 	"sort"
@@ -103,12 +102,11 @@ func renderWebUIRolesList(
 	}
 
 	user := session.GetUser(ctx)
-	te.renderTemplate(ctx, w, id.RolesTemplateZid, struct {
-		baseData
+	var base baseData
+	te.makeBaseData(ctx, runtime.GetDefaultLang(), runtime.GetSiteName(), user, &base)
+	te.renderTemplate(ctx, w, id.RolesTemplateZid, &base, struct {
 		Roles []roleInfo
 	}{
-		baseData: te.makeBaseData(
-			ctx, runtime.GetDefaultLang(), runtime.GetSiteName(), user),
 		Roles: roleInfos,
 	})
 }
@@ -170,20 +168,18 @@ func renderWebUITagsList(
 		tagsList[i].Size = strconv.Itoa(countMap[count])
 	}
 
-	base := te.makeBaseData(ctx, runtime.GetDefaultLang(), runtime.GetSiteName(), user)
+	var base baseData
+	te.makeBaseData(ctx, runtime.GetDefaultLang(), runtime.GetSiteName(), user, &base)
 	minCounts := make([]countInfo, 0, len(countList))
 	for _, c := range countList {
 		sCount := strconv.Itoa(c)
-		minCounts = append(
-			minCounts, countInfo{sCount, base.ListTagsURL + "?min=" + sCount})
+		minCounts = append(minCounts, countInfo{sCount, base.ListTagsURL + "?min=" + sCount})
 	}
 
-	te.renderTemplate(ctx, w, id.TagsTemplateZid, struct {
-		baseData
+	te.renderTemplate(ctx, w, id.TagsTemplateZid, &base, struct {
 		MinCounts []countInfo
 		Tags      []tagInfo
 	}{
-		baseData:  base,
 		MinCounts: minCounts,
 		Tags:      tagsList,
 	})
@@ -260,23 +256,24 @@ func renderWebUIMetaList(
 		adapter.InternalServerError(w, "Build HTML meta list", err)
 		return
 	}
-	te.renderTemplate(ctx, w, id.ListTemplateZid, struct {
-		baseData
+	var base baseData
+	te.makeBaseData(ctx, runtime.GetDefaultLang(), runtime.GetSiteName(), user, &base)
+	te.renderTemplate(ctx, w, id.ListTemplateZid, &base, struct {
+		Title       string
 		Metas       []metaInfo
 		HasPrevNext bool
 		HasPrev     bool
-		PrevURL     template.URL
+		PrevURL     string
 		HasNext     bool
-		NextURL     template.URL
+		NextURL     string
 	}{
-		baseData: te.makeBaseData(
-			ctx, runtime.GetDefaultLang(), runtime.GetSiteName(), user),
+		Title:       base.Title,
 		Metas:       metas,
 		HasPrevNext: len(prevURL) > 0 || len(nextURL) > 0,
 		HasPrev:     len(prevURL) > 0,
-		PrevURL:     template.URL(prevURL),
+		PrevURL:     prevURL,
 		HasNext:     len(nextURL) > 0,
-		NextURL:     template.URL(nextURL),
+		NextURL:     nextURL,
 	})
 }
 
@@ -297,7 +294,7 @@ func newPageURL(
 }
 
 type metaInfo struct {
-	Title template.HTML
+	Title string
 	URL   string
 }
 
@@ -319,7 +316,7 @@ func buildHTMLMetaList(metaList []*meta.Meta) ([]metaInfo, error) {
 			return nil, err
 		}
 		metas = append(metas, metaInfo{
-			Title: template.HTML(htmlTitle),
+			Title: htmlTitle,
 			URL:   adapter.NewURLBuilder('h').SetZid(m.Zid).String(),
 		})
 	}

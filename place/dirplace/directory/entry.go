@@ -45,8 +45,7 @@ func (e *Entry) IsValid() bool {
 }
 
 var alternativeSyntax = map[string]string{
-	"htm":  "html",
-	"tmpl": "go-template-html",
+	"htm": "html",
 }
 
 func (e *Entry) calculateSyntax() string {

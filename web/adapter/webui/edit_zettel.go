@@ -48,8 +48,10 @@ func MakeEditGetZettelHandler(
 
 		user := session.GetUser(ctx)
 		m := zettel.Meta
-		te.renderTemplate(ctx, w, id.FormTemplateZid, formZettelData{
-			baseData:      te.makeBaseData(ctx, runtime.GetLang(m), "Edit Zettel", user),
+		var base baseData
+		te.makeBaseData(ctx, runtime.GetLang(m), "Edit Zettel", user, &base)
+		te.renderTemplate(ctx, w, id.FormTemplateZid, &base, formZettelData{
+			Heading:       base.Title,
 			MetaTitle:     m.GetDefault(meta.KeyTitle, ""),
 			MetaRole:      m.GetDefault(meta.KeyRole, ""),
 			MetaTags:      m.GetDefault(meta.KeyTags, ""),

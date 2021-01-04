@@ -47,9 +47,8 @@ var mapSyntax2CT = map[string]string{
 	"text":     plainText,
 	"markdown": "text/markdown; charset=utf-8",
 	"md":       "text/markdown; charset=utf-8",
+	"mustache": plainText,
 	//"graphviz":      "text/vnd.graphviz; charset=utf-8",
-	"go-template-html": plainText,
-	"go-template-text": plainText,
 }
 
 func syntax2contentType(syntax string) (string, bool) {

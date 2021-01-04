@@ -12,7 +12,6 @@
 package webui
 
 import (
-	"html/template"
 	"net/http"
 	"strings"
 
@@ -91,12 +90,12 @@ func MakeGetHTMLZettelHandler(
 		roleText := zn.Zettel.Meta.GetDefault(meta.KeyRole, "*")
 		tags := buildTagInfos(zn.Zettel.Meta)
 		extURL, hasExtURL := zn.Zettel.Meta.Get(meta.KeyURL)
-		base := te.makeBaseData(ctx, langOption.Value, textTitle, user)
+		var base baseData
+		te.makeBaseData(ctx, langOption.Value, textTitle, user, &base)
+		base.MetaHeader = metaHeader
 		canCopy := base.CanCreate && !zn.Zettel.Content.IsBinary()
-		te.renderTemplate(ctx, w, id.DetailTemplateZid, struct {
-			baseData
-			MetaHeader   template.HTML
-			HTMLTitle    template.HTML
+		te.renderTemplate(ctx, w, id.DetailTemplateZid, &base, struct {
+			HTMLTitle    string
 			CanWrite     bool
 			EditURL      string
 			Zid          string
@@ -113,12 +112,10 @@ func MakeGetHTMLZettelHandler(
 			FolgeURL     string
 			HasExtURL    bool
 			ExtURL       string
-			ExtNewWindow template.HTMLAttr
-			Content      template.HTML
+			ExtNewWindow string
+			Content      string
 		}{
-			baseData:     base,
-			MetaHeader:   template.HTML(metaHeader),
-			HTMLTitle:    template.HTML(htmlTitle),
+			HTMLTitle:    htmlTitle,
 			CanWrite:     te.canWrite(ctx, user, zn.Zettel),
 			EditURL:      adapter.NewURLBuilder('e').SetZid(zid).String(),
 			Zid:          zid.String(),
@@ -136,7 +133,7 @@ func MakeGetHTMLZettelHandler(
 			ExtURL:       extURL,
 			HasExtURL:    hasExtURL,
 			ExtNewWindow: htmlAttrNewWindow(newWindow && hasExtURL),
-			Content:      template.HTML(htmlContent),
+			Content:      htmlContent,
 		})
 	}
 }
@@ -180,7 +177,7 @@ func buildTagInfos(m *meta.Meta) []simpleLink {
 			// and contains only legal characters by construction.
 			tagInfos = append(
 				tagInfos,
-				simpleLink{Text: template.HTML(t), URL: ub.AppendQuery("tags", t).String()})
+				simpleLink{Text: t, URL: ub.AppendQuery("tags", t).String()})
 			ub.ClearQuery()
 		}
 	}

@@ -20,6 +20,7 @@ import (
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
+	"zettelstore.de/z/strfun"
 )
 
 // visitor writes the abstract syntax tree to an io.Writer.
@@ -144,61 +145,11 @@ func (v *visitor) visitAttributes(a *ast.Attributes) {
 }
 
 func (v *visitor) writeHTMLEscaped(s string) {
-	last := 0
-	var html string
-	for i := 0; i < len(s); i++ {
-		switch s[i] {
-		case '\000':
-			html = "\uFFFD"
-		case ' ':
-			if v.visibleSpace {
-				html = "\u2423"
-			} else {
-				continue
-			}
-		case '"':
-			if v.xhtml {
-				html = "&quot;"
-			} else {
-				html = "&#34;"
-			}
-		case '&':
-			html = "&amp;"
-		case '<':
-			html = "&lt;"
-		case '>':
-			html = "&gt;"
-		default:
-			continue
-		}
-		v.b.WriteStrings(s[last:i], html)
-		last = i + 1
-	}
-	v.b.WriteString(s[last:])
+	strfun.HTMLEscape(&v.b, s, v.visibleSpace)
 }
 
 func (v *visitor) writeQuotedEscaped(s string) {
-	last := 0
-	var html string
-	for i := 0; i < len(s); i++ {
-		switch s[i] {
-		case '\000':
-			html = "\uFFFD"
-		case '"':
-			if v.xhtml {
-				html = "&quot;"
-			} else {
-				html = "&#34;"
-			}
-		case '&':
-			html = "&amp;"
-		default:
-			continue
-		}
-		v.b.WriteStrings(s[last:i], html)
-		last = i + 1
-	}
-	v.b.WriteString(s[last:])
+	strfun.HTMLAttrEscape(&v.b, s)
 }
 
 func (v *visitor) writeReference(ref *ast.Reference) {

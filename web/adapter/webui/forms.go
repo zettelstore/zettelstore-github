@@ -12,7 +12,6 @@
 package webui
 
 import (
-	"html/template"
 	"net/http"
 	"strings"
 
@@ -23,8 +22,7 @@ import (
 )
 
 type formZettelData struct {
-	baseData
-	Heading       template.HTML
+	Heading       string
 	MetaTitle     string
 	MetaRole      string
 	MetaTags      string
