@@ -15,7 +15,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"strings"
 
@@ -126,7 +125,7 @@ func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
 	var place place.Place
 	if withPlaces {
-		p, err := manager.New(getPlaces(cfg))
+		p, err := manager.New(getPlaces(cfg), cfg.GetBool(startup.KeyReadOnlyMode))
 		if err != nil {
 			return err
 		}
@@ -160,22 +159,11 @@ func getPlaces(cfg *meta.Meta) []string {
 			}
 			uri = "dir:./zettel"
 		}
-		if cfg.GetBool(startup.KeyReadOnlyMode) {
-			if u, err := url.Parse(uri); err == nil {
-				// TODO: the following is wrong under some circumstances:
-				// 1. query parameter "readonly" is already set
-				// 2. fragment is set
-				if len(u.Query()) == 0 {
-					uri += "?readonly"
-				} else {
-					uri += "&readonly"
-				}
-			}
-		}
 		result = append(result, uri)
 	}
 	return result
 }
+
 func cleanupOperations(withPlaces bool) error {
 	if withPlaces {
 		if err := startup.PlaceManager().Stop(context.Background()); err != nil {

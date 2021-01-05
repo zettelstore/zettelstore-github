@@ -25,7 +25,7 @@ import (
 )
 
 // Connect returns a handle to the specified place
-func Connect(rawURL string, next place.Place) (place.Place, error) {
+func Connect(rawURL string, readonlyMode bool, next place.Place) (place.Place, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
@@ -33,6 +33,19 @@ func Connect(rawURL string, next place.Place) (place.Place, error) {
 	if u.Scheme == "" {
 		u.Scheme = "dir"
 	}
+	if readonlyMode {
+		// TODO: the following is wrong under some circumstances:
+		// 1. fragment is set
+		if q := u.Query(); len(q) == 0 {
+			rawURL += "?readonly"
+		} else if _, ok := q["readonly"]; !ok {
+			rawURL += "&readonly"
+		}
+		if u, err = url.Parse(rawURL); err != nil {
+			return nil, err
+		}
+	}
+
 	if create, ok := registry[u.Scheme]; ok {
 		return create(u, next)
 	}
@@ -74,7 +87,7 @@ type Manager struct {
 }
 
 // New creates a new managing place.
-func New(placeURIs []string) (*Manager, error) {
+func New(placeURIs []string, readonlyMode bool) (*Manager, error) {
 	subplaces := make([]place.Place, 0, 7)
 	progplace, err := registry[" prog"](nil, nil)
 	if err != nil {
@@ -84,7 +97,7 @@ func New(placeURIs []string) (*Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	place, err := connectPlaces(placeURIs, constplace)
+	place, err := connectPlaces(placeURIs, readonlyMode, constplace)
 	if err != nil {
 		return nil, err
 	}
@@ -99,15 +112,15 @@ func New(placeURIs []string) (*Manager, error) {
 }
 
 // Helper function to connect to all given places
-func connectPlaces(placeURIs []string, lastPlace place.Place) (place.Place, error) {
+func connectPlaces(placeURIs []string, readonlyMode bool, lastPlace place.Place) (place.Place, error) {
 	if len(placeURIs) == 0 {
 		return lastPlace, nil
 	}
-	next, err := connectPlaces(placeURIs[1:], lastPlace)
+	next, err := connectPlaces(placeURIs[1:], readonlyMode, lastPlace)
 	if err != nil {
 		return nil, err
 	}
-	p, err := Connect(placeURIs[0], next)
+	p, err := Connect(placeURIs[0], readonlyMode, next)
 	return p, err
 }
 
