@@ -449,10 +449,10 @@ func (tmpl *Template) parse() error {
 // Evaluate interfaces and pointers looking for a value that can look up the
 // name, via a struct field, method, or map key, and return the result of the
 // lookup.
-func lookup(contextChain []reflect.Value, name string, errMissing bool) (reflect.Value, error) {
+func lookup(stack []reflect.Value, name string, errMissing bool) (reflect.Value, error) {
 	// dot notation
 	if pos := strings.IndexByte(name, '.'); pos > 0 && pos < len(name)-1 {
-		v, err := lookup(contextChain, name[:pos], errMissing)
+		v, err := lookup(stack, name[:pos], errMissing)
 		if err != nil {
 			return v, err
 		}
@@ -460,7 +460,8 @@ func lookup(contextChain []reflect.Value, name string, errMissing bool) (reflect
 	}
 
 Outer:
-	for _, v := range contextChain {
+	for i := len(stack) - 1; i >= 0; i-- {
+		v := stack[i]
 		for v.IsValid() {
 			typ := v.Type()
 			if n := v.Type().NumMethod(); n > 0 {
@@ -537,58 +538,59 @@ loop:
 	return v
 }
 
-func (tmpl *Template) renderSection(w io.Writer, section *sectionNode, contextChain []reflect.Value) error {
-	value, err := lookup(contextChain, section.name, false)
+func (tmpl *Template) renderSection(w io.Writer, section *sectionNode, stack []reflect.Value) error {
+	value, err := lookup(stack, section.name, false)
 	if err != nil {
 		return err
 	}
-	var context = contextChain[len(contextChain)-1]
-	var contexts = []reflect.Value{}
+
 	// if the value is nil, check if it's an inverted section
 	isEmpty := isEmpty(value)
 	if isEmpty && !section.inverted || !isEmpty && section.inverted {
 		return nil
-	} else if !section.inverted {
-		valueInd := indirect(value)
-		switch val := valueInd; val.Kind() {
-		case reflect.Slice:
-			for i := 0; i < val.Len(); i++ {
-				contexts = append(contexts, val.Index(i))
-			}
-		case reflect.Array:
-			for i := 0; i < val.Len(); i++ {
-				contexts = append(contexts, val.Index(i))
-			}
-		case reflect.Map, reflect.Struct:
-			contexts = append(contexts, value)
-		default:
-			contexts = append(contexts, context)
-		}
-	} else if section.inverted {
-		contexts = append(contexts, context)
 	}
 
-	chain2 := make([]reflect.Value, len(contextChain)+1)
-	copy(chain2[1:], contextChain)
-	//by default we execute the section
-	for _, ctx := range contexts {
-		chain2[0] = ctx
-		for _, n := range section.nodes {
-			if err := tmpl.renderNode(w, n, chain2); err != nil {
-				return err
+	if !section.inverted {
+		switch val := indirect(value); val.Kind() {
+		case reflect.Slice, reflect.Array:
+			valLen := val.Len()
+			enumeration := make([]reflect.Value, 0, valLen)
+			for i := 0; i < valLen; i++ {
+				enumeration = append(enumeration, val.Index(i))
 			}
+			topStack := len(stack)
+			stack = append(stack, enumeration[0])
+			defer func() { stack = stack[:topStack-1] }()
+			for _, elem := range enumeration {
+				stack[topStack] = elem
+				for _, n := range section.nodes {
+					if err := tmpl.renderNode(w, n, stack); err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		case reflect.Map, reflect.Struct:
+			stack = append(stack, value)
+			defer func() { stack = stack[:len(stack)-2] }()
+		}
+	}
+
+	for _, n := range section.nodes {
+		if err := tmpl.renderNode(w, n, stack); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func (tmpl *Template) renderNode(w io.Writer, node node, contextChain []reflect.Value) error {
+func (tmpl *Template) renderNode(w io.Writer, node node, stack []reflect.Value) error {
 	switch n := node.(type) {
 	case *textNode:
 		_, err := w.Write(n.text)
 		return err
 	case *varNode:
-		val, err := lookup(contextChain, n.name, tmpl.errmiss)
+		val, err := lookup(stack, n.name, tmpl.errmiss)
 		if err != nil {
 			return err
 		}
@@ -601,7 +603,7 @@ func (tmpl *Template) renderNode(w io.Writer, node node, contextChain []reflect.
 			}
 		}
 	case *sectionNode:
-		if err := tmpl.renderSection(w, n, contextChain); err != nil {
+		if err := tmpl.renderSection(w, n, stack); err != nil {
 			return err
 		}
 	case *partialNode:
@@ -609,16 +611,16 @@ func (tmpl *Template) renderNode(w io.Writer, node node, contextChain []reflect.
 		if err != nil {
 			return err
 		}
-		if err := partial.renderTemplate(w, contextChain); err != nil {
+		if err := partial.renderTemplate(w, stack); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (tmpl *Template) renderTemplate(w io.Writer, contextChain []reflect.Value) error {
+func (tmpl *Template) renderTemplate(w io.Writer, stack []reflect.Value) error {
 	for _, n := range tmpl.nodes {
-		if err := tmpl.renderNode(w, n, contextChain); err != nil {
+		if err := tmpl.renderNode(w, n, stack); err != nil {
 			return err
 		}
 	}
