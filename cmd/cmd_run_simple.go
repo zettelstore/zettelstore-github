@@ -32,7 +32,7 @@ func flgSimpleRun(fs *flag.FlagSet) {
 }
 
 func runSimpleFunc(*flag.FlagSet) (int, error) {
-	p := startup.Place()
+	p := startup.PlaceManager()
 	if _, err := p.GetMeta(context.Background(), id.WelcomeZid); err != nil {
 		if _, ok := err.(*place.ErrUnknownID); ok {
 			updateWelcomeZettel(p)
@@ -50,7 +50,7 @@ func runSimpleFunc(*flag.FlagSet) (int, error) {
 		log.Printf("    http://localhost%v", listenAddr[idx:])
 	}
 
-	handler := setupRouting(startup.Place(), readonlyMode)
+	handler := setupRouting(startup.PlaceManager(), readonlyMode)
 	srv := server.New(listenAddr, handler)
 	if err := srv.Run(); err != nil {
 		return 1, err

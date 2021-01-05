@@ -139,12 +139,12 @@ func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
 		return err
 	}
 	if withPlaces {
-		if err := startup.Place().Start(context.Background()); err != nil {
+		if err := startup.PlaceManager().Start(context.Background()); err != nil {
 			fmt.Fprintln(os.Stderr, "Unable to start zettel place")
 			return err
 		}
-		runtime.SetupConfiguration(startup.Place())
-		progplace.Setup(cfg, startup.Place())
+		runtime.SetupConfiguration(startup.PlaceManager())
+		progplace.Setup(cfg, startup.PlaceManager())
 	}
 	return nil
 }
@@ -185,7 +185,7 @@ func getPlaces(cfg *meta.Meta) []string {
 }
 func cleanupOperations(withPlaces bool) error {
 	if withPlaces {
-		if err := startup.Place().Stop(context.Background()); err != nil {
+		if err := startup.PlaceManager().Stop(context.Background()); err != nil {
 			fmt.Fprintln(os.Stderr, "Unable to start zettel place")
 			return err
 		}

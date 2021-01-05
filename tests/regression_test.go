@@ -34,6 +34,7 @@ import (
 	_ "zettelstore.de/z/parser/blob"
 	_ "zettelstore.de/z/parser/zettelmark"
 	_ "zettelstore.de/z/place/dirplace"
+	"zettelstore.de/z/place/manager"
 )
 
 var formats = []string{"html", "djson", "native", "text"}
@@ -47,7 +48,7 @@ func getFilePlaces(wd string, kind string) (root string, places []place.Place) {
 
 	for _, info := range infos {
 		if info.Mode().IsDir() {
-			place, err := place.Connect("dir://"+filepath.Join(root, info.Name()), nil)
+			place, err := manager.Connect("dir://"+filepath.Join(root, info.Name()), nil)
 			if err != nil {
 				panic(err)
 			}

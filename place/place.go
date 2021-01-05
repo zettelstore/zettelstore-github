@@ -15,9 +15,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-	"net/url"
-	"sort"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/domain/id"
@@ -102,6 +99,11 @@ type Place interface {
 	Reload(ctx context.Context) error
 }
 
+// Manager is a place-managing place.
+type Manager interface {
+	Place
+}
+
 // ErrNotAllowed is returned if the caller is not allowed to perform the operation.
 type ErrNotAllowed struct {
 	Op   string
@@ -181,46 +183,4 @@ type Sorter struct {
 	Descending bool   // Sort by order, but descending
 	Offset     int    // <= 0: no offset
 	Limit      int    // <= 0: no limit
-}
-
-// Connect returns a handle to the specified place
-func Connect(rawURL string, next Place) (Place, error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return nil, err
-	}
-	if u.Scheme == "" {
-		u.Scheme = "dir"
-	}
-	if create, ok := registry[u.Scheme]; ok {
-		return create(u, next)
-	}
-	return nil, &ErrInvalidScheme{u.Scheme}
-}
-
-// ErrInvalidScheme is returned if there is no place with the given scheme
-type ErrInvalidScheme struct{ Scheme string }
-
-func (err *ErrInvalidScheme) Error() string { return "Invalid scheme: " + err.Scheme }
-
-type createFunc func(*url.URL, Place) (Place, error)
-
-var registry = map[string]createFunc{}
-
-// Register the encoder for later retrieval.
-func Register(scheme string, create createFunc) {
-	if _, ok := registry[scheme]; ok {
-		log.Fatalf("Place with scheme %q already registered", scheme)
-	}
-	registry[scheme] = create
-}
-
-// GetSchemes returns all registered scheme, ordered by scheme string.
-func GetSchemes() []string {
-	result := make([]string, 0, len(registry))
-	for scheme := range registry {
-		result = append(result, scheme)
-	}
-	sort.Strings(result)
-	return result
 }

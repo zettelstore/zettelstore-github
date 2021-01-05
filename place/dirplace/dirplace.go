@@ -27,10 +27,11 @@ import (
 	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
 	"zettelstore.de/z/place/dirplace/directory"
+	"zettelstore.de/z/place/manager"
 )
 
 func init() {
-	place.Register("dir", func(u *url.URL, next place.Place) (place.Place, error) {
+	manager.Register("dir", func(u *url.URL, next place.Place) (place.Place, error) {
 		path := getDirPath(u)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			return nil, err

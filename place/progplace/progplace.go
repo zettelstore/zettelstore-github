@@ -30,7 +30,7 @@ type (
 	progPlace struct {
 		zettel      map[id.Zid]zettelGen
 		startConfig *meta.Meta
-		startPlace  place.Place
+		manager     place.Manager
 	}
 )
 
@@ -55,15 +55,15 @@ func Get() place.Place {
 }
 
 // Setup remembers important values.
-func Setup(startConfig *meta.Meta, startPlace place.Place) {
+func Setup(startConfig *meta.Meta, manager place.Manager) {
 	if myPlace == nil {
 		panic("progplace.Get not called")
 	}
-	if myPlace.startConfig != nil || myPlace.startPlace != nil {
+	if myPlace.startConfig != nil || myPlace.manager != nil {
 		panic("progplace.Setup already called")
 	}
 	myPlace.startConfig = startConfig.Clone()
-	myPlace.startPlace = startPlace
+	myPlace.manager = manager
 }
 
 func (pp *progPlace) Next() place.Place { return nil }

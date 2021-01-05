@@ -19,10 +19,11 @@ import (
 	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/place/manager"
 )
 
 func init() {
-	place.Register(
+	manager.Register(
 		"const",
 		func(u *url.URL, next place.Place) (place.Place, error) {
 			return &constPlace{u: u, next: next, zettel: constZettelMap}, nil

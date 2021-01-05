@@ -13,7 +13,10 @@ package manager
 
 import (
 	"context"
+	"log"
 	"net/url"
+	"sort"
+	"strings"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/domain/id"
@@ -22,20 +25,68 @@ import (
 	"zettelstore.de/z/place/progplace"
 )
 
+// Connect returns a handle to the specified place
+func Connect(rawURL string, next place.Place) (place.Place, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, err
+	}
+	if u.Scheme == "" {
+		u.Scheme = "dir"
+	}
+	if create, ok := registry[u.Scheme]; ok {
+		return create(u, next)
+	}
+	return nil, &ErrInvalidScheme{u.Scheme}
+}
+
+// ErrInvalidScheme is returned if there is no place with the given scheme
+type ErrInvalidScheme struct{ Scheme string }
+
+func (err *ErrInvalidScheme) Error() string { return "Invalid scheme: " + err.Scheme }
+
+type createFunc func(*url.URL, place.Place) (place.Place, error)
+
+var registry = map[string]createFunc{}
+
+// Register the encoder for later retrieval.
+func Register(scheme string, create createFunc) {
+	if _, ok := registry[scheme]; ok {
+		log.Fatalf("Place with scheme %q already registered", scheme)
+	}
+	registry[scheme] = create
+}
+
+// GetSchemes returns all registered scheme, ordered by scheme string.
+func GetSchemes() []string {
+	result := make([]string, 0, len(registry))
+	for scheme := range registry {
+		result = append(result, scheme)
+	}
+	sort.Strings(result)
+	return result
+}
+
 // Manager is a coordinating place.
 type Manager struct {
 	placeURIs []url.URL
 	place     place.Place
+	subplaces []place.Place
 }
 
 // New creates a new managing place.
 func New(placeURIs []string) (*Manager, error) {
+	subplaces := make([]place.Place, 0, 8)
 	place, err := connectPlaces(placeURIs, progplace.Get())
 	if err != nil {
 		return nil, err
 	}
+	for p := place; p != nil; p = p.Next() {
+		subplaces = append(subplaces, p)
+	}
 	result := &Manager{
-		place: place,
+		place:     place,
+		subplaces: subplaces,
 	}
 	return result, nil
 }
@@ -49,7 +100,7 @@ func connectPlaces(placeURIs []string, lastPlace place.Place) (place.Place, erro
 	if err != nil {
 		return nil, err
 	}
-	p, err := place.Connect(placeURIs[0], next)
+	p, err := Connect(placeURIs[0], next)
 	return p, err
 }
 
@@ -58,7 +109,17 @@ func (mgr *Manager) Next() place.Place { return mgr.place.Next() }
 
 // Location returns some information where the place is located.
 func (mgr *Manager) Location() string {
-	return mgr.place.Location()
+	if len(mgr.subplaces) < 2 {
+		return mgr.subplaces[0].Location()
+	}
+	var sb strings.Builder
+	for i := 0; i < len(mgr.subplaces)-1; i++ {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(mgr.subplaces[i].Location())
+	}
+	return sb.String()
 }
 
 // Start the place. Now all other functions of the place are allowed.

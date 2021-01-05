@@ -35,7 +35,7 @@ var config struct {
 	persistCookie bool
 	htmlLifetime  time.Duration
 	apiLifetime   time.Duration
-	place         place.Place
+	manager       place.Manager
 }
 
 // Predefined keys for startup zettel
@@ -53,7 +53,7 @@ const (
 )
 
 // SetupStartup initializes the startup data.
-func SetupStartup(cfg *meta.Meta, place place.Place, simple bool) error {
+func SetupStartup(cfg *meta.Meta, manager place.Manager, simple bool) error {
 	if config.urlPrefix != "" {
 		panic("startup.config already set")
 	}
@@ -89,7 +89,7 @@ func SetupStartup(cfg *meta.Meta, place place.Place, simple bool) error {
 			cfg, KeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
 	config.simple = simple && !config.withAuth
-	config.place = place
+	config.manager = manager
 	return nil
 }
 
@@ -170,5 +170,5 @@ func TokenLifetime() (htmlLifetime, apiLifetime time.Duration) {
 	return config.htmlLifetime, config.apiLifetime
 }
 
-// Place returns the linked list of places.
-func Place() place.Place { return config.place }
+// PlaceManager returns the managing place.
+func PlaceManager() place.Manager { return config.manager }

@@ -21,10 +21,11 @@ import (
 	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/place/manager"
 )
 
 func init() {
-	place.Register(
+	manager.Register(
 		"mem",
 		func(u *url.URL, next place.Place) (place.Place, error) {
 			return &memPlace{u: u, next: next}, nil

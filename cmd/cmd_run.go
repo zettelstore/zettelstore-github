@@ -49,7 +49,7 @@ func runFunc(fs *flag.FlagSet) (int, error) {
 	listenAddr := startup.ListenAddress()
 	readonlyMode := startup.IsReadOnlyMode()
 	logBeforeRun(listenAddr, readonlyMode)
-	handler := setupRouting(startup.Place(), readonlyMode)
+	handler := setupRouting(startup.PlaceManager(), readonlyMode)
 	srv := server.New(listenAddr, handler)
 	enableDebug(fs, srv)
 	if err := srv.Run(); err != nil {
@@ -63,20 +63,10 @@ func logBeforeRun(listenAddr string, readonlyMode bool) {
 	log.Printf("%v %v (%v@%v/%v)", v.Prog, v.Build, v.GoVersion, v.Os, v.Arch)
 	log.Println("Licensed under the latest version of the EUPL (European Union Public License)")
 	log.Printf("Listening on %v", listenAddr)
-	log.Printf("Zettel location [%v]", fullLocation(startup.Place()))
+	log.Printf("Zettel location [%v]", startup.PlaceManager().Location())
 	if readonlyMode {
 		log.Println("Read-only mode")
 	}
-}
-
-func fullLocation(p place.Place) string {
-	if n := p.Next(); n != nil {
-		if rest := fullLocation(n); len(rest) > 0 {
-			return p.Location() + ", " + fullLocation(n)
-		}
-		return p.Location()
-	}
-	return p.Location()
 }
 
 func setupRouting(up place.Place, readonlyMode bool) http.Handler {
