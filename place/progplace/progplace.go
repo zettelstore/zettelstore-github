@@ -14,12 +14,22 @@ package progplace
 
 import (
 	"context"
+	"net/url"
 
 	"zettelstore.de/z/domain"
 	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
+	"zettelstore.de/z/place/manager"
 )
+
+func init() {
+	manager.Register(
+		" prog",
+		func(u *url.URL, next place.Place) (place.Place, error) {
+			return getPlace(), nil
+		})
+}
 
 type (
 	zettelGen struct {
@@ -37,7 +47,7 @@ type (
 var myPlace *progPlace
 
 // Get returns the one program place.
-func Get() place.Place {
+func getPlace() place.Place {
 	if myPlace == nil {
 		myPlace = &progPlace{}
 		myPlace.zettel = map[id.Zid]zettelGen{
@@ -57,7 +67,7 @@ func Get() place.Place {
 // Setup remembers important values.
 func Setup(startConfig *meta.Meta, manager place.Manager) {
 	if myPlace == nil {
-		panic("progplace.Get not called")
+		panic("progplace.getPlace not called")
 	}
 	if myPlace.startConfig != nil || myPlace.manager != nil {
 		panic("progplace.Setup already called")

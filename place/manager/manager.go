@@ -22,7 +22,6 @@ import (
 	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/place"
-	"zettelstore.de/z/place/progplace"
 )
 
 // Connect returns a handle to the specified place
@@ -77,7 +76,11 @@ type Manager struct {
 // New creates a new managing place.
 func New(placeURIs []string) (*Manager, error) {
 	subplaces := make([]place.Place, 0, 7)
-	constplace, err := registry[" const"](nil, progplace.Get())
+	progplace, err := registry[" prog"](nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	constplace, err := registry[" const"](nil, progplace)
 	if err != nil {
 		return nil, err
 	}
