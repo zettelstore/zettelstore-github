@@ -451,13 +451,13 @@ func (tmpl *Template) parse() error {
 // lookup.
 func lookup(contextChain []reflect.Value, name string, errMissing bool) (reflect.Value, error) {
 	// dot notation
-	if name != "." && strings.Contains(name, ".") {
-		parts := strings.SplitN(name, ".", 2)
-		v, err := lookup(contextChain, parts[0], errMissing)
+	if pos := strings.IndexByte(name, '.'); pos > 0 && pos < len(name)-1 {
+		//parts := strings.SplitN(name, ".", 2)
+		v, err := lookup(contextChain, name[:pos], errMissing)
 		if err != nil {
 			return v, err
 		}
-		return lookup([]reflect.Value{v}, parts[1], errMissing)
+		return lookup([]reflect.Value{v}, name[pos+1:], errMissing)
 	}
 
 Outer:
