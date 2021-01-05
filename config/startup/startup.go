@@ -12,10 +12,8 @@
 package startup
 
 import (
-	"fmt"
 	"hash/fnv"
 	"io"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -37,7 +35,6 @@ var config struct {
 	persistCookie bool
 	htmlLifetime  time.Duration
 	apiLifetime   time.Duration
-	places        []string
 	place         place.Place
 }
 
@@ -56,7 +53,7 @@ const (
 )
 
 // SetupStartup initializes the startup data.
-func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place, simple bool) error {
+func SetupStartup(cfg *meta.Meta, place place.Place, simple bool) error {
 	if config.urlPrefix != "" {
 		panic("startup.config already set")
 	}
@@ -92,15 +89,8 @@ func SetupStartup(cfg *meta.Meta, withPlaces bool, lastPlace place.Place, simple
 			cfg, KeyTokenLifetimeAPI, 10*time.Minute, 0, 1*time.Hour)
 	}
 	config.simple = simple && !config.withAuth
-	if !withPlaces {
-		return nil
-	}
-	config.places = getPlaces(cfg)
-	place, err := connectPlaces(config.places, lastPlace)
-	if err == nil {
-		config.place = place
-	}
-	return err
+	config.place = place
+	return nil
 }
 
 func calcSecret(cfg *meta.Meta) []byte {
@@ -115,53 +105,6 @@ func calcSecret(cfg *meta.Meta) []byte {
 	io.WriteString(h, version.Os)
 	io.WriteString(h, version.Arch)
 	return h.Sum(nil)
-}
-
-func getPlaces(cfg *meta.Meta) []string {
-	hasConst := false
-	var result []string = nil
-	for cnt := 1; ; cnt++ {
-		key := fmt.Sprintf("place-%v-uri", cnt)
-		uri, ok := cfg.Get(key)
-		if !ok || uri == "" {
-			if cnt > 1 {
-				break
-			}
-			uri = "dir:./zettel"
-		}
-		if uri == "const:" {
-			hasConst = true
-		}
-		if IsReadOnlyMode() {
-			if u, err := url.Parse(uri); err == nil {
-				// TODO: the following is wrong under some circumstances:
-				// 1. query parameter "readonly" is already set
-				// 2. fragment is set
-				if len(u.Query()) == 0 {
-					uri += "?readonly"
-				} else {
-					uri += "&readonly"
-				}
-			}
-		}
-		result = append(result, uri)
-	}
-	if !hasConst {
-		result = append(result, "const:")
-	}
-	return result
-}
-
-func connectPlaces(placeURIs []string, lastPlace place.Place) (place.Place, error) {
-	if len(placeURIs) == 0 {
-		return lastPlace, nil
-	}
-	next, err := connectPlaces(placeURIs[1:], lastPlace)
-	if err != nil {
-		return nil, err
-	}
-	p, err := place.Connect(placeURIs[0], next)
-	return p, err
 }
 
 func getDuration(

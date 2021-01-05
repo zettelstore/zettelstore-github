@@ -85,17 +85,17 @@ type Place interface {
 	// UpdateZettel updates an existing zettel.
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
 
-	// CanDeleteZettel returns true, if place could possibly delete the given zettel.
-	CanDeleteZettel(ctx context.Context, zid id.Zid) bool
-
-	// DeleteZettel removes the zettel from the place.
-	DeleteZettel(ctx context.Context, zid id.Zid) error
-
 	// CanRenameZettel returns true, if place could possibly rename the given zettel.
 	CanRenameZettel(ctx context.Context, zid id.Zid) bool
 
 	// RenameZettel changes the current Zid to a new Zid.
 	RenameZettel(ctx context.Context, curZid, newZid id.Zid) error
+
+	// CanDeleteZettel returns true, if place could possibly delete the given zettel.
+	CanDeleteZettel(ctx context.Context, zid id.Zid) bool
+
+	// DeleteZettel removes the zettel from the place.
+	DeleteZettel(ctx context.Context, zid id.Zid) error
 
 	// Reload clears all caches, reloads all internal data to reflect changes
 	// that were possibly undetected.

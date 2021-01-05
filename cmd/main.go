@@ -15,6 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"strings"
 
@@ -23,6 +24,8 @@ import (
 	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/input"
+	"zettelstore.de/z/place"
+	"zettelstore.de/z/place/manager"
 	"zettelstore.de/z/place/progplace"
 )
 
@@ -121,7 +124,16 @@ func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 }
 
 func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
-	err := startup.SetupStartup(cfg, withPlaces, progplace.Get(), simple)
+	var place place.Place
+	if withPlaces {
+		p, err := manager.New(getPlaces(cfg))
+		if err != nil {
+			return err
+		}
+		place = p
+	}
+
+	err := startup.SetupStartup(cfg, place, simple)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Unable to connect to specified places")
 		return err
@@ -137,6 +149,40 @@ func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
 	return nil
 }
 
+func getPlaces(cfg *meta.Meta) []string {
+	hasConst := false
+	var result []string = nil
+	for cnt := 1; ; cnt++ {
+		key := fmt.Sprintf("place-%v-uri", cnt)
+		uri, ok := cfg.Get(key)
+		if !ok || uri == "" {
+			if cnt > 1 {
+				break
+			}
+			uri = "dir:./zettel"
+		}
+		if uri == "const:" {
+			hasConst = true
+		}
+		if cfg.GetBool(startup.KeyReadOnlyMode) {
+			if u, err := url.Parse(uri); err == nil {
+				// TODO: the following is wrong under some circumstances:
+				// 1. query parameter "readonly" is already set
+				// 2. fragment is set
+				if len(u.Query()) == 0 {
+					uri += "?readonly"
+				} else {
+					uri += "&readonly"
+				}
+			}
+		}
+		result = append(result, uri)
+	}
+	if !hasConst {
+		result = append(result, "const:")
+	}
+	return result
+}
 func cleanupOperations(withPlaces bool) error {
 	if withPlaces {
 		if err := startup.Place().Stop(context.Background()); err != nil {
