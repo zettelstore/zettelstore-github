@@ -40,9 +40,9 @@ type memPlace struct {
 	observers []place.ObserverFunc
 }
 
-func (mp *memPlace) notifyChanged(all bool, zid id.Zid) {
+func (mp *memPlace) notifyChanged(reason place.ChangeReason, zid id.Zid) {
 	for _, ob := range mp.observers {
-		ob(all, zid)
+		ob(reason, zid)
 	}
 }
 
@@ -107,7 +107,7 @@ func (mp *memPlace) CreateZettel(
 	meta.Zid = mp.calcNewZid()
 	zettel.Meta = meta
 	mp.zettel[meta.Zid] = zettel
-	mp.notifyChanged(false, meta.Zid)
+	mp.notifyChanged(place.OnCreate, meta.Zid)
 	return meta.Zid, nil
 }
 
@@ -201,7 +201,7 @@ func (mp *memPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	}
 	zettel.Meta = meta
 	mp.zettel[meta.Zid] = zettel
-	mp.notifyChanged(false, meta.Zid)
+	mp.notifyChanged(place.OnUpdate, meta.Zid)
 	return nil
 }
 
@@ -228,7 +228,7 @@ func (mp *memPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 		return &place.ErrUnknownID{Zid: zid}
 	}
 	delete(mp.zettel, zid)
-	mp.notifyChanged(false, zid)
+	mp.notifyChanged(place.OnDelete, zid)
 	return nil
 }
 
@@ -271,7 +271,8 @@ func (mp *memPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) err
 	zettel.Meta = meta
 	mp.zettel[newZid] = zettel
 	delete(mp.zettel, curZid)
-	mp.notifyChanged(false, curZid)
+	mp.notifyChanged(place.OnDelete, curZid)
+	mp.notifyChanged(place.OnCreate, newZid)
 	return nil
 }
 

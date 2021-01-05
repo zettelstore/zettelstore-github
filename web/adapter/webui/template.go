@@ -79,14 +79,14 @@ func NewTemplateEngine(p place.Place, pol policy.Policy) *TemplateEngine {
 		reloadURL:     adapter.NewURLBuilder('c').AppendQuery("_format", "html").String(),
 		searchURL:     adapter.NewURLBuilder('s').String(),
 	}
-	te.observe(true, id.Invalid)
+	te.observe(place.OnReload, id.Invalid)
 	p.RegisterChangeObserver(te.observe)
 	return te
 }
 
-func (te *TemplateEngine) observe(all bool, zid id.Zid) {
+func (te *TemplateEngine) observe(reason place.ChangeReason, zid id.Zid) {
 	te.mxCache.Lock()
-	if all || zid == id.BaseTemplateZid {
+	if reason == place.OnReload || zid == id.BaseTemplateZid {
 		te.templateCache = make(
 			map[id.Zid]*template.Template, len(te.templateCache))
 	} else {

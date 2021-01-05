@@ -56,8 +56,8 @@ type defaultStock struct {
 }
 
 // observe tracks all changes the place signals.
-func (s *defaultStock) observe(all bool, zid id.Zid) {
-	if !all {
+func (s *defaultStock) observe(reason place.ChangeReason, zid id.Zid) {
+	if reason != place.OnReload {
 		s.mxSubs.RLock()
 		defer s.mxSubs.RUnlock()
 		if _, found := s.subs[zid]; found {

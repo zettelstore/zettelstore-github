@@ -73,12 +73,12 @@ func (srv *Service) Subscribe(changeFunc place.ObserverFunc) {
 	srv.mxFuncs.Unlock()
 }
 
-func (srv *Service) notifyChange(all bool, zid id.Zid) {
+func (srv *Service) notifyChange(reason place.ChangeReason, zid id.Zid) {
 	srv.mxFuncs.RLock()
 	changeFuncs := srv.changeFuncs
 	srv.mxFuncs.RUnlock()
 	for _, changeF := range changeFuncs {
-		changeF(all, zid)
+		changeF(reason, zid)
 	}
 }
 

@@ -130,12 +130,12 @@ func (dp *dirPlace) localStart(ctx context.Context) error {
 	return nil
 }
 
-func (dp *dirPlace) notifyChanged(all bool, zid id.Zid) {
+func (dp *dirPlace) notifyChanged(reason place.ChangeReason, zid id.Zid) {
 	dp.mxObserver.RLock()
 	observers := dp.observers
 	dp.mxObserver.RUnlock()
 	for _, ob := range observers {
-		ob(all, zid)
+		ob(reason, zid)
 	}
 }
 
@@ -209,6 +209,7 @@ func (dp *dirPlace) CreateZettel(
 	err := setZettel(dp, &entry, zettel)
 	if err == nil {
 		dp.dirSrv.UpdateEntry(&entry)
+		dp.notifyChanged(place.OnCreate, meta.Zid)
 	}
 	return meta.Zid, err
 }
@@ -320,7 +321,7 @@ func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 			dp.dirSrv.UpdateEntry(&entry)
 		}
 	}
-	dp.notifyChanged(false, meta.Zid)
+	dp.notifyChanged(place.OnUpdate, meta.Zid)
 	return setZettel(dp, &entry, zettel)
 }
 
@@ -397,20 +398,22 @@ func (dp *dirPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) err
 		ContentExt:  curEntry.ContentExt,
 	}
 
-	dp.notifyChanged(false, curZid)
 	if err := dp.dirSrv.RenameEntry(&curEntry, &newEntry); err != nil {
 		return err
 	}
 	oldMeta.Zid = newZid
 	newZettel := domain.Zettel{Meta: oldMeta, Content: domain.NewContent(oldContent)}
-	err = setZettel(dp, &newEntry, newZettel)
-	if err != nil {
+	if err := setZettel(dp, &newEntry, newZettel); err != nil {
 		// "Rollback" rename. No error checking...
 		dp.dirSrv.RenameEntry(&newEntry, &curEntry)
 		return err
 	}
-	err = deleteZettel(dp, &curEntry, curZid)
-	return err
+	if err := deleteZettel(dp, &curEntry, curZid); err != nil {
+		return err
+	}
+	dp.notifyChanged(place.OnDelete, curZid)
+	dp.notifyChanged(place.OnCreate, newZid)
+	return nil
 }
 
 func (dp *dirPlace) CanDeleteZettel(ctx context.Context, zid id.Zid) bool {
@@ -432,12 +435,12 @@ func (dp *dirPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 
 	entry := dp.dirSrv.GetEntry(zid)
 	if !entry.IsValid() {
-		dp.notifyChanged(false, zid)
+		dp.notifyChanged(place.OnDelete, zid)
 		return nil
 	}
 	dp.dirSrv.DeleteEntry(zid)
 	err := deleteZettel(dp, &entry, zid)
-	dp.notifyChanged(false, zid)
+	dp.notifyChanged(place.OnDelete, zid)
 	return err
 }
 

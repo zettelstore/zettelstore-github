@@ -24,11 +24,23 @@ import (
 	"zettelstore.de/z/domain/meta"
 )
 
+// ChangeReason gives an indication, why the ObserverFunc was called.
+type ChangeReason int
+
+// Values for ChangeReason
+const (
+	_        ChangeReason = iota
+	OnReload              // Place was reloaded
+	OnCreate              // A new zettel is born
+	OnUpdate              // A zettel was changed
+	OnDelete              // A zettel was removed
+)
+
 // ObserverFunc is the function that will be called if something changed.
 // If the first parameter, a bool, is true, then all zettel are possibly
 // changed. If it has the value false, the given ZettelID will identify the
 // changed zettel.
-type ObserverFunc func(bool, id.Zid)
+type ObserverFunc func(ChangeReason, id.Zid)
 
 // Place is implemented by all Zettel places.
 type Place interface {

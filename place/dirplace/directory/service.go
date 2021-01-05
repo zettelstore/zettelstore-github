@@ -111,7 +111,7 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 					close(ready)
 					ready = nil
 				}
-				srv.notifyChange(true, id.Invalid)
+				srv.notifyChange(place.OnReload, id.Invalid)
 			case fileStatusError:
 				log.Println("DIRPLACE", "ERROR", ev.err)
 			case fileStatusUpdate:
@@ -119,14 +119,14 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 					dirMapUpdate(newMap, ev)
 				} else {
 					dirMapUpdate(curMap, ev)
-					srv.notifyChange(false, ev.zid)
+					srv.notifyChange(place.OnUpdate, ev.zid)
 				}
 			case fileStatusDelete:
 				if newMap != nil {
 					deleteFromMap(newMap, ev)
 				} else {
 					deleteFromMap(curMap, ev)
-					srv.notifyChange(false, ev.zid)
+					srv.notifyChange(place.OnDelete, ev.zid)
 				}
 			}
 		case cmd, ok := <-srv.cmds:
