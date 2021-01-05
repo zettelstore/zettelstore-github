@@ -452,7 +452,6 @@ func (tmpl *Template) parse() error {
 func lookup(contextChain []reflect.Value, name string, errMissing bool) (reflect.Value, error) {
 	// dot notation
 	if pos := strings.IndexByte(name, '.'); pos > 0 && pos < len(name)-1 {
-		//parts := strings.SplitN(name, ".", 2)
 		v, err := lookup(contextChain, name[:pos], errMissing)
 		if err != nil {
 			return v, err
