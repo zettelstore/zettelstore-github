@@ -76,8 +76,12 @@ type Manager struct {
 
 // New creates a new managing place.
 func New(placeURIs []string) (*Manager, error) {
-	subplaces := make([]place.Place, 0, 8)
-	place, err := connectPlaces(placeURIs, progplace.Get())
+	subplaces := make([]place.Place, 0, 7)
+	constplace, err := registry[" const"](nil, progplace.Get())
+	if err != nil {
+		return nil, err
+	}
+	place, err := connectPlaces(placeURIs, constplace)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +117,7 @@ func (mgr *Manager) Location() string {
 		return mgr.subplaces[0].Location()
 	}
 	var sb strings.Builder
-	for i := 0; i < len(mgr.subplaces)-1; i++ {
+	for i := 0; i < len(mgr.subplaces)-2; i++ {
 		if i > 0 {
 			sb.WriteString(", ")
 		}

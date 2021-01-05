@@ -24,9 +24,9 @@ import (
 
 func init() {
 	manager.Register(
-		"const",
+		" const",
 		func(u *url.URL, next place.Place) (place.Place, error) {
-			return &constPlace{u: u, next: next, zettel: constZettelMap}, nil
+			return &constPlace{next: next, zettel: constZettelMap}, nil
 		})
 }
 
@@ -46,7 +46,6 @@ type constZettel struct {
 }
 
 type constPlace struct {
-	u      *url.URL
 	next   place.Place
 	zettel map[id.Zid]constZettel
 }
@@ -55,7 +54,7 @@ func (cp *constPlace) Next() place.Place { return cp.next }
 
 // Location returns some information where the place is located.
 func (cp *constPlace) Location() string {
-	return cp.u.String()
+	return "const:"
 }
 
 // Start the place. Now all other functions of the place are allowed.

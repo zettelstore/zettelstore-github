@@ -150,7 +150,6 @@ func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
 }
 
 func getPlaces(cfg *meta.Meta) []string {
-	hasConst := false
 	var result []string = nil
 	for cnt := 1; ; cnt++ {
 		key := fmt.Sprintf("place-%v-uri", cnt)
@@ -160,9 +159,6 @@ func getPlaces(cfg *meta.Meta) []string {
 				break
 			}
 			uri = "dir:./zettel"
-		}
-		if uri == "const:" {
-			hasConst = true
 		}
 		if cfg.GetBool(startup.KeyReadOnlyMode) {
 			if u, err := url.Parse(uri); err == nil {
@@ -177,9 +173,6 @@ func getPlaces(cfg *meta.Meta) []string {
 			}
 		}
 		result = append(result, uri)
-	}
-	if !hasConst {
-		result = append(result, "const:")
 	}
 	return result
 }
