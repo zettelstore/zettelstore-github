@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strings"
 
+	"zettelstore.de/z/config/startup"
 	"zettelstore.de/z/domain/id"
 	"zettelstore.de/z/domain/meta"
 )
@@ -48,8 +49,9 @@ func genEnvironmentC(*meta.Meta) string {
 
 	var sb strings.Builder
 	sb.WriteString("|=Name|=Value>\n")
-	fmt.Fprintf(&sb, "|Working directory|''%v''\n", workDir)
-	fmt.Fprintf(&sb, "|Executable|''%v''\n", execName)
+	fmt.Fprintf(&sb, "|Working directory| %v\n", workDir)
+	fmt.Fprintf(&sb, "|Executable| %v\n", execName)
+	fmt.Fprintf(&sb, "|Build with| %v\n", startup.GetVersion().GoVersion)
 
 	sb.WriteString("=== Environment\n")
 	sb.WriteString("|=Key>|=Value<\n")

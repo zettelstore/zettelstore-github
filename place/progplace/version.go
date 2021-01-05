@@ -48,8 +48,3 @@ func genVersionOSC(*meta.Meta) string {
 	v := startup.GetVersion()
 	return fmt.Sprintf("%v/%v", v.Os, v.Arch)
 }
-
-func genVersionGoM(zid id.Zid) *meta.Meta {
-	return getVersionMeta(zid, "Zettelstore Go Version")
-}
-func genVersionGoC(*meta.Meta) string { return startup.GetVersion().GoVersion }

@@ -44,7 +44,6 @@ func Get() place.Place {
 			id.Zid(1):  {genVersionBuildM, genVersionBuildC},
 			id.Zid(2):  {genVersionHostM, genVersionHostC},
 			id.Zid(3):  {genVersionOSM, genVersionOSC},
-			id.Zid(4):  {genVersionGoM, genVersionGoC},
 			id.Zid(6):  {genEnvironmentM, genEnvironmentC},
 			id.Zid(8):  {genRuntimeM, genRuntimeC},
 			id.Zid(90): {genKeysM, genKeysC},
