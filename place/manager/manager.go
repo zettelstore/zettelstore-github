@@ -120,8 +120,7 @@ func connectPlaces(placeURIs []string, readonlyMode bool, lastPlace place.Place)
 	if err != nil {
 		return nil, err
 	}
-	p, err := Connect(placeURIs[0], readonlyMode, next)
-	return p, err
+	return Connect(placeURIs[0], readonlyMode, next)
 }
 
 // Next returns the next place or nil if there is no next place.
