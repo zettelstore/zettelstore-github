@@ -99,7 +99,6 @@ do not hesitate to get in [[contact with the main developer|mailto:ds@zettelstor
 If you have encountered an error, please include the content of the following zettel in your mail:
 * [[Zettelstore Version|00000000000001]]
 * [[Zettelstore Operating System|00000000000003]]
-* [[Zettelstore Go Version|00000000000004]]
 * [[Zettelstore Startup Configuration|00000000000096]]
 * [[Zettelstore Startup Values|00000000000098]]
 * [[Zettelstore Runtime Configuration|00000000000100]]
