@@ -15,7 +15,7 @@ import "zettelstore.de/z/domain/meta"
 
 // MergeSorted returns a merged sequence of meta data, sorted by a given Sorter.
 // The lists first and second must be sorted descending by Zid.
-func MergeSorted(first, second []*meta.Meta, s *Sorter) []*meta.Meta {
+func MergeSorted(first, second []*meta.Meta) []*meta.Meta {
 	lenFirst := len(first)
 	lenSecond := len(second)
 	result := make([]*meta.Meta, 0, lenFirst+lenSecond)
@@ -41,8 +41,6 @@ func MergeSorted(first, second []*meta.Meta, s *Sorter) []*meta.Meta {
 	} else {
 		result = append(result, second[iSecond:]...)
 	}
-	if s == nil {
-		return result
-	}
-	return ApplySorter(result, s)
+
+	return result
 }

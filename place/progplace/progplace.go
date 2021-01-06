@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -26,9 +26,7 @@ import (
 func init() {
 	manager.Register(
 		" prog",
-		func(u *url.URL, next place.Place) (place.Place, error) {
-			return getPlace(), nil
-		})
+		func(u *url.URL) (place.Place, error) { return getPlace(), nil })
 }
 
 type (
@@ -76,16 +74,12 @@ func Setup(startConfig *meta.Meta, manager place.Manager) {
 	myPlace.manager = manager
 }
 
-func (pp *progPlace) Next() place.Place { return nil }
-
 // Location returns some information where the place is located.
 func (pp *progPlace) Location() string { return "" }
 
 // Start the place. Now all other functions of the place are allowed.
 // Starting an already started place is not allowed.
-func (pp *progPlace) Start(ctx context.Context) error {
-	return nil
-}
+func (pp *progPlace) Start(ctx context.Context) error { return nil }
 
 // Stop the started place. Now only the Start() function is allowed.
 func (pp *progPlace) Stop(ctx context.Context) error { return nil }
@@ -115,7 +109,7 @@ func (pp *progPlace) GetZettel(
 			return domain.Zettel{Meta: meta}, nil
 		}
 	}
-	return domain.Zettel{}, &place.ErrUnknownID{Zid: zid}
+	return domain.Zettel{}, place.ErrNotFound
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
@@ -127,7 +121,7 @@ func (pp *progPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error
 			}
 		}
 	}
-	return nil, &place.ErrUnknownID{Zid: zid}
+	return nil, place.ErrNotFound
 }
 
 // SelectMeta returns all zettel meta data that match the selection
@@ -153,23 +147,27 @@ func (pp *progPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) err
 	return place.ErrReadOnly
 }
 
-func (pp *progPlace) CanDeleteZettel(ctx context.Context, zid id.Zid) bool {
-	return false
-}
-
-// DeleteZettel removes the zettel from the place.
-func (pp *progPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
-	return place.ErrReadOnly
-}
-
-func (pp *progPlace) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
+func (pp *progPlace) AllowRenameZettel(ctx context.Context, zid id.Zid) bool {
 	_, ok := pp.zettel[zid]
 	return !ok
 }
 
 // Rename changes the current id to a new id.
 func (pp *progPlace) RenameZettel(ctx context.Context, curZid, newZid id.Zid) error {
-	return place.ErrReadOnly
+	if _, ok := pp.zettel[curZid]; ok {
+		return place.ErrReadOnly
+	}
+	return place.ErrNotFound
+}
+
+func (pp *progPlace) CanDeleteZettel(ctx context.Context, zid id.Zid) bool { return false }
+
+// DeleteZettel removes the zettel from the place.
+func (pp *progPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
+	if _, ok := pp.zettel[zid]; ok {
+		return place.ErrReadOnly
+	}
+	return place.ErrNotFound
 }
 
 // Reload clears all caches, reloads all internal data to reflect changes

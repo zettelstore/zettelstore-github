@@ -39,8 +39,8 @@ type templatePlace interface {
 	GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 	SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error)
 	CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool
+	AllowRenameZettel(ctx context.Context, zid id.Zid) bool
 	CanDeleteZettel(ctx context.Context, zid id.Zid) bool
-	CanRenameZettel(ctx context.Context, zid id.Zid) bool
 }
 
 // TemplateEngine is the way to render HTML templates.
@@ -121,7 +121,7 @@ func (te *TemplateEngine) canWrite(
 
 func (te *TemplateEngine) canRename(
 	ctx context.Context, user *meta.Meta, m *meta.Meta) bool {
-	return te.policy.CanRename(user, m) && te.place.CanRenameZettel(ctx, m.Zid)
+	return te.policy.CanRename(user, m) && te.place.AllowRenameZettel(ctx, m.Zid)
 }
 
 func (te *TemplateEngine) canDelete(

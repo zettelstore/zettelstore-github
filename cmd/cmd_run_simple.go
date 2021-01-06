@@ -34,7 +34,7 @@ func flgSimpleRun(fs *flag.FlagSet) {
 func runSimpleFunc(*flag.FlagSet) (int, error) {
 	p := startup.PlaceManager()
 	if _, err := p.GetMeta(context.Background(), id.WelcomeZid); err != nil {
-		if _, ok := err.(*place.ErrUnknownID); ok {
+		if err == place.ErrNotFound {
 			updateWelcomeZettel(p)
 		}
 	}

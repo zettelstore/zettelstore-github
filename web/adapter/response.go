@@ -21,8 +21,8 @@ import (
 
 // ReportUsecaseError returns an appropriate HTTP status code for errors in use cases.
 func ReportUsecaseError(w http.ResponseWriter, err error) {
-	if err, ok := err.(*place.ErrUnknownID); ok {
-		NotFound(w, fmt.Sprintf("Zettel %q not found.", err.Zid.String()))
+	if err == place.ErrNotFound {
+		NotFound(w, http.StatusText(404))
 		return
 	}
 	if err, ok := err.(*place.ErrNotAllowed); ok {

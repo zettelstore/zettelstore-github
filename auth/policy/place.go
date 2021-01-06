@@ -32,33 +32,22 @@ func PlaceWithPolicy(
 	getVisibility func(*meta.Meta) meta.Visibility,
 ) (place.Place, Policy) {
 	pol := newPolicy(simpleMode, withAuth, isReadOnlyMode, expertMode, isOwner, getVisibility)
-	return wrapPolicyPlace(place, pol), pol
-}
-
-func wrapPolicyPlace(p place.Place, pol Policy) place.Place {
-	if n := p.Next(); n != nil {
-		return newPlace(p, pol, wrapPolicyPlace(n, pol))
-	}
-	return newPlace(p, pol, nil)
+	return newPlace(place, pol), pol
 }
 
 // polPlace implements a policy place.
 type polPlace struct {
 	place  place.Place
 	policy Policy
-	next   place.Place
 }
 
 // newPlace creates a new policy place.
-func newPlace(place place.Place, policy Policy, next place.Place) place.Place {
+func newPlace(place place.Place, policy Policy) place.Place {
 	return &polPlace{
 		place:  place,
 		policy: policy,
-		next:   next,
 	}
 }
-
-func (pp *polPlace) Next() place.Place { return pp.next }
 
 func (pp *polPlace) Location() string {
 	return pp.place.Location()
@@ -160,8 +149,8 @@ func (pp *polPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	return place.NewErrNotAllowed("Write", user, zid)
 }
 
-func (pp *polPlace) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
-	return pp.place.CanRenameZettel(ctx, zid)
+func (pp *polPlace) AllowRenameZettel(ctx context.Context, zid id.Zid) bool {
+	return pp.place.AllowRenameZettel(ctx, zid)
 }
 
 // Rename changes the current zid to a new zid.

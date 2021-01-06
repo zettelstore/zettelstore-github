@@ -25,7 +25,7 @@ import (
 )
 
 // Connect returns a handle to the specified place
-func Connect(rawURL string, readonlyMode bool, next place.Place) (place.Place, error) {
+func Connect(rawURL string, readonlyMode bool) (place.Place, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func Connect(rawURL string, readonlyMode bool, next place.Place) (place.Place, e
 	}
 
 	if create, ok := registry[u.Scheme]; ok {
-		return create(u, next)
+		return create(u)
 	}
 	return nil, &ErrInvalidScheme{u.Scheme}
 }
@@ -57,7 +57,7 @@ type ErrInvalidScheme struct{ Scheme string }
 
 func (err *ErrInvalidScheme) Error() string { return "Invalid scheme: " + err.Scheme }
 
-type createFunc func(*url.URL, place.Place) (place.Place, error)
+type createFunc func(*url.URL) (place.Place, error)
 
 var registry = map[string]createFunc{}
 
@@ -81,50 +81,35 @@ func GetSchemes() []string {
 
 // Manager is a coordinating place.
 type Manager struct {
+	started   bool
 	placeURIs []url.URL
-	place     place.Place
 	subplaces []place.Place
 }
 
 // New creates a new managing place.
 func New(placeURIs []string, readonlyMode bool) (*Manager, error) {
-	subplaces := make([]place.Place, 0, 7)
-	progplace, err := registry[" prog"](nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	constplace, err := registry[" const"](nil, progplace)
-	if err != nil {
-		return nil, err
-	}
-	place, err := connectPlaces(placeURIs, readonlyMode, constplace)
-	if err != nil {
-		return nil, err
-	}
-	for p := place; p != nil; p = p.Next() {
+	subplaces := make([]place.Place, 0, len(placeURIs)+2)
+	for _, uri := range placeURIs {
+		p, err := Connect(uri, readonlyMode)
+		if err != nil {
+			return nil, err
+		}
 		subplaces = append(subplaces, p)
 	}
+	constplace, err := registry[" const"](nil)
+	if err != nil {
+		return nil, err
+	}
+	progplace, err := registry[" prog"](nil)
+	if err != nil {
+		return nil, err
+	}
+	subplaces = append(subplaces, constplace, progplace)
 	result := &Manager{
-		place:     place,
 		subplaces: subplaces,
 	}
 	return result, nil
 }
-
-// Helper function to connect to all given places
-func connectPlaces(placeURIs []string, readonlyMode bool, lastPlace place.Place) (place.Place, error) {
-	if len(placeURIs) == 0 {
-		return lastPlace, nil
-	}
-	next, err := connectPlaces(placeURIs[1:], readonlyMode, lastPlace)
-	if err != nil {
-		return nil, err
-	}
-	return Connect(placeURIs[0], readonlyMode, next)
-}
-
-// Next returns the next place or nil if there is no next place.
-func (mgr *Manager) Next() place.Place { return mgr.place.Next() }
 
 // Location returns some information where the place is located.
 func (mgr *Manager) Location() string {
@@ -144,79 +129,183 @@ func (mgr *Manager) Location() string {
 // Start the place. Now all other functions of the place are allowed.
 // Starting an already started place is not allowed.
 func (mgr *Manager) Start(ctx context.Context) error {
-	return mgr.place.Start(ctx)
+	if mgr.started {
+		return place.ErrStarted
+	}
+	for i := len(mgr.subplaces) - 1; i >= 0; i-- {
+		if err := mgr.subplaces[i].Start(ctx); err != nil {
+			for j := i + 1; j < len(mgr.subplaces); j++ {
+				mgr.subplaces[j].Stop(ctx)
+			}
+			return err
+		}
+	}
+	mgr.started = true
+	return nil
 }
 
 // Stop the started place. Now only the Start() function is allowed.
 func (mgr *Manager) Stop(ctx context.Context) error {
-	return mgr.place.Stop(ctx)
+	if !mgr.started {
+		return place.ErrStopped
+	}
+	var err error
+	for _, p := range mgr.subplaces {
+		if err1 := p.Stop(ctx); err1 != nil && err == nil {
+			err = err1
+		}
+	}
+	mgr.started = false
+	return err
 }
 
 // RegisterChangeObserver registers an observer that will be notified
 // if a zettel was found to be changed.
 func (mgr *Manager) RegisterChangeObserver(f place.ObserverFunc) {
-	mgr.place.RegisterChangeObserver(f)
+	for _, p := range mgr.subplaces {
+		p.RegisterChangeObserver(f)
+	}
 }
 
 // CanCreateZettel returns true, if place could possibly create a new zettel.
 func (mgr *Manager) CanCreateZettel(ctx context.Context) bool {
-	return mgr.place.CanCreateZettel(ctx)
+	return mgr.started && mgr.subplaces[0].CanCreateZettel(ctx)
 }
 
 // CreateZettel creates a new zettel.
 func (mgr *Manager) CreateZettel(ctx context.Context, zettel domain.Zettel) (id.Zid, error) {
-	return mgr.place.CreateZettel(ctx, zettel)
+	if !mgr.started {
+		return id.Invalid, place.ErrStopped
+	}
+	return mgr.subplaces[0].CreateZettel(ctx, zettel)
 }
 
 // GetZettel retrieves a specific zettel.
 func (mgr *Manager) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, error) {
-	return mgr.place.GetZettel(ctx, zid)
+	if !mgr.started {
+		return domain.Zettel{}, place.ErrStopped
+	}
+	for _, p := range mgr.subplaces {
+		if z, err := p.GetZettel(ctx, zid); err != place.ErrNotFound {
+			return z, err
+		}
+	}
+	return domain.Zettel{}, place.ErrNotFound
 }
 
 // GetMeta retrieves just the meta data of a specific zettel.
 func (mgr *Manager) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error) {
-	return mgr.place.GetMeta(ctx, zid)
+	if !mgr.started {
+		return nil, place.ErrStopped
+	}
+	for _, p := range mgr.subplaces {
+		if m, err := p.GetMeta(ctx, zid); err != place.ErrNotFound {
+			return m, err
+		}
+	}
+	return nil, place.ErrNotFound
 }
 
 // SelectMeta returns all zettel meta data that match the selection
 // criteria. The result is ordered by descending zettel id.
 func (mgr *Manager) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error) {
-	return mgr.place.SelectMeta(ctx, f, s)
+	if !mgr.started {
+		return nil, place.ErrStopped
+	}
+	var result []*meta.Meta
+	for _, p := range mgr.subplaces {
+		selected, err := p.SelectMeta(ctx, f, nil)
+		if err != nil {
+			return nil, err
+		}
+		if len(result) == 0 {
+			result = selected
+		} else {
+			result = place.MergeSorted(result, selected)
+		}
+	}
+	if s == nil {
+		return result, nil
+	}
+	return place.ApplySorter(result, s), nil
 }
 
 // CanUpdateZettel returns true, if place could possibly update the given zettel.
 func (mgr *Manager) CanUpdateZettel(ctx context.Context, zettel domain.Zettel) bool {
-	return mgr.place.CanUpdateZettel(ctx, zettel)
+	return mgr.started && mgr.subplaces[0].CanUpdateZettel(ctx, zettel)
 }
 
 // UpdateZettel updates an existing zettel.
 func (mgr *Manager) UpdateZettel(ctx context.Context, zettel domain.Zettel) error {
-
-	return mgr.place.UpdateZettel(ctx, zettel)
+	if !mgr.started {
+		return place.ErrStopped
+	}
+	return mgr.subplaces[0].UpdateZettel(ctx, zettel)
 }
 
-// CanRenameZettel returns true, if place could possibly rename the given zettel.
-func (mgr *Manager) CanRenameZettel(ctx context.Context, zid id.Zid) bool {
-	return mgr.place.CanRenameZettel(ctx, zid)
+// AllowRenameZettel returns true, if place will not disallow renaming the zettel.
+func (mgr *Manager) AllowRenameZettel(ctx context.Context, zid id.Zid) bool {
+	if !mgr.started {
+		return false
+	}
+	for _, p := range mgr.subplaces {
+		if !p.AllowRenameZettel(ctx, zid) {
+			return false
+		}
+	}
+	return true
 }
 
 // RenameZettel changes the current zid to a new zid.
 func (mgr *Manager) RenameZettel(ctx context.Context, curZid, newZid id.Zid) error {
-	return mgr.place.RenameZettel(ctx, curZid, newZid)
+	if !mgr.started {
+		return place.ErrStopped
+	}
+	for i, p := range mgr.subplaces {
+		if err := p.RenameZettel(ctx, curZid, newZid); err != nil && err != place.ErrNotFound {
+			for j := 0; j < i; j++ {
+				mgr.subplaces[j].RenameZettel(ctx, newZid, curZid)
+			}
+			return err
+		}
+	}
+	return nil
 }
 
 // CanDeleteZettel returns true, if place could possibly delete the given zettel.
 func (mgr *Manager) CanDeleteZettel(ctx context.Context, zid id.Zid) bool {
-	return mgr.place.CanDeleteZettel(ctx, zid)
+	if !mgr.started {
+		return false
+	}
+	for _, p := range mgr.subplaces {
+		if p.CanDeleteZettel(ctx, zid) {
+			return true
+		}
+	}
+	return false
 }
 
 // DeleteZettel removes the zettel from the place.
 func (mgr *Manager) DeleteZettel(ctx context.Context, zid id.Zid) error {
-	return mgr.place.DeleteZettel(ctx, zid)
+	if !mgr.started {
+		return place.ErrStopped
+	}
+	for _, p := range mgr.subplaces {
+		if err := p.DeleteZettel(ctx, zid); err != place.ErrNotFound && err != place.ErrReadOnly {
+			return err
+		}
+	}
+	return place.ErrNotFound
 }
 
 // Reload clears all caches, reloads all internal data to reflect changes
 // that were possibly undetected.
 func (mgr *Manager) Reload(ctx context.Context) error {
-	return mgr.place.Reload(ctx)
+	var err error
+	for _, p := range mgr.subplaces {
+		if err1 := p.Reload(ctx); err1 != nil && err == nil {
+			err = err1
+		}
+	}
+	return err
 }

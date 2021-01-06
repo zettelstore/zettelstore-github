@@ -41,9 +41,6 @@ type ObserverFunc func(ChangeReason, id.Zid)
 
 // Place is implemented by all Zettel places.
 type Place interface {
-	// Next returns the next place or nil if there is no next place.
-	Next() Place
-
 	// Location returns some information where the place is located.
 	// Format is dependent of the place.
 	Location() string
@@ -82,8 +79,8 @@ type Place interface {
 	// UpdateZettel updates an existing zettel.
 	UpdateZettel(ctx context.Context, zettel domain.Zettel) error
 
-	// CanRenameZettel returns true, if place could possibly rename the given zettel.
-	CanRenameZettel(ctx context.Context, zid id.Zid) bool
+	// AllowRenameZettel returns true, if place will not disallow renaming the zettel.
+	AllowRenameZettel(ctx context.Context, zid id.Zid) bool
 
 	// RenameZettel changes the current Zid to a new Zid.
 	RenameZettel(ctx context.Context, curZid, newZid id.Zid) error
@@ -151,16 +148,17 @@ func IsErrNotAllowed(err error) bool {
 	return ok
 }
 
+// ErrStarted is returned when trying to start an already started place.
+var ErrStarted = errors.New("Place is already started")
+
 // ErrStopped is returned if calling methods on a place that was not started.
 var ErrStopped = errors.New("Place is stopped")
 
 // ErrReadOnly is returned if there is an attepmt to write to a read-only place.
 var ErrReadOnly = errors.New("Read-only place")
 
-// ErrUnknownID is returned if the zettel id is unknown to the place.
-type ErrUnknownID struct{ Zid id.Zid }
-
-func (err *ErrUnknownID) Error() string { return "Unknown Zettel id: " + err.Zid.String() }
+// ErrNotFound is returned if a zettel was not found in the place.
+var ErrNotFound = errors.New("Zettel not found")
 
 // ErrInvalidID is returned if the zettel id is not appropriate for the place operation.
 type ErrInvalidID struct{ Zid id.Zid }
