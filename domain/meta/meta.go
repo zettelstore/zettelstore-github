@@ -76,7 +76,7 @@ func GetSortedKeyDescriptions() []*DescriptionKey {
 // Supported keys.
 var (
 	KeyID                = registerKey("id", TypeID, usageComputed)
-	KeyTitle             = registerKey("title", TypeString, usageUser)
+	KeyTitle             = registerKey("title", TypeZettelmarkup, usageUser)
 	KeyRole              = registerKey("role", TypeWord, usageUser)
 	KeyTags              = registerKey("tags", TypeTagSet, usageUser)
 	KeySyntax            = registerKey("syntax", TypeWord, usageUser)
@@ -87,7 +87,7 @@ var (
 	KeyDefaultLicense    = registerKey("default-license", TypeEmpty, usageUser)
 	KeyDefaultRole       = registerKey("default-role", TypeWord, usageUser)
 	KeyDefaultSyntax     = registerKey("default-syntax", TypeWord, usageUser)
-	KeyDefaultTitle      = registerKey("default-title", TypeString, usageUser)
+	KeyDefaultTitle      = registerKey("default-title", TypeZettelmarkup, usageUser)
 	KeyDefaultVisibility = registerKey("default-visibility", TypeWord, usageUser)
 	KeyDuplicates        = registerKey("duplicates", TypeBool, usageUser)
 	KeyExpertMode        = registerKey("expert-mode", TypeBool, usageUser)

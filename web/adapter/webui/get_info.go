@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -14,7 +14,6 @@ package webui
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"zettelstore.de/z/ast"
@@ -25,7 +24,6 @@ import (
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
-	"zettelstore.de/z/strfun"
 	"zettelstore.de/z/usecase"
 	"zettelstore.de/z/web/adapter"
 	"zettelstore.de/z/web/session"
@@ -81,7 +79,7 @@ func MakeGetInfoHandler(
 		langOption := &encoder.StringOption{
 			Key:   "lang",
 			Value: runtime.GetLang(zn.InhMeta)}
-		getTitle := func(zid id.Zid) (string, int) {
+		getTitle := func(zid id.Zid, format string) (string, int) {
 			m, err := getMeta.Run(r.Context(), zid)
 			if err != nil {
 				if place.IsErrNotAllowed(err) {
@@ -90,7 +88,7 @@ func MakeGetInfoHandler(
 				return "", 0
 			}
 			astTitle := parser.ParseTitle(m.GetDefault(meta.KeyTitle, ""))
-			title, err := adapter.FormatInlines(astTitle, "html", langOption)
+			title, err := adapter.FormatInlines(astTitle, format, langOption)
 			if err == nil {
 				return title, 1
 			}
@@ -110,8 +108,9 @@ func MakeGetInfoHandler(
 		pairs := zn.Zettel.Meta.Pairs(true)
 		metaData := make([]metaDataInfo, 0, len(pairs))
 		for _, p := range pairs {
-			metaData = append(
-				metaData, metaDataInfo{p.Key, htmlMetaValue(zn.Zettel.Meta, p.Key)})
+			var html strings.Builder
+			writeHTMLMetaValue(&html, zn.Zettel.Meta, p.Key, getTitle, langOption)
+			metaData = append(metaData, metaDataInfo{p.Key, html.String()})
 		}
 		formats := encoder.GetFormats()
 		defFormat := encoder.GetDefaultFormat()
@@ -189,79 +188,8 @@ func MakeGetInfoHandler(
 	}
 }
 
-func htmlMetaValue(m *meta.Meta, key string) string {
-	switch m.Type(key) {
-	case meta.TypeBool:
-		var b strings.Builder
-		if m.GetBool(key) {
-			writeLink(&b, key, "True")
-		} else {
-			writeLink(&b, key, "False")
-		}
-		return b.String()
-
-	case meta.TypeID:
-		value, _ := m.Get(key)
-		zid, err := id.Parse(value)
-		if err != nil {
-			return value
-		}
-		return "<a href=\"" + adapter.NewURLBuilder('h').SetZid(zid).String() + "\">" + value + "</a>"
-
-	case meta.TypeTagSet, meta.TypeWordSet:
-		values, _ := m.GetList(key)
-		var b strings.Builder
-		for i, tag := range values {
-			if i > 0 {
-				b.WriteByte(' ')
-			}
-			writeLink(&b, key, tag)
-		}
-		return b.String()
-
-	case meta.TypeURL:
-		value, _ := m.Get(key)
-		url, err := url.Parse(value)
-		var sb strings.Builder
-		if err != nil {
-			strfun.HTMLEscape(&sb, value, false)
-			return sb.String()
-		}
-		sb.WriteString("<a href=\"")
-		sb.WriteString(url.String())
-		sb.WriteString("\">")
-		strfun.HTMLEscape(&sb, value, false)
-		sb.WriteString("</a>")
-		return sb.String()
-
-	case meta.TypeWord:
-		value, _ := m.Get(key)
-		var b strings.Builder
-		writeLink(&b, key, value)
-		return b.String()
-
-	default:
-		value, _ := m.Get(key)
-		var sb strings.Builder
-		strfun.HTMLEscape(&sb, value, false)
-		return sb.String()
-	}
-}
-
-func writeLink(b *strings.Builder, key, value string) {
-	b.WriteString("<a href=\"")
-	b.WriteString(adapter.NewURLBuilder('h').String())
-	b.WriteByte('?')
-	b.WriteString(url.QueryEscape(key))
-	b.WriteByte('=')
-	b.WriteString(url.QueryEscape(value))
-	b.WriteString("\">")
-	strfun.HTMLEscape(b, value, false)
-	b.WriteString("</a>")
-}
-
 func splitIntExtLinks(
-	getTitle func(id.Zid) (string, int),
+	getTitle func(id.Zid, string) (string, int),
 	links []*ast.Reference,
 ) (zetLinks []zettelReference, locLinks []string, extLinks []string) {
 	if len(links) == 0 {
@@ -276,7 +204,7 @@ func splitIntExtLinks(
 			if err != nil {
 				panic(err)
 			}
-			title, found := getTitle(zid)
+			title, found := getTitle(zid, "html")
 			if found >= 0 {
 				if len(title) == 0 {
 					title = ref.Value

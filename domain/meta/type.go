@@ -22,6 +22,9 @@ type DescriptionType struct {
 	IsSet bool
 }
 
+// String returns the string representation of the given type
+func (t DescriptionType) String() string { return t.Name }
+
 var registeredTypes = make(map[string]*DescriptionType)
 
 func registerType(name string, isSet bool) *DescriptionType {
@@ -35,18 +38,19 @@ func registerType(name string, isSet bool) *DescriptionType {
 
 // Supported key types.
 var (
-	TypeBool       = registerType("Boolean", false)
-	TypeCredential = registerType("Credential", false)
-	TypeTimestamp  = registerType("Timestamp", false)
-	TypeEmpty      = registerType("EString", false)
-	TypeID         = registerType("Identifier", false)
-	TypeNumber     = registerType("Number", false)
-	TypeString     = registerType("String", false)
-	TypeTagSet     = registerType("TagSet", true)
-	TypeURL        = registerType("URL", false)
-	TypeUnknown    = registerType("Unknown", false)
-	TypeWord       = registerType("Word", false)
-	TypeWordSet    = registerType("WordSet", true)
+	TypeBool         = registerType("Boolean", false)
+	TypeCredential   = registerType("Credential", false)
+	TypeEmpty        = registerType("EString", false)
+	TypeID           = registerType("Identifier", false)
+	TypeNumber       = registerType("Number", false)
+	TypeString       = registerType("String", false)
+	TypeTagSet       = registerType("TagSet", true)
+	TypeTimestamp    = registerType("Timestamp", false)
+	TypeURL          = registerType("URL", false)
+	TypeUnknown      = registerType("Unknown", false)
+	TypeWord         = registerType("Word", false)
+	TypeWordSet      = registerType("WordSet", true)
+	TypeZettelmarkup = registerType("Zettelmarkup", false)
 )
 
 // Type returns a type hint for the given key. If no type hint is specified,
