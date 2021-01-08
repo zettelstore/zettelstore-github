@@ -316,3 +316,24 @@ func (mgr *Manager) Reload(ctx context.Context) error {
 	}
 	return err
 }
+
+// ReadStats populates st with place statistics
+func (mgr *Manager) ReadStats(st *place.Stats) {
+	subStats := make([]place.Stats, len(mgr.subplaces))
+	for i, p := range mgr.subplaces {
+		p.ReadStats(&subStats[i])
+	}
+
+	st.ReadOnly = true
+	sumZettel := 0
+	for _, sst := range subStats {
+		if !sst.ReadOnly {
+			st.ReadOnly = false
+		}
+		sumZettel += sst.Zettel
+	}
+	st.Zettel = sumZettel
+}
+
+// NumPlaces returns the number of managed places.
+func (mgr *Manager) NumPlaces() int { return len(mgr.subplaces) }

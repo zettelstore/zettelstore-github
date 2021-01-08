@@ -365,8 +365,6 @@ func (dp *dirPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	return err
 }
 
-// Reload clears all caches, reloads all internal data to reflect changes
-// that were possibly undetected.
 func (dp *dirPlace) Reload(ctx context.Context) error {
 	// Brute force: stop everything, then start everything.
 	// Could be done better in the future...
@@ -375,6 +373,11 @@ func (dp *dirPlace) Reload(ctx context.Context) error {
 		err = dp.Start(ctx)
 	}
 	return err
+}
+
+func (dp *dirPlace) ReadStats(st *place.Stats) {
+	st.ReadOnly = dp.readonly
+	st.Zettel = dp.dirSrv.NumEntries()
 }
 
 func (dp *dirPlace) cleanupMeta(ctx context.Context, m *meta.Meta) {

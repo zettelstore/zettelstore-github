@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -22,10 +22,7 @@ import (
 func getVersionMeta(zid id.Zid, title string) *meta.Meta {
 	m := meta.New(zid)
 	m.Set(meta.KeyTitle, title)
-	m.Set(meta.KeyRole, meta.ValueRoleConfiguration)
-	m.Set(meta.KeySyntax, meta.ValueSyntaxZmk)
 	m.Set(meta.KeyVisibility, meta.ValueVisibilitySimple)
-	m.Set(meta.KeyReadOnly, meta.ValueTrue)
 	return m
 }
 

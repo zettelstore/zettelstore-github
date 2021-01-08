@@ -136,6 +136,9 @@ func (cp *constPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	return place.ErrNotFound
 }
 
-// Reload clears all caches, reloads all internal data to reflect changes
-// that were possibly undetected.
 func (cp *constPlace) Reload(ctx context.Context) error { return nil }
+
+func (cp *constPlace) ReadStats(st *place.Stats) {
+	st.ReadOnly = true
+	st.Zettel = len(cp.zettel)
+}

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -139,6 +139,15 @@ func (srv *Service) directoryService(events <-chan *fileEvent, ready chan<- int)
 
 type dirCmd interface {
 	run(m dirMap)
+}
+
+type cmdNumEntries struct {
+	result chan<- resNumEntries
+}
+type resNumEntries = int
+
+func (cmd *cmdNumEntries) run(m dirMap) {
+	cmd.result <- len(m)
 }
 
 type cmdGetEntries struct {

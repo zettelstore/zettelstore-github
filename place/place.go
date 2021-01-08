@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -94,11 +94,26 @@ type Place interface {
 	// Reload clears all caches, reloads all internal data to reflect changes
 	// that were possibly undetected.
 	Reload(ctx context.Context) error
+
+	// ReadStats populates st with place statistics
+	ReadStats(st *Stats)
 }
 
 // Manager is a place-managing place.
 type Manager interface {
 	Place
+
+	// NumPlaces returns the number of managed places.
+	NumPlaces() int
+}
+
+// Stats records statistics about the place.
+type Stats struct {
+	// ReadOnly indicates that the places cannot be changed
+	ReadOnly bool
+
+	// Zettel is the number of zettel managed by the place.
+	Zettel int
 }
 
 // ErrNotAllowed is returned if the caller is not allowed to perform the operation.

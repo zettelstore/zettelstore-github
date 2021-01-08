@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -80,6 +80,13 @@ func (srv *Service) notifyChange(reason place.ChangeReason, zid id.Zid) {
 	for _, changeF := range changeFuncs {
 		changeF(reason, zid)
 	}
+}
+
+// NumEntries returns the number of managed zettel.
+func (srv *Service) NumEntries() int {
+	resChan := make(chan resNumEntries)
+	srv.cmds <- &cmdNumEntries{resChan}
+	return <-resChan
 }
 
 // GetEntries returns an unsorted list of all current directory entries.

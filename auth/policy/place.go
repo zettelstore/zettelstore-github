@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -183,12 +183,13 @@ func (pp *polPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	return place.NewErrNotAllowed("Delete", user, zid)
 }
 
-// Reload clears all caches, reloads all internal data to reflect changes
-// that were possibly undetected.
 func (pp *polPlace) Reload(ctx context.Context) error {
 	user := session.GetUser(ctx)
 	if pp.policy.CanReload(user) {
 		return pp.place.Reload(ctx)
 	}
 	return place.NewErrNotAllowed("Reload", user, id.Invalid)
+}
+func (pp *polPlace) ReadStats(st *place.Stats) {
+	pp.place.ReadStats(st)
 }

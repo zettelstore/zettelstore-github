@@ -57,6 +57,7 @@ func getPlace(mf manager.MetaFilter) place.Place {
 				id.Zid(3):  {genVersionOSM, genVersionOSC},
 				id.Zid(6):  {genEnvironmentM, genEnvironmentC},
 				id.Zid(8):  {genRuntimeM, genRuntimeC},
+				id.Zid(20): {genManagerM, genManagerC},
 				id.Zid(90): {genKeysM, genKeysC},
 				id.Zid(96): {genConfigZettelM, genConfigZettelC},
 				id.Zid(98): {genConfigM, genConfigC},
@@ -104,14 +105,15 @@ func (pp *progPlace) CreateZettel(
 func (pp *progPlace) GetZettel(
 	ctx context.Context, zid id.Zid) (domain.Zettel, error) {
 	if gen, ok := pp.zettel[zid]; ok && gen.meta != nil {
-		if meta := gen.meta(zid); meta != nil {
+		if m := gen.meta(zid); m != nil {
+			updateMeta(m)
 			if genContent := gen.content; genContent != nil {
 				return domain.Zettel{
-					Meta:    meta,
-					Content: domain.NewContent(genContent(meta)),
+					Meta:    m,
+					Content: domain.NewContent(genContent(m)),
 				}, nil
 			}
-			return domain.Zettel{Meta: meta}, nil
+			return domain.Zettel{Meta: m}, nil
 		}
 	}
 	return domain.Zettel{}, place.ErrNotFound
@@ -121,8 +123,9 @@ func (pp *progPlace) GetZettel(
 func (pp *progPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error) {
 	if gen, ok := pp.zettel[zid]; ok {
 		if genMeta := gen.meta; genMeta != nil {
-			if meta := genMeta(zid); meta != nil {
-				return meta, nil
+			if m := genMeta(zid); m != nil {
+				updateMeta(m)
+				return m, nil
 			}
 		}
 	}
@@ -137,6 +140,7 @@ func (pp *progPlace) SelectMeta(
 	for zid, gen := range pp.zettel {
 		if genMeta := gen.meta; genMeta != nil {
 			if m := genMeta(zid); m != nil {
+				updateMeta(m)
 				pp.filter.UpdateProperties(m)
 				if hasMatch(m) {
 					res = append(res, m)
@@ -178,6 +182,18 @@ func (pp *progPlace) DeleteZettel(ctx context.Context, zid id.Zid) error {
 	return place.ErrNotFound
 }
 
-// Reload clears all caches, reloads all internal data to reflect changes
-// that were possibly undetected.
 func (pp *progPlace) Reload(ctx context.Context) error { return nil }
+
+func (pp *progPlace) ReadStats(st *place.Stats) {
+	st.ReadOnly = true
+	st.Zettel = len(pp.zettel)
+}
+
+func updateMeta(m *meta.Meta) {
+	m.Set(meta.KeySyntax, meta.ValueSyntaxZmk)
+	m.Set(meta.KeyRole, meta.ValueRoleConfiguration)
+	m.Set(meta.KeyReadOnly, meta.ValueTrue)
+	if _, ok := m.Get(meta.KeyVisibility); !ok {
+		m.Set(meta.KeyVisibility, meta.ValueVisibilityExpert)
+	}
+}

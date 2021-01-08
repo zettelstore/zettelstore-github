@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2020 Detlef Stern
+// Copyright (c) 2020-2021 Detlef Stern
 //
 // This file is part of zettelstore.
 //
@@ -123,27 +123,27 @@ func getConfig(fs *flag.FlagSet) (cfg *meta.Meta) {
 }
 
 func setupOperations(cfg *meta.Meta, withPlaces bool, simple bool) error {
-	var place place.Place
+	var mgr place.Manager
 	if withPlaces {
 		p, err := manager.New(getPlaces(cfg), cfg.GetBool(startup.KeyReadOnlyMode))
 		if err != nil {
 			return err
 		}
-		place = p
+		mgr = p
 	}
 
-	err := startup.SetupStartup(cfg, place, simple)
+	err := startup.SetupStartup(cfg, mgr, simple)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Unable to connect to specified places")
 		return err
 	}
 	if withPlaces {
-		if err := startup.PlaceManager().Start(context.Background()); err != nil {
+		if err := mgr.Start(context.Background()); err != nil {
 			fmt.Fprintln(os.Stderr, "Unable to start zettel place")
 			return err
 		}
-		runtime.SetupConfiguration(startup.PlaceManager())
-		progplace.Setup(cfg, startup.PlaceManager())
+		runtime.SetupConfiguration(mgr)
+		progplace.Setup(cfg, mgr)
 	}
 	return nil
 }
