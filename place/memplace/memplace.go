@@ -104,6 +104,7 @@ func (mp *memPlace) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, e
 	if !ok {
 		return domain.Zettel{}, place.ErrNotFound
 	}
+	zettel.Meta = zettel.Meta.Clone()
 	return zettel, nil
 }
 
@@ -114,17 +115,17 @@ func (mp *memPlace) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 	if !ok {
 		return nil, place.ErrNotFound
 	}
-	return zettel.Meta, nil
+	return zettel.Meta.Clone(), nil
 }
 
-func (mp *memPlace) SelectMeta(
-	ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error) {
-	mp.mx.RLock()
+func (mp *memPlace) SelectMeta(ctx context.Context, f *place.Filter, s *place.Sorter) ([]*meta.Meta, error) {
 	filterFunc := place.CreateFilterFunc(f)
-	result := make([]*meta.Meta, 0)
+	result := make([]*meta.Meta, 0, len(mp.zettel))
+	mp.mx.RLock()
 	for _, zettel := range mp.zettel {
-		if filterFunc(zettel.Meta) {
-			result = append(result, zettel.Meta)
+		m := zettel.Meta.Clone()
+		if filterFunc(m) {
+			result = append(result, m)
 		}
 	}
 	mp.mx.RUnlock()
