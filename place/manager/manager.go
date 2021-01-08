@@ -25,7 +25,7 @@ import (
 )
 
 // Connect returns a handle to the specified place
-func Connect(rawURL string, readonlyMode bool) (place.Place, error) {
+func Connect(rawURL string, readonlyMode bool, f MetaFilter) (place.Place, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func Connect(rawURL string, readonlyMode bool) (place.Place, error) {
 	}
 
 	if create, ok := registry[u.Scheme]; ok {
-		return create(u)
+		return create(u, f)
 	}
 	return nil, &ErrInvalidScheme{u.Scheme}
 }
@@ -57,7 +57,7 @@ type ErrInvalidScheme struct{ Scheme string }
 
 func (err *ErrInvalidScheme) Error() string { return "Invalid scheme: " + err.Scheme }
 
-type createFunc func(*url.URL) (place.Place, error)
+type createFunc func(*url.URL, MetaFilter) (place.Place, error)
 
 var registry = map[string]createFunc{}
 
@@ -84,29 +84,32 @@ type Manager struct {
 	started   bool
 	placeURIs []url.URL
 	subplaces []place.Place
+	filter    MetaFilter
 }
 
 // New creates a new managing place.
 func New(placeURIs []string, readonlyMode bool) (*Manager, error) {
+	filter := newFilter()
 	subplaces := make([]place.Place, 0, len(placeURIs)+2)
 	for _, uri := range placeURIs {
-		p, err := Connect(uri, readonlyMode)
+		p, err := Connect(uri, readonlyMode, filter)
 		if err != nil {
 			return nil, err
 		}
 		subplaces = append(subplaces, p)
 	}
-	constplace, err := registry[" const"](nil)
+	constplace, err := registry[" const"](nil, filter)
 	if err != nil {
 		return nil, err
 	}
-	progplace, err := registry[" prog"](nil)
+	progplace, err := registry[" prog"](nil, filter)
 	if err != nil {
 		return nil, err
 	}
 	subplaces = append(subplaces, constplace, progplace)
 	result := &Manager{
 		subplaces: subplaces,
+		filter:    filter,
 	}
 	return result, nil
 }
@@ -187,6 +190,7 @@ func (mgr *Manager) GetZettel(ctx context.Context, zid id.Zid) (domain.Zettel, e
 	}
 	for _, p := range mgr.subplaces {
 		if z, err := p.GetZettel(ctx, zid); err != place.ErrNotFound {
+			mgr.filter.UpdateProperties(z.Meta)
 			return z, err
 		}
 	}
@@ -200,6 +204,7 @@ func (mgr *Manager) GetMeta(ctx context.Context, zid id.Zid) (*meta.Meta, error)
 	}
 	for _, p := range mgr.subplaces {
 		if m, err := p.GetMeta(ctx, zid); err != place.ErrNotFound {
+			mgr.filter.UpdateProperties(m)
 			return m, err
 		}
 	}
@@ -240,6 +245,8 @@ func (mgr *Manager) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 	if !mgr.started {
 		return place.ErrStopped
 	}
+	zettel.Meta = zettel.Meta.Clone()
+	mgr.filter.RemoveProperties(zettel.Meta)
 	return mgr.subplaces[0].UpdateZettel(ctx, zettel)
 }
 

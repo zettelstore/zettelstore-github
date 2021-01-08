@@ -32,9 +32,10 @@ func genKeysM(zid id.Zid) *meta.Meta {
 func genKeysC(*meta.Meta) string {
 	keys := meta.GetSortedKeyDescriptions()
 	var sb strings.Builder
-	sb.WriteString("|=Name<|=Type<|=Computed?:\n")
+	sb.WriteString("|=Name<|=Type<|=Computed?:|=Property?:\n")
 	for _, kd := range keys {
-		fmt.Fprintf(&sb, "|%v|%v|%v\n", kd.Name, kd.Type.Name, kd.IsComputed)
+		fmt.Fprintf(&sb,
+			"|%v|%v|%v|%v\n", kd.Name, kd.Type.Name, kd.IsComputed(), kd.IsProperty())
 	}
 	return sb.String()
 }

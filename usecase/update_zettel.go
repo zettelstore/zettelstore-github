@@ -45,7 +45,7 @@ func (uc UpdateZettel) Run(ctx context.Context, zettel domain.Zettel, hasContent
 	if err != nil {
 		return err
 	}
-	if zettel.Equal(oldZettel) {
+	if zettel.Equal(oldZettel, false) {
 		return nil
 	}
 	m.SetNow(meta.KeyModified)

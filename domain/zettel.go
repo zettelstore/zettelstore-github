@@ -22,6 +22,6 @@ type Zettel struct {
 }
 
 // Equal compares two zettel for equality.
-func (z Zettel) Equal(o Zettel) bool {
-	return z.Meta.Equal(o.Meta) && z.Content == o.Content
+func (z Zettel) Equal(o Zettel, allowComputed bool) bool {
+	return z.Meta.Equal(o.Meta, allowComputed) && z.Content == o.Content
 }

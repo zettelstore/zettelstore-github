@@ -22,6 +22,7 @@ import (
 
 	"zettelstore.de/z/ast"
 	"zettelstore.de/z/domain"
+	"zettelstore.de/z/domain/meta"
 	"zettelstore.de/z/encoder"
 	"zettelstore.de/z/parser"
 	"zettelstore.de/z/place"
@@ -48,7 +49,11 @@ func getFilePlaces(wd string, kind string) (root string, places []place.Place) {
 
 	for _, info := range infos {
 		if info.Mode().IsDir() {
-			place, err := manager.Connect("dir://"+filepath.Join(root, info.Name()), false)
+			place, err := manager.Connect(
+				"dir://"+filepath.Join(root, info.Name()),
+				false,
+				&noFilter{},
+			)
 			if err != nil {
 				panic(err)
 			}
@@ -57,6 +62,11 @@ func getFilePlaces(wd string, kind string) (root string, places []place.Place) {
 	}
 	return root, places
 }
+
+type noFilter struct{}
+
+func (nf *noFilter) UpdateProperties(m *meta.Meta) {}
+func (nf *noFilter) RemoveProperties(m *meta.Meta) {}
 
 func trimLastEOL(s string) string {
 	if lastPos := len(s) - 1; lastPos >= 0 && s[lastPos] == '\n' {

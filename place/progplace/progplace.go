@@ -26,7 +26,9 @@ import (
 func init() {
 	manager.Register(
 		" prog",
-		func(u *url.URL) (place.Place, error) { return getPlace(), nil })
+		func(u *url.URL, mf manager.MetaFilter) (place.Place, error) {
+			return getPlace(mf), nil
+		})
 }
 
 type (
@@ -37,6 +39,7 @@ type (
 
 	progPlace struct {
 		zettel      map[id.Zid]zettelGen
+		filter      manager.MetaFilter
 		startConfig *meta.Meta
 		manager     place.Manager
 	}
@@ -45,18 +48,20 @@ type (
 var myPlace *progPlace
 
 // Get returns the one program place.
-func getPlace() place.Place {
+func getPlace(mf manager.MetaFilter) place.Place {
 	if myPlace == nil {
-		myPlace = &progPlace{}
-		myPlace.zettel = map[id.Zid]zettelGen{
-			id.Zid(1):  {genVersionBuildM, genVersionBuildC},
-			id.Zid(2):  {genVersionHostM, genVersionHostC},
-			id.Zid(3):  {genVersionOSM, genVersionOSC},
-			id.Zid(6):  {genEnvironmentM, genEnvironmentC},
-			id.Zid(8):  {genRuntimeM, genRuntimeC},
-			id.Zid(90): {genKeysM, genKeysC},
-			id.Zid(96): {genConfigZettelM, genConfigZettelC},
-			id.Zid(98): {genConfigM, genConfigC},
+		myPlace = &progPlace{
+			zettel: map[id.Zid]zettelGen{
+				id.Zid(1):  {genVersionBuildM, genVersionBuildC},
+				id.Zid(2):  {genVersionHostM, genVersionHostC},
+				id.Zid(3):  {genVersionOSM, genVersionOSC},
+				id.Zid(6):  {genEnvironmentM, genEnvironmentC},
+				id.Zid(8):  {genRuntimeM, genRuntimeC},
+				id.Zid(90): {genKeysM, genKeysC},
+				id.Zid(96): {genConfigZettelM, genConfigZettelC},
+				id.Zid(98): {genConfigM, genConfigC},
+			},
+			filter: mf,
 		}
 	}
 	return myPlace
@@ -131,8 +136,11 @@ func (pp *progPlace) SelectMeta(
 	hasMatch := place.CreateFilterFunc(f)
 	for zid, gen := range pp.zettel {
 		if genMeta := gen.meta; genMeta != nil {
-			if meta := genMeta(zid); meta != nil && hasMatch(meta) {
-				res = append(res, meta)
+			if m := genMeta(zid); m != nil {
+				pp.filter.UpdateProperties(m)
+				if hasMatch(m) {
+					res = append(res, m)
+				}
 			}
 		}
 	}

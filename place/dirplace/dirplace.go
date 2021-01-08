@@ -31,7 +31,7 @@ import (
 )
 
 func init() {
-	manager.Register("dir", func(u *url.URL) (place.Place, error) {
+	manager.Register("dir", func(u *url.URL, mf manager.MetaFilter) (place.Place, error) {
 		path := getDirPath(u)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			return nil, err
@@ -42,7 +42,8 @@ func init() {
 			dir:      path,
 			dirRescan: time.Duration(
 				getQueryInt(u, "rescan", 60, 600, 30*24*60*60)) * time.Second,
-			fSrvs: uint32(getQueryInt(u, "worker", 1, 17, 1499)),
+			fSrvs:  uint32(getQueryInt(u, "worker", 1, 17, 1499)),
+			filter: mf,
 		}
 		return &dp, nil
 	})
@@ -90,6 +91,7 @@ type dirPlace struct {
 	fSrvs      uint32
 	fCmds      []chan fileCmd
 	mxCmds     sync.RWMutex
+	filter     manager.MetaFilter
 }
 
 func (dp *dirPlace) Location() string {
@@ -218,6 +220,7 @@ func (dp *dirPlace) SelectMeta(
 			continue
 		}
 		dp.cleanupMeta(ctx, m)
+		dp.filter.UpdateProperties(m)
 
 		if hasMatch(m) {
 			res = append(res, m)
@@ -248,7 +251,7 @@ func (dp *dirPlace) UpdateZettel(ctx context.Context, zettel domain.Zettel) erro
 		entry.Zid = meta.Zid
 		dp.updateEntryFromMeta(&entry, meta)
 	} else if entry.MetaSpec == directory.MetaSpecNone {
-		if defaultMeta := entry.CalcDefaultMeta(); !meta.Equal(defaultMeta) {
+		if defaultMeta := entry.CalcDefaultMeta(); !meta.Equal(defaultMeta, true) {
 			dp.updateEntryFromMeta(&entry, meta)
 			dp.dirSrv.UpdateEntry(&entry)
 		}

@@ -20,26 +20,41 @@ import (
 	"zettelstore.de/z/runes"
 )
 
+type keyUsage int
+
+const (
+	_             keyUsage = iota
+	usageUser              // Key will be manipulated by the user
+	usageComputed          // Key is computed by zettelstore
+	usageProperty          // Key is computed and not stored by zettelstore
+)
+
 // DescriptionKey formally describes each supported metadata key.
 type DescriptionKey struct {
-	Name       string
-	Type       *DescriptionType
-	IsComputed bool
+	Name  string
+	Type  *DescriptionType
+	usage keyUsage
 }
+
+// IsComputed returns true, if metadata is computed and not set by the user.
+func (kd *DescriptionKey) IsComputed() bool { return kd.usage >= usageComputed }
+
+// IsProperty returns true, if metadata is a computed property.
+func (kd *DescriptionKey) IsProperty() bool { return kd.usage >= usageProperty }
 
 var registeredKeys = make(map[string]*DescriptionKey)
 
-func registerKey(name string, t *DescriptionType, isComputed bool) string {
+func registerKey(name string, t *DescriptionType, usage keyUsage) string {
 	if _, ok := registeredKeys[name]; ok {
 		panic("Key '" + name + "' already defined")
 	}
-	registeredKeys[name] = &DescriptionKey{name, t, isComputed}
+	registeredKeys[name] = &DescriptionKey{name, t, usage}
 	return name
 }
 
 func isComputed(name string) bool {
 	if kd, ok := registeredKeys[name]; ok {
-		return kd.IsComputed
+		return kd.IsComputed()
 	}
 	return false
 }
@@ -60,39 +75,40 @@ func GetSortedKeyDescriptions() []*DescriptionKey {
 
 // Supported keys.
 var (
-	KeyID                = registerKey("id", TypeID, true)
-	KeyTitle             = registerKey("title", TypeString, false)
-	KeyRole              = registerKey("role", TypeWord, false)
-	KeyTags              = registerKey("tags", TypeTagSet, false)
-	KeySyntax            = registerKey("syntax", TypeWord, false)
-	KeyCopyright         = registerKey("copyright", TypeString, false)
-	KeyCredential        = registerKey("credential", TypeCredential, false)
-	KeyDefaultCopyright  = registerKey("default-copyright", TypeString, false)
-	KeyDefaultLang       = registerKey("default-lang", TypeWord, false)
-	KeyDefaultLicense    = registerKey("default-license", TypeEmpty, false)
-	KeyDefaultRole       = registerKey("default-role", TypeWord, false)
-	KeyDefaultSyntax     = registerKey("default-syntax", TypeWord, false)
-	KeyDefaultTitle      = registerKey("default-title", TypeString, false)
-	KeyDefaultVisibility = registerKey("default-visibility", TypeWord, false)
-	KeyDuplicates        = registerKey("duplicates", TypeBool, false)
-	KeyExpertMode        = registerKey("expert-mode", TypeBool, false)
-	KeyFooterHTML        = registerKey("footer-html", TypeString, false)
-	KeyLang              = registerKey("lang", TypeWord, false)
-	KeyLicense           = registerKey("license", TypeEmpty, false)
-	KeyListPageSize      = registerKey("list-page-size", TypeNumber, false)
-	KeyNewRole           = registerKey("new-role", TypeWord, false)
-	KeyMarkerExternal    = registerKey("marker-external", TypeEmpty, false)
-	KeyModified          = registerKey("modified", TypeTimestamp, true)
-	KeyPrecursor         = registerKey("precursor", TypeID, false)
-	KeyReadOnly          = registerKey("read-only", TypeWord, false)
-	KeySiteName          = registerKey("site-name", TypeString, false)
-	KeyStart             = registerKey("start", TypeID, false)
-	KeyURL               = registerKey("url", TypeURL, false)
-	KeyUserID            = registerKey("user-id", TypeWord, false)
-	KeyUserRole          = registerKey("user-role", TypeWord, false)
-	KeyVisibility        = registerKey("visibility", TypeWord, false)
-	KeyYAMLHeader        = registerKey("yaml-header", TypeBool, false)
-	KeyZettelFileSyntax  = registerKey("zettel-file-syntax", TypeWordSet, false)
+	KeyID                = registerKey("id", TypeID, usageComputed)
+	KeyTitle             = registerKey("title", TypeString, usageUser)
+	KeyRole              = registerKey("role", TypeWord, usageUser)
+	KeyTags              = registerKey("tags", TypeTagSet, usageUser)
+	KeySyntax            = registerKey("syntax", TypeWord, usageUser)
+	KeyCopyright         = registerKey("copyright", TypeString, usageUser)
+	KeyCredential        = registerKey("credential", TypeCredential, usageUser)
+	KeyDefaultCopyright  = registerKey("default-copyright", TypeString, usageUser)
+	KeyDefaultLang       = registerKey("default-lang", TypeWord, usageUser)
+	KeyDefaultLicense    = registerKey("default-license", TypeEmpty, usageUser)
+	KeyDefaultRole       = registerKey("default-role", TypeWord, usageUser)
+	KeyDefaultSyntax     = registerKey("default-syntax", TypeWord, usageUser)
+	KeyDefaultTitle      = registerKey("default-title", TypeString, usageUser)
+	KeyDefaultVisibility = registerKey("default-visibility", TypeWord, usageUser)
+	KeyDuplicates        = registerKey("duplicates", TypeBool, usageUser)
+	KeyExpertMode        = registerKey("expert-mode", TypeBool, usageUser)
+	KeyFooterHTML        = registerKey("footer-html", TypeString, usageUser)
+	KeyLang              = registerKey("lang", TypeWord, usageUser)
+	KeyLicense           = registerKey("license", TypeEmpty, usageUser)
+	KeyListPageSize      = registerKey("list-page-size", TypeNumber, usageUser)
+	KeyNewRole           = registerKey("new-role", TypeWord, usageUser)
+	KeyMarkerExternal    = registerKey("marker-external", TypeEmpty, usageUser)
+	KeyModified          = registerKey("modified", TypeTimestamp, usageComputed)
+	KeyPrecursor         = registerKey("precursor", TypeID, usageUser)
+	KeyPublished         = registerKey("published", TypeTimestamp, usageProperty)
+	KeyReadOnly          = registerKey("read-only", TypeWord, usageUser)
+	KeySiteName          = registerKey("site-name", TypeString, usageUser)
+	KeyStart             = registerKey("start", TypeID, usageUser)
+	KeyURL               = registerKey("url", TypeURL, usageUser)
+	KeyUserID            = registerKey("user-id", TypeWord, usageUser)
+	KeyUserRole          = registerKey("user-role", TypeWord, usageUser)
+	KeyVisibility        = registerKey("visibility", TypeWord, usageUser)
+	KeyYAMLHeader        = registerKey("yaml-header", TypeBool, usageUser)
+	KeyZettelFileSyntax  = registerKey("zettel-file-syntax", TypeWordSet, usageUser)
 )
 
 // Important values for some keys.
@@ -243,7 +259,7 @@ func (m *Meta) Delete(key string) {
 }
 
 // Equal compares to metas for equality.
-func (m *Meta) Equal(o *Meta) bool {
+func (m *Meta) Equal(o *Meta, allowComputed bool) bool {
 	if m == nil && o == nil {
 		return true
 	}
@@ -251,8 +267,10 @@ func (m *Meta) Equal(o *Meta) bool {
 		return false
 	}
 	for k, v := range m.pairs {
-		if vo, ok := o.pairs[k]; !ok || v != vo {
-			return false
+		if allowComputed || !isComputed(k) {
+			if vo, ok := o.pairs[k]; !ok || v != vo {
+				return false
+			}
 		}
 	}
 	return true

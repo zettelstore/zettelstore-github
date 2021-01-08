@@ -25,8 +25,8 @@ import (
 func init() {
 	manager.Register(
 		" const",
-		func(u *url.URL) (place.Place, error) {
-			return &constPlace{zettel: constZettelMap}, nil
+		func(u *url.URL, mf manager.MetaFilter) (place.Place, error) {
+			return &constPlace{zettel: constZettelMap, filter: mf}, nil
 		})
 }
 
@@ -47,6 +47,7 @@ type constZettel struct {
 
 type constPlace struct {
 	zettel map[id.Zid]constZettel
+	filter manager.MetaFilter
 }
 
 // Location returns some information where the place is located.
@@ -96,9 +97,10 @@ func (cp *constPlace) SelectMeta(
 	ctx context.Context, f *place.Filter, s *place.Sorter) (res []*meta.Meta, err error) {
 	hasMatch := place.CreateFilterFunc(f)
 	for zid, zettel := range cp.zettel {
-		meta := makeMeta(zid, zettel.header)
-		if hasMatch(meta) {
-			res = append(res, meta)
+		m := makeMeta(zid, zettel.header)
+		cp.filter.UpdateProperties(m)
+		if hasMatch(m) {
+			res = append(res, m)
 		}
 	}
 	return place.ApplySorter(res, s), nil
