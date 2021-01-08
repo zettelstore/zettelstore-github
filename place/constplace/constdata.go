@@ -656,11 +656,10 @@ footer {
 
 	id.TemplateNewZettelZid: constZettel{
 		constHeader{
-			meta.KeyTitle:      "New Zettel",
-			meta.KeyRole:       meta.ValueRoleNewTemplate,
-			meta.KeyNewRole:    meta.ValueRoleZettel,
-			meta.KeyVisibility: meta.ValueVisibilityLogin,
-			meta.KeySyntax:     meta.ValueSyntaxZmk,
+			meta.KeyTitle:   "New Zettel",
+			meta.KeyRole:    meta.ValueRoleNewTemplate,
+			meta.KeyNewRole: meta.ValueRoleZettel,
+			meta.KeySyntax:  meta.ValueSyntaxZmk,
 		},
 		"",
 	},
@@ -673,7 +672,6 @@ footer {
 			meta.KeyCredential: "",
 			meta.KeyUserID:     "",
 			meta.KeyUserRole:   meta.ValueUserRoleReader,
-			meta.KeyVisibility: meta.ValueVisibilityLogin,
 			meta.KeySyntax:     meta.ValueSyntaxMeta,
 		},
 		"",
