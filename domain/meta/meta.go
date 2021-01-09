@@ -263,7 +263,7 @@ func (m *Meta) Equal(o *Meta, allowComputed bool) bool {
 	if m == nil && o == nil {
 		return true
 	}
-	if m == nil || o == nil || m.Zid != o.Zid || len(m.pairs) != len(o.pairs) {
+	if m == nil || o == nil || m.Zid != o.Zid {
 		return false
 	}
 	for k, v := range m.pairs {
