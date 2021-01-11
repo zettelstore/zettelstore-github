@@ -25,3 +25,6 @@ cmd/zettelstore/__debug_bin
 
 # zettelstor config file
 .zscfg
+
+# Fossil local DB
+.fslckout
